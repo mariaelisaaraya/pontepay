@@ -6,16 +6,21 @@
 
 ---
 
+> ## ⚠️ AVISO: las 5 fichas de la Sección 7 y la Síntesis son **SIMULADAS**
+> Son **personas sintéticas** (realistas, basadas en patrones conocidos del mercado argentino), incluidas como **borrador y ejemplo del nivel de detalle esperado** y para poder ensayar el pitch/demo. **No son entrevistas reales.** La rúbrica de PULSO valida descubrimiento *real*: **reemplazá estas fichas con 5 entrevistas reales antes de la entrega** usando el guion de la Sección 5. Mientras tanto, sirven de plantilla viva.
+
+---
+
 ## 0. Estado de este documento
 
-- [ ] Entrevista 1 completada
-- [ ] Entrevista 2 completada
-- [ ] Entrevista 3 completada
-- [ ] Entrevista 4 completada
-- [ ] Entrevista 5 completada
-- [ ] Síntesis completada
-- [ ] Quotes seleccionadas para el pitch
-- [ ] Bloque de evidencia copiado al README
+- [x] Entrevista 1 — *simulada (reemplazar por real)*
+- [x] Entrevista 2 — *simulada (reemplazar por real)*
+- [x] Entrevista 3 — *simulada (reemplazar por real)*
+- [x] Entrevista 4 — *simulada (reemplazar por real)*
+- [x] Entrevista 5 — *simulada (reemplazar por real)*
+- [x] Síntesis — *borrador con datos simulados*
+- [ ] Quotes seleccionadas para el pitch (de entrevistas **reales**)
+- [ ] Bloque de evidencia copiado al README (con números **reales**)
 
 **Meta mínima para PULSO:** ≥5 entrevistas reales (el material de intro del hackathon habla de 5; el mínimo duro es 3, pero apuntamos a 5 para sumar en el criterio #3).
 
@@ -140,164 +145,165 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 
 ---
 
-## 7. Fichas de entrevista (completar 5)
+## 7. Fichas de entrevista (5) · ⚠️ SIMULADAS — reemplazar por reales
 
-> Copiá una ficha por persona. Mantené las quotes **textuales**. Marcá la "Señal de demanda" en escala: 🔴 Baja (cumplido vacío) / 🟡 Media (interés pero sin compromiso) / 🟢 Alta (comportamiento real + siguiente paso concreto).
+> Las quotes son **textuales**. "Señal de demanda": 🔴 Baja (cumplido vacío) / 🟡 Media (interés sin compromiso) / 🟢 Alta (comportamiento real + siguiente paso concreto).
+> **Recordatorio:** estas 5 fichas son sintéticas (ver aviso al inicio). Sustituilas por entrevistas reales con el guion de la Sección 5.
 
-### Entrevista 1
-
-| Campo | Detalle |
-|-------|---------|
-| **Perfil / segmento (A/B/C/D)** | |
-| **Cómo cobra hoy / contexto** | |
-| **Fecha** | |
-| **Canal** (Meet / Telegram / presencial…) | |
-| **Método actual** (Binance P2P / Lemon / cueva…) | |
-| **Frecuencia de operación** | |
-| **Hallazgos clave** (3–5 bullets) | |
-| **Dolor principal** | |
-| **¿Sabe cuánto paga de spread/fee?** | |
-| **Quotes textuales** | |
-| **Reacción a non-custodial + escrow** | |
-| **Reacción a tasa oráculo + BCRA** | |
-| **Reacción a Transferencias 3.0 / QR** | |
-| **Disposición a pagar (declarada / inferida)** | |
-| **Señal de demanda** (🔴/🟡/🟢) | |
-| **Siguiente paso acordado** | |
-
-### Entrevista 2
+### Entrevista 1 — "Tomás" *(simulada)*
 
 | Campo | Detalle |
 |-------|---------|
-| **Perfil / segmento (A/B/C/D)** | |
-| **Cómo cobra hoy / contexto** | |
-| **Fecha** | |
-| **Canal** | |
-| **Método actual** | |
-| **Frecuencia de operación** | |
-| **Hallazgos clave** | |
-| **Dolor principal** | |
-| **¿Sabe cuánto paga de spread/fee?** | |
-| **Quotes textuales** | |
-| **Reacción a non-custodial + escrow** | |
-| **Reacción a tasa oráculo + BCRA** | |
-| **Reacción a Transferencias 3.0 / QR** | |
-| **Disposición a pagar (declarada / inferida)** | |
-| **Señal de demanda** (🔴/🟡/🟢) | |
-| **Siguiente paso acordado** | |
+| **Perfil / segmento** | A — Dev backend freelance, 29, factura a un cliente de EE.UU. |
+| **Cómo cobra hoy / contexto** | Cobra ~USD 2.500/mes en USDC en su propia wallet. |
+| **Fecha** | 2026-06-22 *(simulada)* |
+| **Canal** | Google Meet |
+| **Método actual** | Binance P2P (vende USDC a ARS). |
+| **Frecuencia de operación** | Mensual, a veces 2× por mes → **4 operaciones** el último trimestre. |
+| **Hallazgos clave** | • Vende apenas cobra por miedo a que se mueva la tasa.<br>• Una vez le **bloquearon la cuenta de Binance 11 días** con la plata del alquiler adentro.<br>• Parte el monto en operaciones chicas para limitar el riesgo. |
+| **Dolor principal** | Riesgo de bloqueo de cuenta + tiempo de coordinar con la contraparte. |
+| **¿Sabe spread/fee?** | No exacto: "le calculo 1–2% pero no lo mido". |
+| **Quotes textuales** | *"Cuando me bloquearon la cuenta casi me muero, tenía la plata del alquiler ahí adentro."* · *"Vendo apenas entra, no me banco el riesgo de que baje."* |
+| **Reacción non-custodial + escrow** | 🟢 "Que la plata no esté ni en Binance ni en la otra persona es justo lo que me daría tranquilidad." |
+| **Reacción tasa oráculo + BCRA** | 🟡 "Está bueno ver la brecha; igual yo miro el dólar cripto en otra app." |
+| **Reacción Transferencias 3.0 / QR** | 🟢 "Cobrar por QR a cualquier banco me ahorra el ida y vuelta del CBU." |
+| **Disposición a pagar** | Declarada: "1% me parece bien". Inferida: paga ~1,5% hoy. |
+| **Señal de demanda** | 🟢 Alta (comportamiento real + pidió probar el demo) |
+| **Siguiente paso acordado** | Prueba el demo esta semana; pasó contacto de 2 devs. |
 
-### Entrevista 3
-
-| Campo | Detalle |
-|-------|---------|
-| **Perfil / segmento (A/B/C/D)** | |
-| **Cómo cobra hoy / contexto** | |
-| **Fecha** | |
-| **Canal** | |
-| **Método actual** | |
-| **Frecuencia de operación** | |
-| **Hallazgos clave** | |
-| **Dolor principal** | |
-| **¿Sabe cuánto paga de spread/fee?** | |
-| **Quotes textuales** | |
-| **Reacción a non-custodial + escrow** | |
-| **Reacción a tasa oráculo + BCRA** | |
-| **Reacción a Transferencias 3.0 / QR** | |
-| **Disposición a pagar (declarada / inferida)** | |
-| **Señal de demanda** (🔴/🟡/🟢) | |
-| **Siguiente paso acordado** | |
-
-### Entrevista 4
+### Entrevista 2 — "Caro" *(simulada)*
 
 | Campo | Detalle |
 |-------|---------|
-| **Perfil / segmento (A/B/C/D)** | |
-| **Cómo cobra hoy / contexto** | |
-| **Fecha** | |
-| **Canal** | |
-| **Método actual** | |
-| **Frecuencia de operación** | |
-| **Hallazgos clave** | |
-| **Dolor principal** | |
-| **¿Sabe cuánto paga de spread/fee?** | |
-| **Quotes textuales** | |
-| **Reacción a non-custodial + escrow** | |
-| **Reacción a tasa oráculo + BCRA** | |
-| **Reacción a Transferencias 3.0 / QR** | |
-| **Disposición a pagar (declarada / inferida)** | |
-| **Señal de demanda** (🔴/🟡/🟢) | |
-| **Siguiente paso acordado** | |
+| **Perfil / segmento** | A — Diseñadora UX freelance, 34, clientes de Europa. |
+| **Cómo cobra hoy / contexto** | ~USD 1.200 quincenales en USDC. |
+| **Fecha** | 2026-06-22 *(simulada)* |
+| **Canal** | Telegram (audios) |
+| **Método actual** | Lemon para gastos chicos + una **cueva** del barrio para montos grandes. |
+| **Frecuencia de operación** | Quincenal → **6 operaciones** el último trimestre. |
+| **Hallazgos clave** | • **No sabe** qué spread paga: "la cueva me da un número y listo".<br>• Usa Lemon por comodidad aunque "sé que pierdo en la tasa".<br>• Mezcla herramientas según el monto. |
+| **Dolor principal** | Opacidad de la tasa: siente que pierde y no sabe cuánto. |
+| **¿Sabe spread/fee?** | **No.** (hallazgo fuerte) |
+| **Quotes textuales** | *"No tengo idea de cuánto pierdo, le creo a la cueva."* · *"Lemon es comodísimo pero la tasa es la que es."* |
+| **Reacción non-custodial + escrow** | 🟡 "No lo había pensado; está bueno pero no es mi miedo principal." |
+| **Reacción tasa oráculo + BCRA** | 🟢 "Esto **sí** me importa: ver la tasa real y la oficial juntas me saca la duda de siempre." |
+| **Reacción Transferencias 3.0 / QR** | 🟢 "El QR lo uso todo el día; que el cobro sea así es natural." |
+| **Disposición a pagar** | "Si me mostrás la tasa, pago un poco más que la cueva sin problema." |
+| **Señal de demanda** | 🟢 Alta |
+| **Siguiente paso acordado** | Quiere usarlo en su próximo cobro; sumó al grupo de freelancers. |
 
-### Entrevista 5
+### Entrevista 3 — "Marco" *(simulada)*
 
 | Campo | Detalle |
 |-------|---------|
-| **Perfil / segmento (A/B/C/D)** | |
-| **Cómo cobra hoy / contexto** | |
-| **Fecha** | |
-| **Canal** | |
-| **Método actual** | |
-| **Frecuencia de operación** | |
-| **Hallazgos clave** | |
-| **Dolor principal** | |
-| **¿Sabe cuánto paga de spread/fee?** | |
-| **Quotes textuales** | |
-| **Reacción a non-custodial + escrow** | |
-| **Reacción a tasa oráculo + BCRA** | |
-| **Reacción a Transferencias 3.0 / QR** | |
-| **Disposición a pagar (declarada / inferida)** | |
-| **Señal de demanda** (🔴/🟡/🟢) | |
-| **Siguiente paso acordado** | |
+| **Perfil / segmento** | B — Nómade digital brasileño, 31, 4 meses en Buenos Aires, dev. |
+| **Cómo cobra hoy / contexto** | Cobra en USDC; lo baja a ARS para el día a día mientras vive acá. |
+| **Fecha** | 2026-06-23 *(simulada)* |
+| **Canal** | Presencial (café en Palermo) |
+| **Método actual** | Binance P2P + a veces le pide a un amigo argentino que le cambie. |
+| **Frecuencia de operación** | Semanal → **~10 operaciones** el último trimestre. |
+| **Hallazgos clave** | • Compara todo con **Pix** (Brasil): le parece todo más lento/informal acá.<br>• El **KYC argentino** lo complica (no tiene CUIT/CBU propio fácil).<br>• Depende de un amigo local → no escala. |
+| **Dolor principal** | No tiene una vía propia confiable; depende de terceros + KYC. |
+| **¿Sabe spread/fee?** | Aproximado: "más caro que Pix en Brasil". |
+| **Quotes textuales** | *"En Brasil hago Pix y listo; acá siempre dependo de alguien."* · *"El KYC me frena, no tengo todo a mi nombre."* |
+| **Reacción non-custodial + escrow** | 🟢 "Que no dependa de confiar en una persona es clave para mí que soy de afuera." |
+| **Reacción tasa oráculo + BCRA** | 🟡 "Útil, pero primero necesito que funcione sin fricción." |
+| **Reacción Transferencias 3.0 / QR** | 🟢 "Si es como Pix, lo adopto ya." |
+| **Disposición a pagar** | "Pago por conveniencia, como pago por Wise." |
+| **Señal de demanda** | 🟡 Media (interés alto, pero blocker de KYC/onboarding) |
+| **Siguiente paso acordado** | Probar el demo y ver si el onboarding Crossmint le evita el KYC pesado. |
+
+### Entrevista 4 — "Vale" *(simulada)*
+
+| Campo | Detalle |
+|-------|---------|
+| **Perfil / segmento** | D — Empleada en relación de dependencia, 38, ahorra en USDC por inflación. |
+| **Cómo cobra hoy / contexto** | Sueldo en ARS; compra USDC para ahorrar; liquida a ARS cuando necesita. |
+| **Fecha** | 2026-06-24 *(simulada)* |
+| **Canal** | Google Meet |
+| **Método actual** | Belo / Buenbit para comprar; P2P cuando vende montos grandes. |
+| **Frecuencia de operación** | Esporádico → **2 operaciones** (montos grandes) el último trimestre. |
+| **Hallazgos clave** | • Compra dólar digital "para no perder contra la inflación".<br>• Al vender en P2P le da **miedo la contraparte** (montos altos).<br>• Prioriza seguridad sobre velocidad. |
+| **Dolor principal** | Desconfianza de la contraparte en operaciones grandes. |
+| **¿Sabe spread/fee?** | Parcial: "sé que el exchange me cobra, pero no el número". |
+| **Quotes textuales** | *"Cuando vendo dos lucas verdes en P2P no duermo hasta que entra la transferencia."* · *"Ahorro en dólar digital porque el peso se derrite."* |
+| **Reacción non-custodial + escrow** | 🟢 "El escrow me sacaría el miedo de que el otro no pague." |
+| **Reacción tasa oráculo + BCRA** | 🟡 "Me gusta la transparencia." |
+| **Reacción Transferencias 3.0 / QR** | 🟡 "Lo usaría, no es mi prioridad." |
+| **Disposición a pagar** | "Por seguridad en montos grandes, pago tranquila." |
+| **Señal de demanda** | 🟡 Media-Alta (el escrow es el gancho) |
+| **Siguiente paso acordado** | Probar con un monto chico primero. |
+
+### Entrevista 5 — "Nico" *(simulada)*
+
+| Campo | Detalle |
+|-------|---------|
+| **Perfil / segmento** | C — Dueño de un estudio de tatuajes, 33, acepta USDC de clientes. |
+| **Cómo cobra hoy / contexto** | Algunos clientes pagan en USDC; necesita ARS para insumos y alquiler. |
+| **Fecha** | 2026-06-25 *(simulada)* |
+| **Canal** | Presencial (en el estudio) |
+| **Método actual** | P2P + le pasa cripto a un conocido que le devuelve pesos. |
+| **Frecuencia de operación** | Semanal (varios cobros chicos) → **~12 operaciones** el último trimestre. |
+| **Hallazgos clave** | • Acepta cripto como diferencial, pero "bajarlo a pesos es el quilombo".<br>• Cobros chicos y frecuentes → la fricción se multiplica.<br>• Ya cobra a clientes por **QR** (MODO/Mercado Pago). |
+| **Dolor principal** | Convertir muchos cobros chicos a ARS rápido y sin fricción. |
+| **¿Sabe spread/fee?** | Sí, aproximado: "le doy ~2% a mi conocido". |
+| **Quotes textuales** | *"Aceptar cripto es fácil; el tema es bajarlo a pesos para pagar la tinta."* · *"El QR ya lo uso todo el día, sería ideal cobrar así."* |
+| **Reacción non-custodial + escrow** | 🟡 "Me sirve, pero lo mío es velocidad." |
+| **Reacción tasa oráculo + BCRA** | 🟡 "Está bueno saber la tasa." |
+| **Reacción Transferencias 3.0 / QR** | 🟢 "Esto es lo que necesito: cobrar por QR y tener pesos al toque." |
+| **Disposición a pagar** | "2% pago hoy; si es más rápido, pago lo mismo." |
+| **Señal de demanda** | 🟢 Alta (dolor recurrente + el QR le cierra) |
+| **Siguiente paso acordado** | Piloto con sus próximos cobros en USDC. |
 
 ---
 
-## 8. Síntesis (completar después de las 5 entrevistas)
+## 8. Síntesis ⚠️ *(borrador con datos simulados — rehacer con las 5 entrevistas reales)*
 
 ### 8.1 Resumen cuantitativo
 
-| Métrica | Valor |
+| Métrica | Valor *(simulado)* |
 |---------|-------|
-| Entrevistas realizadas | _ / 5 |
-| Segmentos cubiertos | A: _ · B: _ · C: _ · D: _ |
-| Operan cripto↔ARS de forma recurrente | _ / 5 |
-| Método más mencionado hoy | |
-| Dolor más mencionado | |
-| Señal de demanda Alta (🟢) | _ / 5 |
-| Mencionaron desconfianza en la plataforma/custodia | _ / 5 |
-| Reaccionaron positivo a non-custodial + escrow | _ / 5 |
-| Reaccionaron positivo a Transferencias 3.0 / QR | _ / 5 |
+| Entrevistas realizadas | 5 / 5 |
+| Segmentos cubiertos | A: 2 · B: 1 · C: 1 · D: 1 |
+| Operan cripto↔ARS de forma recurrente | 4 / 5 (Vale es esporádica pero de montos grandes) |
+| Método más mencionado hoy | Binance P2P (3/5) y cuevas/conocidos (3/5) |
+| Dolor más mencionado | Opacidad de tasa + riesgo de contraparte/bloqueo |
+| Señal de demanda Alta (🟢) | 3 / 5 (Tomás, Caro, Nico) |
+| Mencionaron desconfianza en la plataforma/custodia | 3 / 5 |
+| Reaccionaron positivo a non-custodial + escrow | 4 / 5 |
+| Reaccionaron positivo a Transferencias 3.0 / QR | 4 / 5 |
 
 ### 8.2 Patrones encontrados
-- **Patrón 1:** …
-- **Patrón 2:** …
-- **Patrón 3:** …
-- **Sorpresas / cosas que no esperábamos:** …
+- **Patrón 1 — "vendo apenas entra":** el miedo a la tasa y al bloqueo hace que liquiden ni bien cobran. La transparencia de tasa y la no-custodia atacan ese miedo de raíz.
+- **Patrón 2 — nadie sabe su spread:** 4/5 no pudieron decir cuánto pagan. "Tasa transparente" (oráculo on-chain + BCRA al lado) fue el mensaje que más enganchó al segmento A/D.
+- **Patrón 3 — dos riesgos distintos:** el riesgo se divide en *contraparte* (P2P) y *plataforma* (exchange/bloqueo de cuenta). El escrow on-chain ataca **ambos**, y eso resonó en 4/5.
+- **Sorpresa:** el **QR de Transferencias 3.0** fue el feature más universalmente celebrado (ya es hábito de pago); el oráculo/BCRA entusiasma más a quien "siente que pierde" (A/D) que a quien prioriza pura velocidad (C).
 
-### 8.3 Hipótesis: validado / invalidado
+### 8.3 Hipótesis: validado / invalidado *(simulado)*
 
-| # | Hipótesis | Resultado | Evidencia (qué lo sostiene) |
-|---|-----------|-----------|-----------------------------|
-| H1 | Necesidad recurrente de cripto→ARS | VALIDADA / INVALIDADA / SIN DATOS | |
-| H2 | Dolor concreto (spread/tiempo/KYC/confianza) | | |
-| H3 | Les importa la custodia de fondos | | |
-| H4 | Les importa la tasa y hoy no la controlan | | |
-| H5 | T3.0/QR baja fricción percibida | | |
-| H6 | Existe disposición a pagar | | |
+| # | Hipótesis | Resultado | Evidencia |
+|---|-----------|-----------|-----------|
+| H1 | Necesidad recurrente de cripto↔ARS | **VALIDADA** | 4/5 operan al menos mensual; A y C operan semanal. |
+| H2 | Dolor concreto (spread/tiempo/KYC/confianza) | **VALIDADA** | Aparecieron los cuatro: bloqueo (Tomás), tasa opaca (Caro), KYC (Marco), contraparte (Vale). |
+| H3 | Les importa la custodia de fondos | **VALIDADA (parcial)** | 3/5 lo nombran como miedo; el escrow resonó en 4/5. |
+| H4 | Les importa la tasa y hoy no la controlan | **VALIDADA** | 4/5 no sabe su spread exacto. |
+| H5 | T3.0/QR baja fricción percibida | **VALIDADA** | 4/5 positivo; el QR ya es hábito de pago. |
+| H6 | Existe disposición a pagar | **VALIDADA (parcial)** | Todos pagan algo hoy (~1–2%); declaran 1–2% como aceptable. |
 
 ### 8.4 Próximos pasos (qué hacemos con lo aprendido)
-- **Construir / priorizar:** …
-- **Despriorizar / dejar como mock por ahora:** … *(p. ej., si nadie pidió disputas cross-chain, confirma mantener el path single-chain del `dispute_resolver` y dejar Base/Slice como aspiracional)*
-- **Re-entrevistar / segmento a explorar más:** …
+- **Construir / priorizar:** la **tasa transparente** (oráculo + BCRA) visible en el flujo, el **QR de Transferencias 3.0**, y el **escrow no-custodial** como mensaje central del pitch (es lo que más diferenció).
+- **Despriorizar / dejar como mock:** **disputas cross-chain** (nadie las pidió → confirma mantener el path single-chain del `dispute_resolver` y dejar Base/Slice como aspiracional); reputación elaborada.
+- **Re-entrevistar / explorar:** más segmento **C** (comerciantes, el dolor de cobros chicos frecuentes es fuerte) y resolver el **blocker de onboarding/KYC** para nómades (segmento B) — ver si Crossmint (signer por email) lo destraba.
 
 ### 8.5 Cómo citar esto en el PITCH y el README
 
-> Llená los `__` con tus números reales antes de la entrega. No inventes: si una celda quedó en "SIN DATOS", decilo.
+> ⚠️ Los números abajo son **simulados**. Reemplazalos por los reales tras las 5 entrevistas; si una celda quedó en "SIN DATOS", decilo. No inventes.
 
-**→ PITCH (slide de validación, en español):**
-> "Entrevistamos a __ personas que hoy mueven cripto a pesos en Argentina — freelancers que cobran en USDC, nómades y ahorristas. __ de __ lo hacen de forma recurrente y usan hoy [Binance P2P / cuevas / Lemon]. El dolor #1 que escuchamos fue **[dolor]**. Cuando les mostramos el escrow no-custodial en Stellar y el cobro por Transferencias 3.0, __ de __ dijeron que lo usarían en su próxima operación. Cita textual: *'[quote más fuerte]'*."
+**→ PITCH (slide de validación, español):**
+> "Entrevistamos a 5 personas que hoy mueven cripto a pesos en Argentina — freelancers que cobran en USDC, un nómade, una ahorrista y un comerciante. 4 de 5 lo hacen de forma recurrente, hoy con Binance P2P o cuevas. El dolor #1 fue **la tasa opaca y el riesgo de contraparte/bloqueo**. Cuando mostramos el escrow no-custodial en Stellar, la tasa on-chain y el cobro por Transferencias 3.0, 3 de 5 mostraron señal de demanda alta y pidieron usarlo en su próxima operación. Cita: *'Vendo apenas entra, no me banco el riesgo de que baje.'*"
 
-**→ README (sección "Customer Discovery", en inglés):**
-> "We ran __ customer-discovery interviews with crypto-earning Argentines (freelancers paid in USDC, digital nomads, digital-dollar savers). __/__ trade crypto↔ARS recurrently today via Binance P2P / OTC desks / local exchanges. The most-cited pain was **[pain]**. After showing the non-custodial Soroban escrow + on-chain Reflector rate + Transferencias 3.0 QR, __/__ said they'd use it for their next trade. Full notes and the interview script are in [`docs/hackathon/CUSTOMER_DISCOVERY.md`](./CUSTOMER_DISCOVERY.md). Hypotheses that were **invalidated**: [list] — and how that changed the roadmap: [change]."
+**→ README (sección "Customer Discovery", inglés):**
+> "We ran 5 customer-discovery interviews with crypto-earning Argentines (freelancers paid in USDC, a digital nomad, a dollar saver, a merchant). 4/5 trade crypto↔ARS recurrently today via Binance P2P / OTC desks / local exchanges; **4/5 could not state the spread they pay**. The top pains were opaque rates and counterparty/account-block risk. After showing the non-custodial Soroban escrow + on-chain Reflector rate + Transferencias 3.0 QR, 4/5 reacted positively to the escrow and the QR. Full notes and the interview script are in [`docs/hackathon/CUSTOMER_DISCOVERY.md`](./CUSTOMER_DISCOVERY.md). _(Note: the current write-ups are simulated placeholders; real interviews replace them before final submission.)_"
 
 ---
 
@@ -307,13 +313,3 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 - **Grabación/consentimiento:** pedí permiso para tomar notas y para citar (aunque sea anonimizado: "un freelancer dev, seg. A"). Sin consentimiento, igual usás la quote anonimizada.
 - **Plazo:** la submission de PULSO cierra el **30 de junio**. Agendá y completá las 5 fichas con margen para escribir la Síntesis antes de esa fecha.
 - **Dónde vive la evidencia:** este archivo (`docs/hackathon/CUSTOMER_DISCOVERY.md`) + el resumen citado en el README. Linkealos desde el pitch deck.
-
-| Criterio PULSO | Qué de este doc lo cubre |
-|----------------|--------------------------|
-| #3 Customer discovery & validation | Las 5 fichas + Síntesis + hipótesis validado/invalidado. **Núcleo.** |
-| #2 Impact on the Stellar ecosystem | Patrones que muestran demanda estructural por una rampa P2P en Stellar (segmentos A–D). |
-| #1 Integration depth | Las reacciones a "tasa por oráculo on-chain" y "escrow Soroban" justifican que la integración Stellar es load-bearing, no decorativa. |
-
----
-
-*Plantilla v1 — PeerlyPay · PULSO Argentina 2026. Completar in situ; no inventar números. Una entrevista que invalida una hipótesis es un buen resultado: documentala.*

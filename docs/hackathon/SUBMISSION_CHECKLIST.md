@@ -3,6 +3,7 @@
 > **SUBMISSION DEADLINE: June 30, 2026 (23:59).** Finalists announced Jul 1, in-person pitch in Buenos Aires Jul 6, winners Jul 8. This file is the single source of truth for what we hand in and where every artifact lives. Check a box only when the artifact is real and linkable.
 
 **Hackathon:** PULSO Argentina — NearX + Stellar Development Foundation. 10-day online build (Brazil / Argentina / Colombia), Jun 21–30. Teams 2–4.
+**Team:** Leo, Barb, Eli.
 **Prize:** sponsored trip to Stellar Summit São Paulo.
 
 ---

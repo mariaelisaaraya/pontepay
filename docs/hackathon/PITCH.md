@@ -116,13 +116,13 @@
 ## Slide 9 — Equipo
 
 **En pantalla:**
-- Equipo de builders — _(completar integrantes)_.
+- **Leo · Barb · Eli** — equipo de 3.
 - Construido en 10 días para PULSO Argentina (NearX + Stellar Development Foundation).
 - Stack: Next.js 16 / React 19 / TypeScript / Tailwind v4 / Zustand · Soroban (Rust, soroban-sdk 23.1.1) · Crossmint.
 - Repo público open-source con README claro y mocks documentados.
 
 **Nota del orador:**
-"Lo construimos en los diez días de PULSO. El stack es moderno de punta a punta: Next.js 16 y React 19 en el front, un contrato Soroban en Rust en la cadena, y Crossmint para las wallets. Todo open-source, repo público, README claro, y los mocks documentados para que el jurado vea exactamente qué es real y qué falta."
+"Somos tres: Leo, Barb y Eli. Lo construimos en los diez días de PULSO. El stack es moderno de punta a punta: Next.js 16 y React 19 en el front, un contrato Soroban en Rust en la cadena, y Crossmint para las wallets. Todo open-source, repo público, README claro, y los mocks documentados para que el jurado vea exactamente qué es real y qué falta."
 
 ---
 

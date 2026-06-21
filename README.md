@@ -269,6 +269,12 @@ rewards honesty:
 
 ---
 
+## Team
+
+**Leo · Barb · Eli** — built for the Stellar PULSO Argentina hackathon.
+
+---
+
 ## License
 
 MIT.
