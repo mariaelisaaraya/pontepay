@@ -11,7 +11,7 @@ La máquina Windows **no tiene linker C** → `cargo`/`stellar` fallan nativos. 
 ```powershell
 wsl bash -lc "source ~/.cargo/env && cd '/mnt/c/Users/usuario/peerly pay/peerlypay/contracts' && cargo test -p p2p"
 ```
-Tests: **20/20 pasan** (incluye 2 del oráculo). Código del contrato en `contracts/contracts/p2p/src/`.
+Tests: **21/21 pasan** (incluye 2 del oráculo + el de regresión de pausa). Código del contrato en `contracts/contracts/p2p/src/`.
 
 ## Cómo está hoy
 - ✅ **Real:** contrato p2p desplegado en testnet con oráculo Reflector cableado (`reference_rate(2)=ARS` por cross-contract call); lecturas/escrituras reales vía Crossmint; `/api/rates` lee la tasa **a través del contrato**.
@@ -22,10 +22,12 @@ Tests: **20/20 pasan** (incluye 2 del oráculo). Código del contrato en `contra
 ## Tareas (priorizadas)
 
 ### 0. 🔐 Remediar la auditoría de seguridad → [`SECURITY-AUDIT.md`](./SECURITY-AUDIT.md)
-Auditoría asistida (OpenZeppelin + verificación adversarial), **14 hallazgos**. Lo más urgente:
-- **🔴 High (P2P-01):** pausar congela TODOS los paths de refund/release/**resolve_dispute** → fondos atrapados. Exceptuar `cancel_order`/`execute_fiat_transfer_timeout`/`resolve_dispute` del guard de pausa.
-- **🟠 Medium (P2P-02/03):** `initialize()` front-runnable (mover a `__constructor`) + roles sin rotación (adoptar OZ `access` Ownable/AccessControl).
-- Varios Low (math chequeada en escrow, `reference_rate` devuelve 0 para EUR/GBP, deadlines con `checked_add`). Checklist priorizado al final del doc.
+Auditoría asistida (OpenZeppelin + verificación adversarial, 45 agentes), **~25 hallazgos** deduplicados. Estado:
+- **✅ YA ARREGLADO (commit `aea5037`):** el pause-freeze (era el High del 1er pase / L-6/L-8) → la pausa ahora guarda **solo** `create`/`take`; todos los exits/recovery corren pausados. **Falta redeploy** para aplicarlo on-chain.
+- **🔴 High abierto (H-1):** `AwaitingConfirmation` **no tiene timeout** → un confirmador inactivo bloquea el escrow para siempre. Setear `fiat_transfer_deadline` al entrar a `AwaitingConfirmation` + un escape permisionless/por deadline (auto-finalizar o escalar a `Disputed`). **Invariante:** ningún estado con escrow sin salida por tiempo.
+- **🟠 Medium:** sin rotación de roles (OZ `Ownable`/`AccessControl`); `exchange_rate` no validado vs oráculo (Tier 3); sin `extend_ttl` (storage archivable); órdenes en `instance()` único (spam/DoS); reopen mantiene deadline viejo; disputa unilateral.
+- **🟡 Low/Info:** CEI ordering en 4 transfers, `reference_rate` trunca (0 para EUR/GBP), sin staleness del oráculo, `Refunded`/`Created` muertos, etc.
+- Checklist priorizado (P0→P3) al final del reporte.
 
 ### 1. 🔴 Redeploy desde TU admin + seed de órdenes (desbloquea la demo real)
 > Nota: ya hay **1 orden real on-chain** (creada con la wallet de prueba `GBOKYW3J…FVKR`, secret en `.env` gitignored) — el smoke test de tx en testnet pasó (`get_order_count` 0→1). Igual conviene seedear más con tu admin.
