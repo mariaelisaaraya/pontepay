@@ -26,7 +26,9 @@
 
 ## 🧑‍⚖️ For judges — start here
 
-**Live app:** `https://<your-vercel-app>.vercel.app` · **Pitch:** [docs/hackathon/PITCH.md](docs/hackathon/PITCH.md) · **Demo script:** [docs/hackathon/DEMO_SCRIPT.md](docs/hackathon/DEMO_SCRIPT.md)
+**🌐 Live app: https://peerlypay-two.vercel.app** · **Pitch:** [docs/hackathon/PITCH.md](docs/hackathon/PITCH.md) · **Demo script:** [docs/hackathon/DEMO_SCRIPT.md](docs/hackathon/DEMO_SCRIPT.md)
+
+> Try **demo mode** straight away — open the app, go to **Marketplace**, click any order, and walk the full flow with no wallet needed.
 
 **Two ways to evaluate, in 2 minutes:**
 
