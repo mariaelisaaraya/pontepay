@@ -1,0 +1,20 @@
+# Rust's output directory
+target
+
+# Local Soroban settings
+.soroban
+.artifacts/
+.env.local
+
+# Ignore JetBrains IDE settings
+.idea/
+
+# Ignore Test snapshots, they do not provide value in tracked Version Control
+contracts/escrow/test_snapshots/tests
+
+# Ignore macOS system files
+**/.DS_Store
+/.stellar
+/install_mainnet.json
+
+*test_snapshots/
