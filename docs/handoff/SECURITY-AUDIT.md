@@ -12,7 +12,7 @@
 
 | ID | Severity | Title | Location |
 |----|----------|-------|----------|
-| P2P-01 | 🔴 **High** | Pause freezes ALL refund/release/resolve paths (incl. dispute resolution) | order.rs:71,105,135,159,198 · dispute.rs:22,50 |
+| P2P-01 | ✅ **FIXED** (was 🔴 High) | Pause froze ALL refund/release/resolve paths — now exits are exempt | order.rs · dispute.rs |
 | P2P-02 | 🟠 Medium | `initialize()` is front-runnable + grants roles without consent | contract.rs:19-48 · admin.rs:10-39 |
 | P2P-03 | 🟠 Medium | Privileged roles immutable — no rotation/transfer (lost key locks disputed funds) | types.rs:60-70 · contract.rs |
 | P2P-04 | 🟡 Low | `execute_fiat_transfer_timeout` callable by only one party (stuck stake/griefing) | order.rs:152-189 |
@@ -33,6 +33,7 @@
 **Description.** Every state-advancing function calls `ensure_not_paused`, including the ones that *return* money: `cancel_order`, `execute_fiat_transfer_timeout`, `confirm_fiat_payment`, and **`resolve_dispute`** (dispute.rs:50, after the resolver role check). While paused, an order that already escrowed crypto cannot be cancelled, timed out, confirmed, disputed, or resolved. The only exit is `unpause`, gated solely by the **pauser** key.
 **Impact.** A compromised/malicious pauser — or an honest pause during an incident — strands **all in-flight escrowed funds** indefinitely, and disables the emergency `dispute_resolver` backstop. A safety control becomes a single-key total-freeze/griefing vector. (Reversible via unpause → below Critical; disables the resolver → above Medium.)
 **Recommendation.** Exempt user-protective exits (`cancel_order`, `execute_fiat_transfer_timeout`, `resolve_dispute`) from the pause guard so pause blocks only NEW exposure (`create`/`take`). With OZ `contract-utils::Pausable`, apply `when_not_paused` selectively to exposure-increasing entrypoints only.
+**✅ Status: FIXED.** `ensure_not_paused` now guards **only** `create_order(_cli)` and `take_order(_with_amount)`. All exit/progress paths — `cancel_order`, `submit_fiat_payment`, `execute_fiat_transfer_timeout`, `confirm_fiat_payment`, `dispute_fiat_payment`, `resolve_dispute` — are exempt, so in-flight escrow can always be refunded/released/resolved while paused. Regression test `test_pause_allows_fund_exits_blocks_new_exposure` added (21/21 pass). **Redeploy required to apply on-chain** (the live testnet `CC2CA5…` still runs the pre-fix code).
 
 ### 🟠 P2P-02 — `initialize()` front-running + grants roles without consent
 **Description.** `__constructor` is empty (pins nothing at deploy). `initialize()` is permissionless except for the `AlreadyInitialized` check and only calls `admin.require_auth()` (trivially satisfied — caller passes their own address). `dispute_resolver` and `pauser` are written with no `require_auth()` and no distinctness/validity guard.
@@ -97,7 +98,7 @@ Add to `Cargo.toml`: the OpenZeppelin Stellar contracts (`github.com/OpenZeppeli
 - Partial-fill accounting is provably consistent (P2P-14).
 
 ## 5. Prioritized remediation checklist
-1. **[High] P2P-01** — exempt `cancel_order`/`execute_fiat_transfer_timeout`/`resolve_dispute` from the pause guard.
+1. ~~**[High] P2P-01**~~ — ✅ **DONE** (pause now guards only create/take; all exits exempt; regression test added). **Redeploy to apply on-chain.**
 2. **[Medium] P2P-02** — move init into `__constructor`; `require_auth` from each granted role.
 3. **[Medium] P2P-03** — add role rotation (OZ Ownable/AccessControl).
 4. **[Low] P2P-04** — make the fiat timeout permissionless.

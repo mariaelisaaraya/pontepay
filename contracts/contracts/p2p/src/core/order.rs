@@ -26,6 +26,9 @@ impl OrderManager {
     ) -> Result<Order, ContractError> {
         caller.require_auth();
         let config = AdminManager::get_config(e)?;
+        // Pause guards ONLY exposure-increasing entrypoints (create_order, take_order):
+        // refund/release/dispute-resolve paths stay callable while paused so existing
+        // escrow is never trapped (security audit P2P-01).
         ensure_not_paused(&config)?;
         validate_create_order(amount, exchange_rate, duration_secs, &config)?;
 
@@ -67,8 +70,8 @@ impl OrderManager {
 
     pub fn cancel_order(e: &Env, caller: Address, order_id: u64) -> Result<Order, ContractError> {
         caller.require_auth();
+        // Exempt from pause (audit P2P-01): refunding the creator's escrow must work while paused.
         let config = AdminManager::get_config(e)?;
-        ensure_not_paused(&config)?;
 
         let mut order = Self::get_order(e, order_id)?;
         ensure_status(&order, OrderStatus::AwaitingFiller)?;
@@ -130,9 +133,8 @@ impl OrderManager {
         caller: Address,
         order_id: u64,
     ) -> Result<Order, ContractError> {
+        // Exempt from pause (audit P2P-01): in-flight orders must be able to progress while paused.
         caller.require_auth();
-        let config = AdminManager::get_config(e)?;
-        ensure_not_paused(&config)?;
 
         let mut order = Self::get_order(e, order_id)?;
         ensure_status(&order, OrderStatus::AwaitingPayment)?;
@@ -155,8 +157,8 @@ impl OrderManager {
         order_id: u64,
     ) -> Result<(Order, i128), ContractError> {
         caller.require_auth();
+        // Exempt from pause (audit P2P-01): refunding a timed-out filler must work while paused.
         let config = AdminManager::get_config(e)?;
-        ensure_not_paused(&config)?;
 
         let mut order = Self::get_order(e, order_id)?;
         ensure_status(&order, OrderStatus::AwaitingPayment)?;
@@ -194,8 +196,8 @@ impl OrderManager {
         order_id: u64,
     ) -> Result<Order, ContractError> {
         caller.require_auth();
+        // Exempt from pause (audit P2P-01): releasing escrow to the recipient must work while paused.
         let config = AdminManager::get_config(e)?;
-        ensure_not_paused(&config)?;
 
         let mut order = Self::get_order(e, order_id)?;
         ensure_status(&order, OrderStatus::AwaitingConfirmation)?;

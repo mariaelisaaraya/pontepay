@@ -3,7 +3,7 @@ use soroban_sdk::{Address, Env};
 
 use crate::core::admin::AdminManager;
 use crate::core::order::OrderManager;
-use crate::core::validators::admin::{ensure_dispute_resolver, ensure_not_paused};
+use crate::core::validators::admin::ensure_dispute_resolver;
 use crate::core::validators::dispute::{ensure_disputable, ensure_disputed};
 use crate::core::validators::order::{ensure_active_fill_amount, ensure_creator, ensure_filler};
 use crate::error::ContractError;
@@ -17,9 +17,9 @@ impl DisputeManager {
         caller: Address,
         order_id: u64,
     ) -> Result<Order, ContractError> {
+        // Exempt from pause (audit P2P-01): a party must be able to flag a dispute while paused,
+        // otherwise the order can never reach the (pause-exempt) resolve_dispute exit.
         caller.require_auth();
-        let config = AdminManager::get_config(e)?;
-        ensure_not_paused(&config)?;
 
         let mut order = OrderManager::get_order(e, order_id)?;
         ensure_disputable(&order)?;
@@ -44,10 +44,11 @@ impl DisputeManager {
         order_id: u64,
         fiat_transfer_confirmed: bool,
     ) -> Result<Order, ContractError> {
+        // Exempt from pause (audit P2P-01): the dispute_resolver's fund-recovery path is the
+        // emergency backstop and must remain callable even while the contract is paused.
         caller.require_auth();
         let config = AdminManager::get_config(e)?;
         ensure_dispute_resolver(&config, &caller)?;
-        ensure_not_paused(&config)?;
 
         let mut order = OrderManager::get_order(e, order_id)?;
         ensure_disputed(&order)?;

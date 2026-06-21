@@ -350,6 +350,46 @@ fn test_pause_blocks_mutations() {
     assert_eq!(order_id, 0);
 }
 
+// Regression for audit P2P-01: pause must block NEW exposure (create/take) but never
+// trap in-flight escrow — the exit/progress paths stay callable while paused.
+#[test]
+fn test_pause_allows_fund_exits_blocks_new_exposure() {
+    let s = setup();
+    set_timestamp(&s.env, 100);
+
+    // Escrow funds in flight BEFORE pausing.
+    let order_id = s.client.create_order(
+        &s.creator,
+        &FiatCurrency::Ars,
+        &PaymentMethod::BankTransfer,
+        &true,
+        &100,
+        &1460,
+        &600,
+    );
+    s.client.take_order(&s.filler, &order_id);
+
+    s.client.pause(&s.pauser);
+
+    // New exposure stays blocked while paused.
+    let blocked = s.client.try_create_order(
+        &s.creator,
+        &FiatCurrency::Ars,
+        &PaymentMethod::BankTransfer,
+        &true,
+        &50,
+        &1460,
+        &600,
+    );
+    assert!(blocked.is_err());
+
+    // Fund-progress / release paths MUST still work while paused.
+    s.client.submit_fiat_payment(&s.filler, &order_id);
+    s.client.confirm_fiat_payment(&s.creator, &order_id);
+
+    assert_eq!(s.client.get_order(&order_id).status, OrderStatus::Completed);
+}
+
 #[test]
 fn test_only_dispute_resolver_can_resolve() {
     let s = setup();
