@@ -26,6 +26,9 @@ pub enum ContractError {
     InvalidFillAmount = 20,
     FillAmountExceedsRemaining = 21,
     MissingActiveFill = 22,
+    OracleNotSet = 23,
+    OracleUnavailable = 24,
+    UnsupportedCurrency = 25,
 }
 
 impl fmt::Display for ContractError {
@@ -59,6 +62,13 @@ impl fmt::Display for ContractError {
                 write!(f, "Fill amount exceeds remaining amount")
             }
             ContractError::MissingActiveFill => write!(f, "Order active fill amount is missing"),
+            ContractError::OracleNotSet => write!(f, "Price oracle is not configured"),
+            ContractError::OracleUnavailable => {
+                write!(f, "Price oracle returned no usable price")
+            }
+            ContractError::UnsupportedCurrency => {
+                write!(f, "Currency is not supported by the price oracle")
+            }
         }
     }
 }

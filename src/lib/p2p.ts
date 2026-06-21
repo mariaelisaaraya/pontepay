@@ -7,6 +7,7 @@ import {
   type PaymentMethod,
 } from '@/contracts/p2p/src';
 import { chainToUiOrder } from '@/lib/order-mapper';
+import { resolveP2PContractId } from '@/lib/contract-config';
 import type { ChainOrder, P2POrderStatus, UiOrder } from '@/types';
 
 // Network configuration and client bootstrap
@@ -15,7 +16,7 @@ const DEFAULT_PASSPHRASE = 'Test SDF Network ; September 2015';
 
 const client = new Client({
   ...networks.testnet,
-  contractId: process.env.NEXT_PUBLIC_P2P_CONTRACT_ID?.trim() || networks.testnet.contractId,
+  contractId: resolveP2PContractId(),
   rpcUrl: process.env.NEXT_PUBLIC_SOROBAN_RPC_URL?.trim() || DEFAULT_RPC_URL,
   networkPassphrase:
     process.env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE?.trim() || DEFAULT_PASSPHRASE,
@@ -162,6 +163,14 @@ export async function loadChainOrderByIdFromContract(orderId: string | number | 
   const normalized = typeof orderId === 'bigint' ? orderId : BigInt(String(orderId));
   const tx = await client.get_order({ order_id: normalized });
   return toChainOrder(unwrapResult(tx.result));
+}
+
+// Live reference rate (units of `currency` per 1 USD) read THROUGH the p2p
+// contract, which performs a cross-contract call to the Reflector SEP-40 oracle.
+// currency_code follows the contract's FiatCurrency::from_code (2 = ARS).
+export async function loadReferenceRateFromContract(currencyCode: number): Promise<number> {
+  const tx = await client.reference_rate({ currency_code: currencyCode });
+  return Number(toBigInt(unwrapResult(tx.result)));
 }
 
 // UI-friendly projection API

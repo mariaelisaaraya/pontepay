@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLiveRate } from "@/lib/useLiveRate";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
 import {
   clearVendorPaymentRequest,
@@ -12,7 +13,6 @@ import {
 
 // Mock trade data
 const MOCK_MAKER = "crypto_trader_ar";
-const MOCK_RATE = 1_485;
 const FEE_RATE = 0.005;
 const MOCK_TXN_ID = "#TXN123456";
 
@@ -45,8 +45,9 @@ function SuccessContent() {
   const flowId = searchParams.get("flowId") || "";
   const mode = (searchParams.get("mode") || "buy") as "buy" | "sell";
   const orderId = searchParams.get("orderId") || "";
-  const fiatAmount = fillUsdc * MOCK_RATE;
-  const feeArs = fillUsdc * FEE_RATE * MOCK_RATE;
+  const rate = useLiveRate().usdArs;
+  const fiatAmount = fillUsdc * rate;
+  const feeArs = fillUsdc * FEE_RATE * rate;
   const totalPaid = fiatAmount - feeArs;
   const isAdjustedAmount = Math.abs(intentUsdc - fillUsdc) > 0.0001;
 
@@ -73,14 +74,14 @@ function SuccessContent() {
       type: mode,
       amount: fillUsdc,
       arsReceived: totalPaid,
-      rate: MOCK_RATE,
+      rate: Math.round(rate),
       marketMaker: MOCK_MAKER,
       paymentMethod: "MercadoPago",
       txnId: MOCK_TXN_ID,
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, mode, orderId, totalPaid]);
+  }, [addTrade, fillUsdc, flowId, mode, orderId, totalPaid, rate]);
 
   const handleCopy = async () => {
     try {

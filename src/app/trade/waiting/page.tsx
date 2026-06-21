@@ -33,6 +33,7 @@ function WaitingContent() {
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') || '';
+  const isDemo = searchParams.get('demo') === '1';
 
   const [isChecking, setIsChecking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -43,9 +44,9 @@ function WaitingContent() {
 
   const navigateToSuccess = useCallback(() => {
     router.push(
-      `/trade/success?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc.toFixed(2)}&intentUsdc=${intentUsdc.toFixed(2)}&mode=${mode}&orderId=${orderId}`,
+      `/trade/success?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc.toFixed(2)}&intentUsdc=${intentUsdc.toFixed(2)}&mode=${mode}&orderId=${orderId}${isDemo ? '&demo=1' : ''}`,
     );
-  }, [fillUsdc, flowId, intentUsdc, mode, orderId, router]);
+  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, router]);
 
   const pollOrder = useCallback(async () => {
     if (!orderId) {
@@ -84,14 +85,25 @@ function WaitingContent() {
   }, [initialFilledAmount, navigateToSuccess, orderId]);
 
   useEffect(() => {
+    // Demo mode: skip on-chain polling and auto-advance after a short beat.
+    if (isDemo) {
+      setOrderStatus('AwaitingConfirmation');
+      const timer = setTimeout(() => navigateToSuccess(), 6000);
+      return () => clearTimeout(timer);
+    }
     void pollOrder();
     const interval = setInterval(() => {
       void pollOrder();
     }, POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [pollOrder]);
+  }, [pollOrder, isDemo, navigateToSuccess]);
 
   const handleConfirmReceipt = useCallback(async () => {
+    if (isDemo) {
+      navigateToSuccess();
+      return;
+    }
+
     if (!walletAddress) {
       toast.error('Connect wallet first');
       return;
@@ -118,7 +130,7 @@ function WaitingContent() {
     } finally {
       setIsConfirming(false);
     }
-  }, [navigateToSuccess, orderId, refreshOrdersFromChain, wallet, walletAddress]);
+  }, [isDemo, navigateToSuccess, orderId, refreshOrdersFromChain, wallet, walletAddress]);
 
   const userIsCreator = useMemo(() => {
     if (!walletAddress || !order) {
@@ -302,6 +314,15 @@ function WaitingContent() {
 
       {/* Bottom Actions */}
       <div className="p-4 pb-6 border-t border-gray-100 space-y-3">
+        {isDemo && (
+          <button
+            type="button"
+            onClick={navigateToSuccess}
+            className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-fuchsia-500 hover:bg-fuchsia-600 transition-all active:scale-[0.98]"
+          >
+            Continue (demo)
+          </button>
+        )}
         {showVerifyPaymentButton && (
           <button
             type="button"

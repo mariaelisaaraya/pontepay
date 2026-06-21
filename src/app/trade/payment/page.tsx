@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
+import Transferencias30QR from '@/components/trade/Transferencias30QR';
 import { submitFiatPaymentWithCrossmint } from '@/lib/p2p-crossmint';
+import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { PaymentMethodCode } from '@/types';
@@ -82,7 +84,6 @@ const PAYMENT_DETAILS: Record<number, PaymentDetails> = {
   },
 };
 
-const MOCK_RATE = 1_485;
 const FEE_RATE = 0.005;
 const COUNTDOWN_SECONDS = 15 * 60; // 15 minutes
 
@@ -243,6 +244,7 @@ function PaymentContent() {
   );
   const mode = (searchParams.get('mode') ?? 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') ?? '';
+  const isDemo = searchParams.get('demo') === '1';
 
   // Resolve maker info and payment method from order store
   const order = orders.find((o) => o.id === orderId);
@@ -258,9 +260,10 @@ function PaymentContent() {
   const makerRate = order?.completionRate ?? 98;
   const makerVerified = order?.isVerified ?? true;
 
-  // Amounts
-  const fiatGross = fillUsdc * MOCK_RATE;
-  const feeArs = fillUsdc * FEE_RATE * MOCK_RATE;
+  // Amounts (live USD/ARS rate: Reflector oracle / BCRA, with constant fallback)
+  const rate = useLiveRate().usdArs;
+  const fiatGross = fillUsdc * rate;
+  const feeArs = fillUsdc * FEE_RATE * rate;
   const totalToPay = fiatGross - feeArs;
   const isAdjusted = Math.abs(intentUsdc - fillUsdc) > 0.0001;
 
@@ -295,6 +298,13 @@ function PaymentContent() {
   }, []);
 
   const handlePaymentSent = useCallback(async () => {
+    // Demo mode: advance to waiting without an on-chain write.
+    if (isDemo) {
+      router.push(
+        `/trade/waiting?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${encodeURIComponent(orderId)}&demo=1`,
+      );
+      return;
+    }
     if (!walletAddress) {
       toast.error('Connect your wallet first');
       return;
@@ -326,6 +336,7 @@ function PaymentContent() {
     fillUsdc,
     flowId,
     intentUsdc,
+    isDemo,
     mode,
     orderId,
     refreshOrdersFromChain,
@@ -415,7 +426,7 @@ function PaymentContent() {
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-gray-500">Exchange rate</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-700 tabular-nums">
-                1 USDC = {MOCK_RATE.toLocaleString('es-AR')} ARS
+                1 USDC = {Math.round(rate).toLocaleString('es-AR')} ARS
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -456,6 +467,26 @@ function PaymentContent() {
             </p>
           </div>
         )}
+
+        {/* Transferencias 3.0 interoperable QR (off-chain fiat leg) */}
+        <div className="rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-gray-800">
+              Pay with Transferencias 3.0
+            </span>
+            <span className="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-600">
+              Scan to pay
+            </span>
+          </div>
+          <Transferencias30QR
+            amountArs={totalToPay}
+            alias={payment.alias ?? payment.accountHolder}
+            recipientName={payment.accountHolder}
+          />
+          <p className="mt-2 text-center text-[11px] text-gray-400">
+            Scan with any bank or wallet app · BCRA interoperable QR
+          </p>
+        </div>
 
         {/* Payment instructions card */}
         <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">

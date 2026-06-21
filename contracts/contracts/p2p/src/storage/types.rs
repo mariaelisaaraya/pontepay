@@ -96,4 +96,5 @@ pub enum DataKey {
     Config,
     OrderCount,
     Order(u64),
+    Oracle,
 }

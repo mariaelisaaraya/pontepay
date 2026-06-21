@@ -1,27 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowUpFromLine,
   ArrowDownToLine,
   TrendingUp,
   TrendingDown,
+  Landmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import DepositModal from "@/components/DepositModal";
 import TradeDrawer from "@/components/TradeDrawer";
 import SendModal from "@/components/SendModal";
- 
+
 
 const actions = [
   { icon: ArrowUpFromLine, label: "Send", id: "send" },
   { icon: ArrowDownToLine, label: "Receive", id: "receive" },
   { icon: TrendingUp, label: "Buy", id: "buy" },
   { icon: TrendingDown, label: "Sell", id: "sell" },
+  { icon: Landmark, label: "Anchor", id: "anchor" },
 ] as const;
 
 export default function QuickActions() {
+  const router = useRouter();
   const { user, subtractBalance } = useStore();
   const [depositOpen, setDepositOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
@@ -44,6 +48,9 @@ export default function QuickActions() {
       case "sell":
         setTradeMode("sell");
         setTradeOpen(true);
+        break;
+      case "anchor":
+        router.push("/anchor");
         break;
       default:
         toast.info(`${id.charAt(0).toUpperCase() + id.slice(1)} coming soon`);

@@ -1,13 +1,9 @@
 import { StellarWallet } from '@crossmint/client-sdk-react-ui';
 import { createOrderInputToContractArgs } from '@/lib/order-mapper';
+import { resolveP2PContractId } from '@/lib/contract-config';
 import type { CreateOrderInput } from '@/types';
 
-const DEFAULT_P2P_CONTRACT_ID = 'CA6I2J5MTYR525JMGMPRXAFNDBNWPRNB6GFWIW2S5VR6JD6QILJ53Q2V';
 type CrossmintWalletLike = unknown;
-
-function resolveContractId(): string {
-  return process.env.NEXT_PUBLIC_P2P_CONTRACT_ID?.trim() || DEFAULT_P2P_CONTRACT_ID;
-}
 
 function normalizeOrderId(orderId: string | number | bigint): string {
   if (typeof orderId === 'bigint') {
@@ -37,7 +33,7 @@ export async function takeOrderWithCrossmint(params: {
 
   const stellarWallet = StellarWallet.from(wallet as never);
   return stellarWallet.sendTransaction({
-    contractId: resolveContractId(),
+    contractId: resolveP2PContractId(),
     method: 'take_order_with_amount',
     args: {
       caller,
@@ -60,7 +56,7 @@ export async function submitFiatPaymentWithCrossmint(params: {
 
   const stellarWallet = StellarWallet.from(wallet as never);
   return stellarWallet.sendTransaction({
-    contractId: resolveContractId(),
+    contractId: resolveP2PContractId(),
     method: 'submit_fiat_payment',
     args: {
       caller,
@@ -82,7 +78,7 @@ export async function confirmFiatPaymentWithCrossmint(params: {
 
   const stellarWallet = StellarWallet.from(wallet as never);
   return stellarWallet.sendTransaction({
-    contractId: resolveContractId(),
+    contractId: resolveP2PContractId(),
     method: 'confirm_fiat_payment',
     args: {
       caller,
@@ -106,7 +102,7 @@ export async function createOrderWithCrossmint(params: {
   const stellarWallet = StellarWallet.from(wallet as never);
 
   return stellarWallet.sendTransaction({
-    contractId: resolveContractId(),
+    contractId: resolveP2PContractId(),
     method: 'create_order_cli',
     args: {
       caller,

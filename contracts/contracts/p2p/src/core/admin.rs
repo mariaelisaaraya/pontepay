@@ -75,6 +75,26 @@ impl AdminManager {
             .ok_or(ContractError::ConfigNotInitialized)
     }
 
+    pub fn set_oracle(e: &Env, caller: Address, oracle: Address) -> Result<(), ContractError> {
+        caller.require_auth();
+        let config = Self::get_config(e)?;
+
+        if caller != config.admin {
+            return Err(ContractError::Unauthorized);
+        }
+
+        e.storage().instance().set(&DataKey::Oracle, &oracle);
+
+        Ok(())
+    }
+
+    pub fn get_oracle(e: &Env) -> Result<Address, ContractError> {
+        e.storage()
+            .instance()
+            .get(&DataKey::Oracle)
+            .ok_or(ContractError::OracleNotSet)
+    }
+
     pub fn get_order_count(e: &Env) -> Result<u64, ContractError> {
         if !e.storage().instance().has(&DataKey::Config) {
             return Err(ContractError::ConfigNotInitialized);

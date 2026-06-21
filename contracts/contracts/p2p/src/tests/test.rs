@@ -599,3 +599,84 @@ fn test_timeout_negative_paths() {
         .try_execute_fiat_transfer_timeout(&s.creator, &from_crypto_order);
     assert!(wrong_status.is_err());
 }
+
+// ─── Oracle integration (Reflector SEP-40) ────────────────────────────────────
+
+mod mock_oracle {
+    use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol};
+
+    #[contracttype]
+    #[derive(Clone)]
+    pub enum Asset {
+        Stellar(Address),
+        Other(Symbol),
+    }
+
+    #[contracttype]
+    #[derive(Clone)]
+    pub struct PriceData {
+        pub price: i128,
+        pub timestamp: u64,
+    }
+
+    #[contract]
+    pub struct MockOracle;
+
+    #[contractimpl]
+    impl MockOracle {
+        // 1 ARS = 0.00068403207577 USD scaled by 1e14 (matches the live testnet feed).
+        pub fn lastprice(_e: Env, _asset: Asset) -> Option<PriceData> {
+            Some(PriceData {
+                price: 68_403_207_577,
+                timestamp: 0,
+            })
+        }
+
+        pub fn decimals(_e: Env) -> u32 {
+            14
+        }
+    }
+}
+
+#[test]
+fn test_reference_rate_reads_oracle() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let admin = Address::generate(&env);
+    let dispute_resolver = Address::generate(&env);
+    let pauser = Address::generate(&env);
+    let (token, _token_admin) = create_token(&env, &admin);
+
+    let oracle_id = env.register(mock_oracle::MockOracle {}, ());
+
+    let client = P2PContractClient::new(&env, &env.register(P2PContract {}, ()));
+    client.initialize(
+        &admin,
+        &dispute_resolver,
+        &pauser,
+        &token.address,
+        &2_592_000,
+        &1_800,
+    );
+
+    client.set_oracle(&admin, &oracle_id);
+    assert_eq!(client.get_oracle(), oracle_id);
+
+    // ARS = currency code 2. The contract reads the USD-quoted price and inverts it
+    // on-chain: 1e14 / 68_403_207_577 = 1461 ARS per USD.
+    let rate = client.reference_rate(&2u32);
+    assert_eq!(rate, 1461);
+
+    // A currency the oracle does not list is rejected before any oracle call.
+    let unsupported = client.try_reference_rate(&3u32);
+    assert!(unsupported.is_err());
+}
+
+#[test]
+fn test_reference_rate_requires_oracle_configured() {
+    let s = setup();
+    // No oracle set -> reference_rate must fail rather than panic.
+    let result = s.client.try_reference_rate(&2u32);
+    assert!(result.is_err());
+}

@@ -42,7 +42,20 @@ export default function OrderCard({ order }: OrderCardProps) {
       ? `Limits: ${(order.minTradeAmount * order.rate).toLocaleString('en-US')} – ${(order.maxTradeAmount * order.rate).toLocaleString('en-US')} ${currencyLabel}`
       : `Available: ${availableAmount.toLocaleString('en-US')} USDC`;
 
-  const handleClick = () => router.push(`/orders/${order.id}`);
+  // Take this order through the REAL on-chain flow (/trade/confirm), not the
+  // mocked /orders/[id] detail. From the taker's perspective, taking a 'sell'
+  // order means buying crypto; taking a 'buy' order means selling crypto.
+  const handleClick = () => {
+    const available = order.remainingAmount ?? order.amount;
+    const mode = order.type === 'sell' ? 'buy' : 'sell';
+    const amount = available.toFixed(2);
+    const flowId = crypto.randomUUID();
+    // Demo orders (un-seeded fallback) walk the real screens without on-chain writes.
+    const demo = order.id.startsWith('demo') ? '&demo=1' : '';
+    router.push(
+      `/trade/confirm?flowId=${encodeURIComponent(flowId)}&fillUsdc=${amount}&intentUsdc=${amount}&mode=${mode}&orderId=${encodeURIComponent(order.id)}${demo}`,
+    );
+  };
 
   return (
     <article

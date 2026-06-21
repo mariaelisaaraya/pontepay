@@ -14,6 +14,85 @@ import {
 } from "@/lib/order-mapper";
 import { loadOrdersFromContract } from "@/lib/p2p";
 
+// Demo orders shown when the chain has no real orders (e.g. an un-seeded contract),
+// so the marketplace/flow is always testable. Their ids start with "demo-" and the
+// trade flow runs in demo mode (no on-chain writes). Seed the contract
+// (`make p2p-seed-orders`) to replace these with real, takeable orders.
+const DEMO_ORDERS: Order[] = [
+  {
+    id: "demo-1",
+    orderId: BigInt(0),
+    type: "sell",
+    totalAmount: 150,
+    remainingAmount: 150,
+    filledAmount: 0,
+    activeFillAmount: 0,
+    amount: 150,
+    rate: 1460,
+    fiatCurrencyCode: FiatCurrencyCode.Ars,
+    fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
+    paymentMethodCode: PaymentMethodCode.MercadoPago,
+    paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.MercadoPago),
+    durationSecs: 604800,
+    durationLabel: durationLabel(604800),
+    status: "AwaitingFiller",
+    createdAt: new Date(),
+    createdBy: "GDEMOLUCIAAR000000000000000000000000000000000000000DEMO",
+    displayName: "Lucía M. (demo)",
+    isVerified: true,
+    completionRate: 98,
+    reputation_score: 142,
+  },
+  {
+    id: "demo-2",
+    orderId: BigInt(0),
+    type: "buy",
+    totalAmount: 80,
+    remainingAmount: 80,
+    filledAmount: 0,
+    activeFillAmount: 0,
+    amount: 80,
+    rate: 1455,
+    fiatCurrencyCode: FiatCurrencyCode.Ars,
+    fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
+    paymentMethodCode: PaymentMethodCode.BankTransfer,
+    paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.BankTransfer),
+    durationSecs: 259200,
+    durationLabel: durationLabel(259200),
+    status: "AwaitingFiller",
+    createdAt: new Date(),
+    createdBy: "GDEMOMATEOAR00000000000000000000000000000000000000DEMO",
+    displayName: "Mateo R. (demo)",
+    isVerified: false,
+    completionRate: 91,
+    reputation_score: 37,
+  },
+  {
+    id: "demo-3",
+    orderId: BigInt(0),
+    type: "sell",
+    totalAmount: 300,
+    remainingAmount: 300,
+    filledAmount: 0,
+    activeFillAmount: 0,
+    amount: 300,
+    rate: 1468,
+    fiatCurrencyCode: FiatCurrencyCode.Ars,
+    fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
+    paymentMethodCode: PaymentMethodCode.MobileWallet,
+    paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.MobileWallet),
+    durationSecs: 86400,
+    durationLabel: durationLabel(86400),
+    status: "AwaitingFiller",
+    createdAt: new Date(),
+    createdBy: "GDEMOSOFIAAR00000000000000000000000000000000000000DEMO",
+    displayName: "Sofía D. (demo)",
+    isVerified: true,
+    completionRate: 100,
+    reputation_score: 205,
+  },
+];
+
 // Store contract and actions
 interface AppState {
   user: User;
@@ -46,92 +125,10 @@ export const useStore = create<AppState>((set) => ({
     },
     reputation_score: 12,
   },
-  orders: [
-    {
-      id: "order_1",
-      orderId: BigInt(1),
-      type: "sell",
-      totalAmount: 100,
-      remainingAmount: 100,
-      filledAmount: 0,
-      activeFillAmount: 0,
-      amount: 100,
-      rate: 1400,
-      fiatCurrencyCode: FiatCurrencyCode.Ars,
-      fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
-      paymentMethodCode: PaymentMethodCode.BankTransfer,
-      paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.BankTransfer),
-      durationSecs: 86400,
-      durationLabel: durationLabel(86400),
-      status: "AwaitingFiller",
-      createdAt: new Date(),
-      createdBy: "0x1234...5678",
-      reputation_score: 47,
-    },
-    {
-      id: "order_2",
-      orderId: BigInt(2),
-      type: "sell",
-      totalAmount: 50,
-      remainingAmount: 50,
-      filledAmount: 0,
-      activeFillAmount: 0,
-      amount: 50,
-      rate: 955,
-      fiatCurrencyCode: FiatCurrencyCode.Ars,
-      fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
-      paymentMethodCode: PaymentMethodCode.MobileWallet,
-      paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.MobileWallet),
-      durationSecs: 259200,
-      durationLabel: durationLabel(259200),
-      status: "AwaitingFiller",
-      createdAt: new Date(),
-      createdBy: "0x9876...4321",
-      reputation_score: 0,
-    },
-    {
-      id: "order_3",
-      orderId: BigInt(3),
-      type: "buy",
-      totalAmount: 200,
-      remainingAmount: 200,
-      filledAmount: 0,
-      activeFillAmount: 0,
-      amount: 200,
-      rate: 945,
-      fiatCurrencyCode: FiatCurrencyCode.Ars,
-      fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
-      paymentMethodCode: PaymentMethodCode.BankTransfer,
-      paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.BankTransfer),
-      durationSecs: 86400,
-      durationLabel: durationLabel(86400),
-      status: "AwaitingFiller",
-      createdAt: new Date(),
-      createdBy: "0xABCD...EF01",
-      reputation_score: 23,
-    },
-    {
-      id: "order_4",
-      orderId: BigInt(4),
-      type: "buy",
-      totalAmount: 75,
-      remainingAmount: 75,
-      filledAmount: 0,
-      activeFillAmount: 0,
-      amount: 75,
-      rate: 948,
-      fiatCurrencyCode: FiatCurrencyCode.Ars,
-      fiatCurrencyLabel: fiatCurrencyLabel(FiatCurrencyCode.Ars),
-      paymentMethodCode: PaymentMethodCode.MobileWallet,
-      paymentMethodLabel: paymentMethodLabel(PaymentMethodCode.MobileWallet),
-      durationSecs: 604800,
-      durationLabel: durationLabel(604800),
-      status: "AwaitingFiller",
-      createdAt: new Date(),
-      createdBy: "0x5555...6666",
-      reputation_score: 89,
-    },
-  ],
+  // Orders are the on-chain source of truth (loaded by ChainOrdersBootstrap via
+  // refreshOrdersFromChain). When the chain has none, fall back to clearly-labeled
+  // DEMO orders so the marketplace/flow stays testable for reviewers.
+  orders: DEMO_ORDERS,
 
   // Wallet session actions
   connectWallet: (
@@ -283,13 +280,12 @@ export const useStore = create<AppState>((set) => ({
   refreshOrdersFromChain: async () => {
     try {
       const chainOrders = await loadOrdersFromContract();
-      if (chainOrders.length === 0) {
-        return;
-      }
-
-      set({ orders: chainOrders });
+      // Prefer real on-chain orders; fall back to demo orders when the chain has
+      // none (e.g. an un-seeded contract) so the UI is never empty.
+      set({ orders: chainOrders.length > 0 ? chainOrders : DEMO_ORDERS });
     } catch (error) {
       console.error("Failed to refresh orders from contract", error);
+      set({ orders: DEMO_ORDERS });
     }
   },
 }));

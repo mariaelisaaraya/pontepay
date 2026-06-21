@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowUpCircle, ArrowDownCircle, Clock, Loader2 } from 'lucid
 import { toast } from 'sonner';
 import ConfirmTradeIcon from '@/components/icons/ConfirmTradeIcon';
 import { takeOrderWithCrossmint } from '@/lib/p2p-crossmint';
+import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +17,6 @@ async function checkUSDCTrustline(): Promise<boolean> {
   return true;
 }
 
-const MOCK_RATE = 1_485;
 const FEE_RATE = 0.005;
 
 function formatUsdc(value: number): string {
@@ -40,15 +40,17 @@ function ConfirmContent() {
   const walletAddress = useStore((state) => state.user.walletAddress);
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
   const [isChecking, setIsChecking] = useState(false);
+  const liveRate = useLiveRate();
 
   const flowId = searchParams.get('flowId') || '';
   const fillUsdc = parseFloat(searchParams.get('fillUsdc') || searchParams.get('amount') || '100');
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'sell') as 'sell' | 'buy';
   const orderId = searchParams.get('orderId') || '';
+  const isDemo = searchParams.get('demo') === '1';
   const isSell = mode === 'sell';
 
-  const rate = MOCK_RATE;
+  const rate = liveRate.usdArs;
   const fiatAmount = fillUsdc * rate;
   const feeArs = fillUsdc * FEE_RATE * rate;
   const feeUsdc = fillUsdc * FEE_RATE;
@@ -61,6 +63,13 @@ function ConfirmContent() {
   const isAdjustedAmount = Math.abs(intentUsdc - fillUsdc) > 0.0001;
 
   const handleConfirm = useCallback(async () => {
+    // Demo mode: walk the real screens without any on-chain write.
+    if (isDemo) {
+      const params = `flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${encodeURIComponent(orderId)}&demo=1`;
+      router.push(mode === 'buy' ? `/trade/payment?${params}` : `/trade/waiting?${params}`);
+      return;
+    }
+
     if (!walletAddress) {
       toast.error('Connect wallet first');
       return;
@@ -100,7 +109,7 @@ function ConfirmContent() {
     } finally {
       setIsChecking(false);
     }
-  }, [fillUsdc, flowId, intentUsdc, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress]);
+  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
@@ -124,6 +133,12 @@ function ConfirmContent() {
           <ConfirmTradeIcon />
         </div>
 
+        {isDemo && (
+          <div className="mb-3 w-full rounded-md bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-700">
+            Demo mode — walk the full flow without an on-chain transaction
+          </div>
+        )}
+
         {/* Trade Summary */}
         <div className="w-full rounded-md border border-neutral-400 bg-white p-4 flex flex-col gap-3">
           {isAdjustedAmount && (
@@ -146,6 +161,19 @@ function ConfirmContent() {
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <ArrowDownCircle className="size-4 text-gray-900" />
               {receiveLabel}
+            </span>
+          </div>
+
+          {/* Exchange rate (live: Reflector oracle / BCRA) */}
+          <div className="flex items-center justify-between">
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Rate</span>
+            <span className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
+              1 USD ≈ {formatFiatCompact(rate)} ARS
+              <span className="rounded bg-gray-100 px-1 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
+                {liveRate.source === 'contract' || liveRate.source === 'reflector'
+                  ? 'oracle'
+                  : liveRate.source}
+              </span>
             </span>
           </div>
 

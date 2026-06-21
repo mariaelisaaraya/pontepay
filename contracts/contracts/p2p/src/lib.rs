@@ -4,10 +4,12 @@ mod contract;
 mod core {
     pub mod admin;
     pub mod dispute;
+    pub mod oracle;
     pub mod order;
 
     pub use admin::*;
     pub use dispute::*;
+    pub use oracle::*;
     pub use order::*;
 
     pub mod validators {

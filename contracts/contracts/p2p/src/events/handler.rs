@@ -81,3 +81,10 @@ pub struct DisputeResolved {
     pub resolved_by: Address,
     pub fiat_transfer_confirmed: bool,
 }
+
+#[contractevent(topics = ["p2p_oracle_set"], data_format = "vec")]
+#[derive(Clone)]
+pub struct OracleSet {
+    pub oracle: Address,
+    pub set_by: Address,
+}

@@ -1,11 +1,11 @@
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
-use crate::core::{AdminManager, DisputeManager, OrderManager};
+use crate::core::{AdminManager, DisputeManager, OracleManager, OrderManager};
 use crate::error::ContractError;
 use crate::events::handler::{
     DisputeResolved, FiatPaymentConfirmed, FiatPaymentDisputed, FiatPaymentSubmitted,
-    FiatTransferTimeout, Initialized, OrderCancelled, OrderCreated, OrderTaken, PausedEvt,
-    UnpausedEvt,
+    FiatTransferTimeout, Initialized, OracleSet, OrderCancelled, OrderCreated, OrderTaken,
+    PausedEvt, UnpausedEvt,
 };
 use crate::storage::types::{Config, FiatCurrency, Order, PaymentMethod};
 
@@ -244,6 +244,26 @@ impl P2PContract {
         }
         .publish(&e);
         Ok(())
+    }
+
+    pub fn set_oracle(e: Env, caller: Address, oracle: Address) -> Result<(), ContractError> {
+        AdminManager::set_oracle(&e, caller.clone(), oracle.clone())?;
+        OracleSet {
+            oracle,
+            set_by: caller,
+        }
+        .publish(&e);
+        Ok(())
+    }
+
+    pub fn get_oracle(e: Env) -> Result<Address, ContractError> {
+        AdminManager::get_oracle(&e)
+    }
+
+    /// Live reference rate (units of `currency` per 1 USD) from the Reflector
+    /// oracle. `currency_code` follows `FiatCurrency::from_code` (2 = ARS).
+    pub fn reference_rate(e: Env, currency_code: u32) -> Result<i128, ContractError> {
+        OracleManager::reference_rate(&e, currency_code)
     }
 
     pub fn get_order(e: Env, order_id: u64) -> Result<Order, ContractError> {
