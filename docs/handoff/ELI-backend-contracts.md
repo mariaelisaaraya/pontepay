@@ -21,7 +21,14 @@ Tests: **20/20 pasan** (incluye 2 del oráculo). Código del contrato en `contra
 
 ## Tareas (priorizadas)
 
+### 0. 🔐 Remediar la auditoría de seguridad → [`SECURITY-AUDIT.md`](./SECURITY-AUDIT.md)
+Auditoría asistida (OpenZeppelin + verificación adversarial), **14 hallazgos**. Lo más urgente:
+- **🔴 High (P2P-01):** pausar congela TODOS los paths de refund/release/**resolve_dispute** → fondos atrapados. Exceptuar `cancel_order`/`execute_fiat_transfer_timeout`/`resolve_dispute` del guard de pausa.
+- **🟠 Medium (P2P-02/03):** `initialize()` front-runnable (mover a `__constructor`) + roles sin rotación (adoptar OZ `access` Ownable/AccessControl).
+- Varios Low (math chequeada en escrow, `reference_rate` devuelve 0 para EUR/GBP, deadlines con `checked_add`). Checklist priorizado al final del doc.
+
 ### 1. 🔴 Redeploy desde TU admin + seed de órdenes (desbloquea la demo real)
+> Nota: ya hay **1 orden real on-chain** (creada con la wallet de prueba `GBOKYW3J…FVKR`, secret en `.env` gitignored) — el smoke test de tx en testnet pasó (`get_order_count` 0→1). Igual conviene seedear más con tu admin.
 El marketplace hoy muestra órdenes **demo** porque la cadena está vacía. Para que el flujo real sea demostrable:
 1. Generá/fondéa un admin propio (testnet, friendbot) — pasos exactos en [`MAINNET_DEPLOY.md`](../hackathon/MAINNET_DEPLOY.md) §3.
 2. `cargo test` → `stellar contract build` → deploy → `initialize` → `set_oracle` (→ `CCSSO…`).
