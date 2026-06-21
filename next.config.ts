@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Public Crossmint CLIENT key (ck_). Client keys are exposed in the browser by
-  // design — their security comes from the allowed-origins allowlist in the
-  // Crossmint console (keep it limited to localhost + your deployed domain), NOT
-  // from secrecy. Never put a server key (sk_) here. Other NEXT_PUBLIC_* values
-  // fall back to the correct Stellar testnet defaults in code.
+  // Public Crossmint CLIENT key (ck_), STAGING = Stellar testnet (matches the
+  // deployed p2p contract). Client keys are exposed in the browser by design —
+  // their security is the allowed-origins allowlist in the Crossmint console
+  // (keep it limited to localhost + the deployed domain), NOT secrecy. Never put
+  // a server key (sk_) here. Other NEXT_PUBLIC_* values default to testnet in code.
   env: {
     NEXT_PUBLIC_CROSSMINT_API_KEY:
-      "ck_production_35MBXWWABDyFJoc9ujpYpMjTRMf6xiFFzKAmLgp3E9sUfyxnvMsepnjeceJRT2zmMPbrg6mKQHeEuwkHkgXeEhjZBRFQSh2jJhLKzq4j2fubLG6dQ5MYD1KVU75W75mi3MejbAsPU8FSqF5owACEfDy2NLr7nL4HZxJqYJQUr16A98T6XQakag8ggMve3gvQdvumMn7rBTLfZNtVCZ7Y1eU",
+      "ck_staging_5MwoQSikyguRgnHXQGNm2khXk73gYR7YiHRZHA5apxWCyxcBJmi5mPiQSbCss3wSUQqTSchWEVcW3pDqRK8P38pZgDhFeiVZQftUazAKQgSKSQ6Vi1wK1W5oD1cfCrpJYGHmKjUt9ELHUPNsVEN5enUMRKYjwQ7XJC81QQjSBa2gSPyN5LZCMRVZabJiGt3p6oFEbqtm7uBvdpBhdJkfDhAo",
   },
 };
 
