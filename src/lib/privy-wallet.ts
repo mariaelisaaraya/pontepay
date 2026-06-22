@@ -1,63 +1,77 @@
 'use client';
-// Central Privy × Stellar adapter.
-// All pages import useStellarWallet() from here — single source of truth.
-//
-// ELI — two TODOs below:
-//   1. Confirm the exact Privy wallet field that identifies a Stellar embedded wallet.
-//   2. Implement signEscrowXdr() with Privy's Stellar raw_sign / signTransaction.
+// Stellar wallet adapter — uses Freighter browser extension.
+// All pages import useStellarWallet() from here; the PrivyStellarWallet
+// type alias is kept for backwards compat with trade-actions / trustless/client.
 
-import { useWallets } from '@privy-io/react-auth';
-import { TransactionBuilder, Networks } from '@stellar/stellar-sdk';
+import { useState, useEffect } from 'react';
+import {
+  isConnected,
+  isAllowed,
+  getAddress,
+  signTransaction,
+} from '@stellar/freighter-api';
+import { Networks } from '@stellar/stellar-sdk';
 
-export type PrivyStellarWallet = {
+const NETWORK_PASSPHRASE =
+  process.env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE?.trim() || Networks.TESTNET;
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type StellarWallet = {
   address: string;
-  // Signs a Trustless Work unsigned XDR and returns the signed XDR (base64).
   signEscrowXdr: (unsignedXdr: string) => Promise<string>;
 };
 
+// Backwards-compat alias used by trade-actions.ts and trustless/client.ts
+export type PrivyStellarWallet = StellarWallet;
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
 export function useStellarWallet(): {
-  wallet: PrivyStellarWallet | null;
+  wallet: StellarWallet | null;
   address: string | null;
   isReady: boolean;
 } {
-  const { wallets } = useWallets();
+  const [address, setAddress] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
-  // ELI TODO-1: confirm the Privy ConnectedWallet field for Stellar.
-  // Privy follows the pattern `w.chain === 'stellar'` for non-EVM chains.
-  // If `useStellarWallets()` is exported by @privy-io/react-auth, prefer that.
-  const raw = wallets.find(
-    (w) => w.walletClientType === 'privy' && (w as unknown as { chain?: string }).chain === 'stellar',
-  );
+  useEffect(() => {
+    let cancelled = false;
 
-  if (!raw) {
-    return { wallet: null, address: null, isReady: false };
-  }
+    async function checkFreighter() {
+      try {
+        const { isConnected: connected } = await isConnected();
+        if (!connected || cancelled) { setIsReady(true); return; }
 
-  const wallet: PrivyStellarWallet = {
-    address: raw.address,
+        const { isAllowed: allowed } = await isAllowed();
+        if (!allowed || cancelled) { setIsReady(true); return; }
 
-    async signEscrowXdr(unsignedXdr: string): Promise<string> {
-      // ELI TODO-2: Privy Stellar raw XDR signing.
-      //
-      // Suggested approach (verify against Privy docs for the installed version):
-      //
-      //   import { Transaction } from '@stellar/stellar-sdk';
-      //   const tx = TransactionBuilder.fromXDR(unsignedXdr, Networks.TESTNET);
-      //   // Option A — if Privy exposes signTransaction(xdrString):
-      //   const signedXdr = await (raw as any).signTransaction(unsignedXdr);
-      //   return signedXdr;
-      //
-      //   // Option B — if Privy exposes raw Ed25519 sign(buffer):
-      //   const hash = tx.hash();
-      //   const { signature } = await (raw as any).sign({ message: hash });
-      //   // Re-attach signature to tx envelope and return base64 XDR.
-      //
-      // Privy Stellar docs: https://docs.privy.io → Wallets → Stellar.
-      void TransactionBuilder; void Networks; // keep import alive until TODO is resolved
-      console.warn('[PeerlyPay] signEscrowXdr: not yet implemented.');
-      return unsignedXdr;
-    },
-  };
+        const { address: addr, error } = await getAddress();
+        if (!cancelled) {
+          setAddress(error ? null : (addr ?? null));
+          setIsReady(true);
+        }
+      } catch {
+        if (!cancelled) setIsReady(true);
+      }
+    }
 
-  return { wallet, address: raw.address, isReady: true };
+    void checkFreighter();
+    return () => { cancelled = true; };
+  }, []);
+
+  const wallet: StellarWallet | null = address
+    ? {
+        address,
+        async signEscrowXdr(unsignedXdr: string): Promise<string> {
+          const { signedTxXdr, error } = await signTransaction(unsignedXdr, {
+            networkPassphrase: NETWORK_PASSPHRASE,
+          });
+          if (error) throw new Error(`Freighter signing failed: ${error}`);
+          return signedTxXdr ?? unsignedXdr;
+        },
+      }
+    : null;
+
+  return { wallet, address, isReady };
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { usePrivy } from '@privy-io/react-auth';
+import { requestAccess } from '@stellar/freighter-api';
 import { Wallet, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import FadeIn from '@/components/FadeIn';
@@ -14,7 +14,6 @@ import OrderTypeSelector from './OrderTypeSelector';
 export default function CreateOrderClient() {
   const searchParams = useSearchParams();
   const user = useStore((s) => s.user);
-  const { login } = usePrivy();
   const initialType = (searchParams.get('type') as 'buy' | 'sell') || 'sell';
   const [orderType, setOrderType] = useState<'buy' | 'sell'>(initialType);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -25,10 +24,11 @@ export default function CreateOrderClient() {
     setIsConnecting(true);
 
     try {
-      await login();
-      toast.success('Login iniciado');
+      const { error } = await requestAccess();
+      if (error) throw new Error(error);
+      toast.success('Wallet conectada');
     } catch {
-      toast.error('No se pudo iniciar el login');
+      toast.error('No se pudo conectar Freighter. ¿Está instalado?');
     } finally {
       setIsConnecting(false);
     }

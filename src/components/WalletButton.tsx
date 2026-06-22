@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { requestAccess } from "@stellar/freighter-api";
 import { toast } from "sonner";
 import {
   Wallet,
@@ -17,9 +17,8 @@ import { useStellarWallet } from "@/lib/privy-wallet";
 import { fetchWalletUsdcBalance } from "@/lib/wallet-balance";
 
 export default function WalletButton() {
-  const { user, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
-  const { login, logout, ready, authenticated } = usePrivy();
-  const { address: stellarAddress } = useStellarWallet();
+  const { user, connectWallet, disconnectWallet, setBalance } = useStore();
+  const { address: stellarAddress, isReady } = useStellarWallet();
   const { isConnected, walletAddress, balance } = user;
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -27,35 +26,27 @@ export default function WalletButton() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeWalletAddress = walletAddress ?? stellarAddress ?? null;
+  const isAuthenticated = Boolean(activeWalletAddress);
 
-  // Sync Privy auth state into the store
+  // Sync Freighter address into the store
   useEffect(() => {
-    if (!ready) return;
-    setWalletStatus(authenticated ? 'logged-in' : 'logged-out');
-  }, [ready, authenticated, setWalletStatus]);
-
-  useEffect(() => {
-    if (!ready) return;
-
+    if (!isReady) return;
     if (stellarAddress) {
       connectWallet(stellarAddress, null, 'logged-in');
-      return;
-    }
-
-    if (!authenticated) {
+    } else {
       disconnectWallet();
     }
-  }, [ready, authenticated, stellarAddress, connectWallet, disconnectWallet]);
+  }, [isReady, stellarAddress, connectWallet, disconnectWallet]);
 
   const refreshWalletBalance = useCallback(async () => {
-    if (!activeWalletAddress || !authenticated) return;
+    if (!activeWalletAddress || !isAuthenticated) return;
     try {
       const usdc = await fetchWalletUsdcBalance(activeWalletAddress);
       setBalance(usdc);
     } catch (error) {
       console.error("Failed to fetch wallet balance", error);
     }
-  }, [activeWalletAddress, authenticated, setBalance]);
+  }, [activeWalletAddress, isAuthenticated, setBalance]);
 
   useEffect(() => {
     void refreshWalletBalance();
@@ -89,40 +80,31 @@ export default function WalletButton() {
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      await login();
+      const { address, error } = await requestAccess();
+      if (error) throw new Error(error);
+      if (address) connectWallet(address, null, 'logged-in');
     } catch {
-      toast.error("No se pudo iniciar el login");
+      toast.error("No se pudo conectar Freighter. ¿Está instalado?");
     } finally {
       setIsConnecting(false);
     }
   };
 
-  const handleDisconnect = async () => {
-    try {
-      await logout();
-      disconnectWallet();
-      setIsOpen(false);
-      toast.info("Wallet desconectada");
-    } catch {
-      toast.error("No se pudo cerrar la sesion");
-    }
+  const handleDisconnect = () => {
+    disconnectWallet();
+    setIsOpen(false);
+    toast.info("Wallet desconectada");
   };
 
   const handleCopyAddress = async () => {
-    if (!activeWalletAddress) {
-      toast.error("No wallet address available");
-      return;
-    }
+    if (!activeWalletAddress) return;
     await navigator.clipboard.writeText(activeWalletAddress);
     toast.success("Direccion copiada");
     setIsOpen(false);
   };
 
   const handleOpenExplorer = () => {
-    if (!activeWalletAddress) {
-      toast.error("No wallet address available");
-      return;
-    }
+    if (!activeWalletAddress) return;
     window.open(
       `https://stellar.expert/explorer/testnet/account/${activeWalletAddress}`,
       "_blank",
@@ -137,7 +119,7 @@ export default function WalletButton() {
 
   // --- Disconnected ---
   if (!isConnected) {
-    const isAuthLoading = !ready || isConnecting;
+    const isAuthLoading = !isReady || isConnecting;
 
     return (
       <button
