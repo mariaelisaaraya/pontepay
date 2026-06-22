@@ -1,19 +1,9 @@
 'use client';
-// Stellar wallet adapter — uses Freighter browser extension.
+// Stellar wallet adapter — uses Crossmint email/social embedded wallet.
 // All pages import useStellarWallet() from here; the PrivyStellarWallet
 // type alias is kept for backwards compat with trade-actions / trustless/client.
 
-import { useState, useEffect } from 'react';
-import {
-  isConnected,
-  isAllowed,
-  getAddress,
-  signTransaction,
-} from '@stellar/freighter-api';
-import { Networks } from '@stellar/stellar-sdk';
-
-const NETWORK_PASSPHRASE =
-  process.env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE?.trim() || Networks.TESTNET;
+import { useWallet } from '@crossmint/client-sdk-react-ui';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,46 +22,21 @@ export function useStellarWallet(): {
   address: string | null;
   isReady: boolean;
 } {
-  const [address, setAddress] = useState<string | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const { wallet, status } = useWallet();
 
-  useEffect(() => {
-    let cancelled = false;
+  const isReady = status === 'loaded' || status === 'error';
+  const address = wallet?.address ?? null;
 
-    async function checkFreighter() {
-      try {
-        const { isConnected: connected } = await isConnected();
-        if (!connected || cancelled) { setIsReady(true); return; }
-
-        const { isAllowed: allowed } = await isAllowed();
-        if (!allowed || cancelled) { setIsReady(true); return; }
-
-        const { address: addr, error } = await getAddress();
-        if (!cancelled) {
-          setAddress(error ? null : (addr ?? null));
-          setIsReady(true);
-        }
-      } catch {
-        if (!cancelled) setIsReady(true);
-      }
-    }
-
-    void checkFreighter();
-    return () => { cancelled = true; };
-  }, []);
-
-  const wallet: StellarWallet | null = address
+  const stellarWallet: StellarWallet | null = address && wallet
     ? {
         address,
         async signEscrowXdr(unsignedXdr: string): Promise<string> {
-          const { signedTxXdr, error } = await signTransaction(unsignedXdr, {
-            networkPassphrase: NETWORK_PASSPHRASE,
-          });
-          if (error) throw new Error(`Freighter signing failed: ${error}`);
-          return signedTxXdr ?? unsignedXdr;
+          // Crossmint handles signing via its embedded key — returns signed XDR.
+          const signed = await (wallet as unknown as { signTransaction: (xdr: string) => Promise<string> }).signTransaction(unsignedXdr);
+          return signed;
         },
       }
     : null;
 
-  return { wallet, address, isReady };
+  return { wallet: stellarWallet, address, isReady };
 }

@@ -1,9 +1,19 @@
 "use client";
 
 import { useEffect } from 'react';
+import {
+  CrossmintProvider,
+  CrossmintAuthProvider,
+  CrossmintWalletProvider,
+} from "@crossmint/client-sdk-react-ui";
 import { UserProvider } from "@/contexts/UserContext";
 import { TradeHistoryProvider } from "@/contexts/TradeHistoryContext";
 import { useStore } from '@/lib/store';
+
+// ELI: set NEXT_PUBLIC_CROSSMINT_API_KEY in .env and Vercel.
+// Get it at app.crossmint.com → Projects → API Keys → Client-side key.
+// For testnet use a key starting with ck_staging_...
+const apiKey = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY!;
 
 function ChainOrdersBootstrap() {
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
@@ -17,11 +27,24 @@ function ChainOrdersBootstrap() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <UserProvider>
-      <TradeHistoryProvider>
-        <ChainOrdersBootstrap />
-        {children}
-      </TradeHistoryProvider>
-    </UserProvider>
+    <CrossmintProvider apiKey={apiKey}>
+      <CrossmintAuthProvider>
+        <CrossmintWalletProvider
+          createOnLogin={{
+            chain: "stellar",
+            signer: {
+              type: "email",
+            },
+          }}
+        >
+          <UserProvider>
+            <TradeHistoryProvider>
+              <ChainOrdersBootstrap />
+              {children}
+            </TradeHistoryProvider>
+          </UserProvider>
+        </CrossmintWalletProvider>
+      </CrossmintAuthProvider>
+    </CrossmintProvider>
   );
 }
