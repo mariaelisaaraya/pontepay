@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import ConfirmTradeIcon from '@/components/icons/ConfirmTradeIcon';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import { takeOrder } from '@/lib/trade-actions';
+import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -87,6 +88,19 @@ function ConfirmContent() {
       if (!hasTrustline) {
         router.push(`/trade/enable-usdc?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`);
         return;
+      }
+
+      // Pattern #2: live re-read before signing — shinigami pattern.
+      // Read the on-chain order status right before calling takeOrder so we
+      // catch a race where another taker filled the order between the user
+      // landing on this screen and confirming. Skip for demo/numeric-id guard.
+      if (!orderId.startsWith('demo-') && /^\d+$/.test(orderId)) {
+        const liveOrder = await loadChainOrderByIdFromContract(orderId);
+        if (liveOrder.status !== 'AwaitingFiller') {
+          toast.error('Esta orden ya fue tomada por otro usuario.');
+          router.back();
+          return;
+        }
       }
 
       if (!wallet) throw new Error('Wallet not ready');
