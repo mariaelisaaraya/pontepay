@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useStellarWallet } from "@/lib/privy-wallet";
 import { toast } from "sonner";
-import { ArrowLeft, Info, Loader2 } from "lucide-react";
+import { ArrowLeft, Info, Loader2, CheckCircle2, XCircle, BadgeCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,16 @@ const TRANSFER_METHODS = [
   { code: PaymentMethodCode.Cash, label: "Cash" },
 ] as const;
 
+type CuitStatus = 'idle' | 'loading' | 'valid' | 'invalid';
+
+type CuitResult = {
+  cuit: string;
+  type: string;
+  razonSocial: string | null;
+  estado: string;
+  source: string;
+};
+
 type OfferForm = {
   offerSide: "crypto" | "fiat";
   currencyCode: number;
@@ -48,6 +58,7 @@ type OfferForm = {
   fiatAmount: string;
   minTrade: string;
   maxTrade: string;
+  cuit: string;
 };
 
 const initialForm: OfferForm = {
@@ -58,6 +69,7 @@ const initialForm: OfferForm = {
   fiatAmount: "",
   minTrade: "",
   maxTrade: "",
+  cuit: "",
 };
 
 function parseNum(value: string): number {
@@ -82,6 +94,11 @@ export default function MarketMakerForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [hasLimits, setHasLimits] = useState(false);
+  const [cuitStatus, setCuitStatus] = useState<CuitStatus>('idle');
+  const [cuitResult, setCuitResult] = useState<CuitResult | null>(null);
+  const cuitDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isArs = form.currencyCode === FiatCurrencyCode.Ars;
 
   const isWalletReady = user.isConnected && Boolean(user.walletAddress);
   const currencyMeta = getCurrencyMeta(form.currencyCode);
@@ -95,6 +112,37 @@ export default function MarketMakerForm() {
 
   const useMarketRate = () => {
     setForm((prev) => ({ ...prev, rate: String(currencyMeta.marketRate) }));
+  };
+
+  const handleCuitChange = (value: string) => {
+    // Format as XX-XXXXXXXX-X while typing
+    const clean = value.replace(/\D/g, '').slice(0, 11);
+    let formatted = clean;
+    if (clean.length > 2) formatted = `${clean.slice(0, 2)}-${clean.slice(2)}`;
+    if (clean.length > 10) formatted = `${clean.slice(0, 2)}-${clean.slice(2, 10)}-${clean.slice(10)}`;
+    setForm((prev) => ({ ...prev, cuit: formatted }));
+    setCuitStatus('idle');
+    setCuitResult(null);
+
+    if (cuitDebounce.current) clearTimeout(cuitDebounce.current);
+    if (clean.length === 11) {
+      setCuitStatus('loading');
+      cuitDebounce.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/arca/validate-cuit?cuit=${clean}`);
+          const data = await res.json();
+          if (data.valid) {
+            setCuitStatus('valid');
+            setCuitResult(data);
+          } else {
+            setCuitStatus('invalid');
+            setCuitResult(null);
+          }
+        } catch {
+          setCuitStatus('invalid');
+        }
+      }, 400);
+    }
   };
 
   const handleSubmit = async () => {
@@ -284,6 +332,52 @@ export default function MarketMakerForm() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* CUIT — only for ARS orders */}
+            {isArs && (
+              <div>
+                <Label className="mb-1.5 block text-body-sm text-gray-700">
+                  CUIT / CUIL
+                  <span className="ml-1.5 text-xs font-normal text-gray-400">(validado por ARCA)</span>
+                </Label>
+                <div className="relative flex items-center rounded-xl border border-gray-200 bg-white px-3">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={form.cuit}
+                    onChange={(e) => handleCuitChange(e.target.value)}
+                    placeholder="20-12345678-9"
+                    maxLength={13}
+                    className="h-12 border-none bg-transparent px-0 font-mono shadow-none focus-visible:ring-0"
+                  />
+                  <div className="shrink-0 pl-2">
+                    {cuitStatus === 'loading' && <Loader2 className="size-4 animate-spin text-gray-400" />}
+                    {cuitStatus === 'valid' && <CheckCircle2 className="size-4 text-emerald-500" />}
+                    {cuitStatus === 'invalid' && <XCircle className="size-4 text-red-500" />}
+                  </div>
+                </div>
+
+                {cuitStatus === 'valid' && cuitResult && (
+                  <div className="mt-2 flex items-start gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+                    <BadgeCheck className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+                    <div className="text-xs text-emerald-700">
+                      <p className="font-semibold">{cuitResult.cuit} · {cuitResult.type}</p>
+                      {cuitResult.razonSocial && (
+                        <p className="opacity-80">{cuitResult.razonSocial}</p>
+                      )}
+                      <p className="opacity-60">
+                        Estado fiscal: {cuitResult.estado}
+                        {cuitResult.source === 'format-validation' && ' · verificación de formato (sandbox)'}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {cuitStatus === 'invalid' && (
+                  <p className="mt-1.5 text-xs text-red-600">CUIT inválido — verificá el dígito verificador.</p>
+                )}
+              </div>
+            )}
 
             <div>
               <Label className="mb-1.5 block text-body-sm text-gray-700">
