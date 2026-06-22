@@ -15,6 +15,22 @@ import type { CreateOrderInput } from '@/types';
 const PLATFORM_ADDRESS = process.env.NEXT_PUBLIC_PLATFORM_ADDRESS ?? '';
 const PLATFORM_FEE_BPS = 50; // 0.5%
 
+// Pattern #3: idempotency guard — prevents duplicate on-chain writes when a user
+// double-taps or the network retries before the first tx is confirmed.
+// Key format: `${operation}:${orderId}` — scoped per operation so takeOrder and
+// createOrder can run concurrently on different orders.
+const inFlight = new Set<string>();
+
+function acquireLock(key: string): boolean {
+  if (inFlight.has(key)) return false;
+  inFlight.add(key);
+  return true;
+}
+
+function releaseLock(key: string): void {
+  inFlight.delete(key);
+}
+
 function findEscrowByOrderId(orderId: string) {
   return listEscrows().find((e) => e.engagementId === orderId);
 }
@@ -23,13 +39,21 @@ function findEscrowByOrderId(orderId: string) {
 // TODO(ELI): resolve the contractId for this orderId and call tw.fundEscrow() (crypto-seller taker)
 // or tw.deployEscrow() + tw.fundEscrow() (crypto-seller maker accepting a fiat-buyer's take).
 // The exact branch depends on the order's `from_crypto` flag.
-export async function takeOrder(_args: {
+export async function takeOrder(args: {
   wallet: PrivyStellarWallet;
   caller: string;
   orderId: string;
   fillAmount: number;
 }): Promise<void> {
-  throw new Error('takeOrder: not yet wired to TW escrow — see TODO(ELI) in trade-actions.ts');
+  const key = `takeOrder:${args.orderId}`;
+  if (!acquireLock(key)) {
+    throw new Error('takeOrder: ya hay una transacción en curso para esta orden.');
+  }
+  try {
+    throw new Error('takeOrder: not yet wired to TW escrow — see TODO(ELI) in trade-actions.ts');
+  } finally {
+    releaseLock(key);
+  }
 }
 
 // Called when the fiat buyer taps "I've sent the payment".
@@ -39,14 +63,22 @@ export async function submitFiatPayment(args: {
   caller: string;
   orderId: string;
 }): Promise<void> {
-  const entry = findEscrowByOrderId(args.orderId);
-  if (!entry) throw new Error(`submitFiatPayment: no escrow registry entry for order ${args.orderId}`);
-  await tw.changeMilestoneStatus(args.wallet, {
-    contractId: entry.contractId,
-    milestoneIndex: '0',
-    newStatus: 'sent',
-    serviceProvider: args.caller,
-  });
+  const key = `submitFiatPayment:${args.orderId}`;
+  if (!acquireLock(key)) {
+    throw new Error('submitFiatPayment: pago ya enviado, esperando confirmación.');
+  }
+  try {
+    const entry = findEscrowByOrderId(args.orderId);
+    if (!entry) throw new Error(`submitFiatPayment: no escrow registry entry for order ${args.orderId}`);
+    await tw.changeMilestoneStatus(args.wallet, {
+      contractId: entry.contractId,
+      milestoneIndex: '0',
+      newStatus: 'sent',
+      serviceProvider: args.caller,
+    });
+  } finally {
+    releaseLock(key);
+  }
 }
 
 // Called when the crypto seller confirms fiat was received.
@@ -56,30 +88,47 @@ export async function confirmFiatPayment(args: {
   caller: string;
   orderId: string;
 }): Promise<void> {
-  const entry = findEscrowByOrderId(args.orderId);
-  if (!entry) throw new Error(`confirmFiatPayment: no escrow registry entry for order ${args.orderId}`);
-  await tw.approveMilestone(args.wallet, {
-    contractId: entry.contractId,
-    milestoneIndex: '0',
-    approver: args.caller,
-  });
-  await tw.releaseFunds(args.wallet, {
-    contractId: entry.contractId,
-    releaseSigner: args.caller,
-  });
+  const key = `confirmFiatPayment:${args.orderId}`;
+  if (!acquireLock(key)) {
+    throw new Error('confirmFiatPayment: confirmación ya en curso.');
+  }
+  try {
+    const entry = findEscrowByOrderId(args.orderId);
+    if (!entry) throw new Error(`confirmFiatPayment: no escrow registry entry for order ${args.orderId}`);
+    await tw.approveMilestone(args.wallet, {
+      contractId: entry.contractId,
+      milestoneIndex: '0',
+      approver: args.caller,
+    });
+    await tw.releaseFunds(args.wallet, {
+      contractId: entry.contractId,
+      releaseSigner: args.caller,
+    });
+  } finally {
+    releaseLock(key);
+  }
 }
 
 // Called when a maker creates a new order.
 // TODO(ELI): derive roles from escrowRolesForTrade(), deploy the TW escrow,
 // and (if from_crypto=true) immediately call fundEscrow(). Store contractId via addEscrow().
-export async function createOrder(_args: {
+export async function createOrder(args: {
   wallet: PrivyStellarWallet;
   caller: string;
   input: CreateOrderInput;
 }): Promise<void> {
-  void tw.deployEscrow; // used once TODO is implemented
-  void TRUSTLINES;
-  void PLATFORM_ADDRESS;
-  void PLATFORM_FEE_BPS;
-  throw new Error('createOrder: not yet wired to TW escrow — see TODO(ELI) in trade-actions.ts');
+  // Idempotency key: caller + amount + currency + type — same order from same user
+  const key = `createOrder:${args.caller}:${args.input.amount}:${args.input.fiatCurrencyCode}:${args.input.type}`;
+  if (!acquireLock(key)) {
+    throw new Error('createOrder: esta orden ya está siendo publicada.');
+  }
+  try {
+    void tw.deployEscrow; // used once TODO is implemented
+    void TRUSTLINES;
+    void PLATFORM_ADDRESS;
+    void PLATFORM_FEE_BPS;
+    throw new Error('createOrder: not yet wired to TW escrow — see TODO(ELI) in trade-actions.ts');
+  } finally {
+    releaseLock(key);
+  }
 }
