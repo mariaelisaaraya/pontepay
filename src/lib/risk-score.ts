@@ -15,15 +15,21 @@
 
 import type { Order } from '@/types';
 
-// ─── Thresholds (calibrated from gen-fraud-graph) ─────────────────────────────
+// ─── Thresholds (calibrated from gen-fraud-graph + ARCA/UIF) ──────────────────
 
 // USDC structuring window: $9,000–$9,999 (below US $10k CTR)
 const USDC_STRUCT_LO = 9_000;
 const USDC_STRUCT_HI = 9_999;
 
-// ARS structuring window: below AFIP/COELSA $1M ARS reporting threshold
+// ARS structuring window: below ARCA/COELSA $1M ARS reporting threshold
 const ARS_STRUCT_LO = 900_000;
 const ARS_STRUCT_HI = 999_999;
+
+// UIF mandatory reporting threshold for crypto P2P (Resolución UIF).
+// TODO: update with confirmed value from deep-research once ARCA/UIF
+// resolution is verified. Current value is a conservative demo placeholder.
+// Source: UIF Res. 156/2018 + subsequent updates for VASPs (sujetos obligados).
+const UIF_REPORT_THRESHOLD_ARS = 300_000; // ~$205 USD @ 1,461 ARS/USDC
 
 // High-value cross-border wire threshold (gen-fraud-graph "high-value" pattern)
 const USDC_HIGH_VALUE = 5_000;
@@ -50,6 +56,8 @@ export interface RiskResult {
   level: RiskLevel;
   flags: RiskFlag[];
   explanation: string;
+  requiresHold: boolean; // true when ARS equivalent exceeds UIF reporting threshold
+  arsEquivalent: number; // cached for display
 }
 
 // ─── Flag definitions ─────────────────────────────────────────────────────────
@@ -62,8 +70,13 @@ const FLAGS = {
   },
   STRUCTURING_ARS: {
     code: 'STRUCTURING_ARS',
-    label: 'Structuring — ARS amount near $1M AFIP threshold',
+    label: 'Structuring — ARS amount near $1M ARCA threshold',
     weight: 28,
+  },
+  UIF_REPORT_REQUIRED: {
+    code: 'UIF_REPORT_REQUIRED',
+    label: `Supera umbral UIF (≥ $${(UIF_REPORT_THRESHOLD_ARS / 1000).toFixed(0)}k ARS) — requiere retención manual`,
+    weight: 50,
   },
   ROUND_TRIP: {
     code: 'ROUND_TRIP',
@@ -111,12 +124,20 @@ export function scoreOrder(
     flags.push(FLAGS.STRUCTURING_USDC);
   }
 
-  // ── 2. Structuring: ARS equivalent near $1M AFIP threshold ───────────────
+  // ── 2. UIF mandatory reporting threshold ─────────────────────────────────
+  // Orders above UIF_REPORT_THRESHOLD_ARS must be held for manual review
+  // before being processed. Maps to dispute_resolver "hold" flow.
+  const requiresHold = arsEquivalent >= UIF_REPORT_THRESHOLD_ARS;
+  if (requiresHold) {
+    flags.push(FLAGS.UIF_REPORT_REQUIRED);
+  }
+
+  // ── 3. Structuring: ARS equivalent near $1M ARCA threshold ───────────────
   if (arsEquivalent >= ARS_STRUCT_LO && arsEquivalent <= ARS_STRUCT_HI) {
     flags.push(FLAGS.STRUCTURING_ARS);
   }
 
-  // ── 3. Cycle/round-trip detection ────────────────────────────────────────
+  // ── 4. Cycle/round-trip detection ────────────────────────────────────────
   // gen-fraud-graph: cycle of depth 4-7. In P2P: wallet A creates a sell order,
   // then later appears as taker in a buy order from someone they traded with,
   // completing a loop. Simplified: wallet A appears as maker on the opposite
@@ -133,7 +154,7 @@ export function scoreOrder(
     flags.push(FLAGS.ROUND_TRIP);
   }
 
-  // ── 4. Velocity ───────────────────────────────────────────────────────────
+  // ── 5. Velocity ───────────────────────────────────────────────────────────
   const velocityWindow = orderTime - VELOCITY_WINDOW_MS;
   const recentFromSameWallet = allOrders.filter(
     (o) =>
@@ -145,12 +166,12 @@ export function scoreOrder(
     flags.push(FLAGS.HIGH_VELOCITY);
   }
 
-  // ── 5. High-value single transaction ─────────────────────────────────────
+  // ── 6. High-value single transaction ─────────────────────────────────────
   if (usdcAmount >= USDC_HIGH_VALUE) {
     flags.push(FLAGS.HIGH_VALUE);
   }
 
-  // ── 6. First-time participant ─────────────────────────────────────────────
+  // ── 7. First-time participant ─────────────────────────────────────────────
   const hasPriorOrders = allOrders.some(
     (o) => o.id !== order.id && o.createdBy === walletAddress,
   );
@@ -170,7 +191,7 @@ export function scoreOrder(
       ? 'No AML indicators detected. Transaction appears normal.'
       : `${flags.length} indicator${flags.length > 1 ? 's' : ''} flagged: ${flags.map((f) => f.code).join(', ')}.`;
 
-  return { score, level, flags, explanation };
+  return { score, level, flags, explanation, requiresHold, arsEquivalent };
 }
 
 // ─── Batch scoring (for admin monitoring) ────────────────────────────────────
