@@ -283,7 +283,7 @@ export default function MarketplaceContent() {
           <div className="space-y-4">
             {filteredOrders.map((order, index) => (
               <FadeIn key={order.id} delay={index * 0.03}>
-                <OrderCard order={order} />
+                <OrderCard order={order} allOrders={orders} />
               </FadeIn>
             ))}
           </div>

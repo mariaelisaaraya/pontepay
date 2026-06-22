@@ -3,9 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { Clock, BadgeCheck } from 'lucide-react';
 import type { Order } from '@/types';
+import { scoreOrder } from '@/lib/risk-score';
+import RiskBadge from '@/components/RiskBadge';
 
 export interface OrderCardProps {
   order: Order;
+  /** Full order list for cycle/velocity detection. If omitted, risk badge is hidden. */
+  allOrders?: Order[];
 }
 
 function shortenAddress(address: string): string {
@@ -20,10 +24,11 @@ function getAddressInitial(address: string): string {
 
 const MAX_BADGES = 3;
 
-export default function OrderCard({ order }: OrderCardProps) {
+export default function OrderCard({ order, allOrders }: OrderCardProps) {
   const router = useRouter();
 
   const availableAmount = order.remainingAmount ?? order.amount;
+  const risk = allOrders ? scoreOrder(order, allOrders) : null;
   const currencyLabel = order.fiatCurrencyLabel;
   const actionLabel = order.type === 'sell' ? 'Buy Now' : 'Sell Now';
   const tradeCount = order.reputation_score ?? 0;
@@ -140,8 +145,8 @@ export default function OrderCard({ order }: OrderCardProps) {
         </button>
       </div>
 
-      {/* ── Row 3: Payment method badges ────────────────────────────────── */}
-      <div className="mt-3 flex flex-wrap gap-1">
+      {/* ── Row 3: Payment method badges + AML risk ─────────────────────── */}
+      <div className="mt-3 flex flex-wrap items-center gap-1">
         {visibleMethods.map((method, i) => (
           <span
             key={i}
@@ -153,6 +158,11 @@ export default function OrderCard({ order }: OrderCardProps) {
         {overflow > 0 && (
           <span className="rounded-[8px] border border-[#e2e8f0] px-2 py-0.5 font-body text-[10px] font-semibold text-gray-900">
             +{overflow}
+          </span>
+        )}
+        {risk && (
+          <span className="ml-auto">
+            <RiskBadge level={risk.level} score={risk.score} size="compact" />
           </span>
         )}
       </div>
