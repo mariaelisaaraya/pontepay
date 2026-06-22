@@ -1,0 +1,94 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "PeerlyPay" [ref=e6]
+          - generic [ref=e7]: PeerlyPay
+        - button "Connect Wallet" [ref=e100]:
+          - img [ref=e115]
+          - generic [ref=e11]: Connect Wallet
+    - main [ref=e12]:
+      - generic [ref=e15]:
+        - paragraph [ref=e16]: TOTAL BALANCE
+        - generic [ref=e17]:
+          - generic [ref=e18]: $
+          - generic [ref=e19]: —
+        - paragraph [ref=e20]: ≈ — USDC
+      - generic [ref=e21]:
+        - button "Send" [ref=e22]:
+          - img [ref=e23]
+          - generic [ref=e25]: Send
+        - button "Receive" [ref=e26]:
+          - img [ref=e27]
+          - generic [ref=e29]: Receive
+        - button "Buy" [ref=e30]:
+          - img [ref=e31]
+          - generic [ref=e34]: Buy
+        - button "Sell" [ref=e35]:
+          - img [ref=e36]
+          - generic [ref=e39]: Sell
+        - button "Anchor" [ref=e40]:
+          - img [ref=e41]
+          - generic [ref=e43]: Anchor
+      - generic [ref=e44]:
+        - heading "How Peerly Pay works" [level=3] [ref=e46]
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - img [ref=e51]
+              - paragraph [ref=e54]: Buy or sell USDC with pesos
+            - generic [ref=e55]:
+              - img [ref=e57]
+              - paragraph [ref=e62]: Get auto-matched with the best offer
+            - generic [ref=e63]:
+              - img [ref=e65]
+              - paragraph [ref=e68]: Receive ARS in minutes
+          - button "Make my first trade" [ref=e69]
+      - generic [ref=e104]:
+        - heading "Recent Activity" [level=3] [ref=e106]
+        - generic [ref=e107]:
+          - paragraph [ref=e108]: No recent activity
+          - paragraph [ref=e109]: Make your first trade to see it here
+    - navigation "Bottom navigation" [ref=e70]:
+      - generic [ref=e71]:
+        - link "Home" [ref=e72] [cursor=pointer]:
+          - /url: /
+          - img [ref=e73]
+          - generic [ref=e76]: Home
+        - link "Orders" [ref=e77] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e78]
+          - generic [ref=e81]: Orders
+        - link "Profile" [ref=e82] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e83]
+          - generic [ref=e86]: Profile
+  - region "Notifications alt+T":
+    - list:
+      - listitem [ref=e118]:
+        - img [ref=e120]
+        - generic [ref=e124]: Iniciando sesión con Crossmint...
+  - button "Open Next.js Dev Tools" [ref=e110] [cursor=pointer]:
+    - img [ref=e111]
+  - alert [ref=e114]
+  - dialog [ref=e126]:
+    - button [ref=e127] [cursor=pointer]:
+      - img [ref=e128]
+    - generic [ref=e132]:
+      - generic [ref=e133]:
+        - heading "Sign in to Crossmint" [level=2] [ref=e134]
+        - paragraph [ref=e135]: Access using one of the options below.
+      - button "Sign in with Google Sign in with Google" [ref=e136] [cursor=pointer]:
+        - img [ref=e138]
+        - generic [ref=e143]: Sign in with Google
+        - generic [ref=e144]: Sign in with Google
+      - generic [ref=e145]:
+        - paragraph [ref=e148]: OR
+        - generic [ref=e151]:
+          - generic [ref=e152]: Email
+          - form [ref=e153]:
+            - generic [ref=e154]: Email
+            - textbox "your@email.com" [ref=e155]
+            - button "Submit" [disabled] [ref=e157]
+      - img [ref=e159]

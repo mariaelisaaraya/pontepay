@@ -1,0 +1,45 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]:
+          - img "PeerlyPay" [ref=e6]
+          - generic [ref=e7]: PeerlyPay
+        - button "Conectando..." [disabled] [ref=e8]:
+          - img [ref=e9]
+          - generic [ref=e11]: Conectando...
+    - main [ref=e12]:
+      - generic [ref=e13]:
+        - heading "My Orders" [level=1] [ref=e14]
+        - generic [ref=e15]:
+          - button "Filters" [ref=e16]:
+            - img [ref=e17]
+            - generic [ref=e18]: Filters
+          - button "Contract dashboard" [ref=e19]:
+            - img [ref=e20]
+          - button "Refresh orders" [ref=e25]:
+            - img [ref=e26]
+      - generic [ref=e31]:
+        - button "Active (0)" [ref=e32]
+        - button "Completed (0)" [ref=e33]
+        - button "Disputed (0)" [ref=e34]
+      - generic [ref=e35]:
+        - img [ref=e36]
+        - paragraph [ref=e40]: No active orders yet.
+    - navigation "Bottom navigation" [ref=e41]:
+      - generic [ref=e42]:
+        - link "Home" [ref=e43] [cursor=pointer]:
+          - /url: /
+          - img [ref=e44]
+          - generic [ref=e47]: Home
+        - link "Orders" [ref=e48] [cursor=pointer]:
+          - /url: /orders
+          - img [ref=e49]
+          - generic [ref=e52]: Orders
+        - link "Profile" [ref=e53] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e54]
+          - generic [ref=e57]: Profile
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e63] [cursor=pointer]:
+    - img [ref=e64]
