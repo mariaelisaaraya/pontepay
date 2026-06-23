@@ -215,10 +215,29 @@ impl OrderManager {
         };
 
         let token_client = TokenClient::new(e, &config.token);
+
+        let fee_amount = active_fill_amount
+            .checked_mul(config.platform_fee_bps as i128)
+            .ok_or(ContractError::Overflow)?
+            .checked_div(10_000)
+            .ok_or(ContractError::DivisionError)?;
+
+        let recipient_amount = active_fill_amount
+            .checked_sub(fee_amount)
+            .ok_or(ContractError::Underflow)?;
+
+        if fee_amount > 0 {
+            token_client.transfer(
+                &e.current_contract_address(),
+                &config.platform_address,
+                &fee_amount,
+            );
+        }
+
         token_client.transfer(
             &e.current_contract_address(),
             &recipient,
-            &active_fill_amount,
+            &recipient_amount,
         );
 
         order.filled_amount = order

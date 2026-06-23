@@ -13,6 +13,8 @@ impl AdminManager {
         dispute_resolver: Address,
         pauser: Address,
         token: Address,
+        platform_address: Address,
+        platform_fee_bps: u32,
         max_duration_secs: u64,
         filler_payment_timeout_secs: u64,
     ) -> Result<Config, ContractError> {
@@ -20,13 +22,15 @@ impl AdminManager {
             return Err(ContractError::AlreadyInitialized);
         }
 
-        validate_initialize_inputs(max_duration_secs, filler_payment_timeout_secs)?;
+        validate_initialize_inputs(max_duration_secs, filler_payment_timeout_secs, platform_fee_bps)?;
 
         let config = Config {
             admin,
             dispute_resolver,
             pauser,
             token,
+            platform_address,
+            platform_fee_bps,
             max_duration_secs,
             filler_payment_timeout_secs,
             paused: false,

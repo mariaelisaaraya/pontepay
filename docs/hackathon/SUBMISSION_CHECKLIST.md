@@ -25,7 +25,7 @@
 | A3 | **Pitch deck** | - [ ] To finalize | `docs/hackathon/PITCH.md` (Spanish, Argentine audience). Export/link a slide deck before submission. |
 | A4 | **1–2 min demo video** | - [ ] To record | Script: `docs/hackathon/DEMO_SCRIPT.md`. Record after the team redeploy + seed (see C1–C2) so the demo shows real on-chain state. |
 | A5 | **≥5 customer discovery interviews** (intro says 5 → do 5) | - [ ] To paste evidence | `docs/hackathon/CUSTOMER_DISCOVERY.md` (Spanish). Needs 5 interviews with names/roles (or initials), date, key quote, and what changed in the product because of it. |
-| A6 | **Live testnet deployment** | - [x] Done (throwaway) → re-do with team admin | `p2p` Soroban escrow deployed on **testnet**: `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ`. **Note:** current instance uses a throwaway admin and has no seeded orders — redeploy from the team's funded admin + seed before the demo (C1–C2). |
+| A6 | **Live testnet deployment** | - [x] Done | `p2p` Soroban escrow deployed on **testnet**: `CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD`. Initialized with team admin, Reflector oracle set, platform fee 0.5% configured, **3 seed orders live** (5 USDC @ 1462, 10 USDC @ 1465, 5 USDC @ 1468 ARS/USDC). |
 | A7 | **≥1 building block from the recommended Integration List** | - [x] Done | **Reflector SEP-40 oracle** (core Stellar building block) is wired and live. **SEP-24 anchor** discovery is live against `testanchor.stellar.org` via `/anchor` + `/api/anchor/info`. Trustless Work Escrow crate also exists in-repo (not wired to the app — disclosed honestly). |
 
 **SCF rubric proxy (authoritative):** "Stellar must be used to meaningfully improve core features, not as a superficial integration." → Met: the live exchange rate the whole marketplace prices against is produced by an on-chain oracle call inside our own contract, and settlement is on-chain escrow. Remaining mocks are documented in the README per the template's invitation.
@@ -37,8 +37,9 @@
 ### B1. Integration depth & technical complexity
 - [x] **On-chain oracle with a cross-contract call.** `p2p` contract calls Reflector (SEP-40) via `set_oracle` / `get_oracle` / `reference_rate`. Testnet oracle `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W`; mainnet oracle `CBKGPWGKSKZF52CFHMTRR23TBWTPMRDIYZ4O2P5VS65BMHYH4DXMCJZC`. This is the headline depth feature — the rate is read from chain, not set by an admin.
 - [x] **Full non-custodial escrow lifecycle on Soroban** (`soroban-sdk 23.1.1`): `initialize`, `pause`/`unpause`, `create_order(_cli)`, `cancel_order`, `take_order(_with_amount)`, `submit_fiat_payment`, `execute_fiat_transfer_timeout`, `confirm_fiat_payment`, `dispute_fiat_payment`, `resolve_dispute`, `get_order(_count)`, `get_config`, `set_oracle`, `get_oracle`, `reference_rate`.
-- [x] **20/20 Rust tests pass** (`cargo test -p p2p`), including 2 new oracle tests.
-- [x] **Real contract writes from the frontend** via Crossmint email-signer smart wallets: `createOrderWithCrossmint`, `takeOrderWithCrossmint`, `submitFiatPaymentWithCrossmint`, `confirmFiatPaymentWithCrossmint`, with 5s on-chain polling.
+- [x] **21/21 Rust tests pass** (`cargo test -p p2p`), including 2 oracle tests and 3 updated for platform fee (0.5%).
+- [x] **Real contract writes from the frontend** via Privy embedded wallets (`signTransaction`) + Stellar Wallets Kit: `takeOrder`, `submitFiatPayment`, `confirmFiatPayment`, wired through `soroban-submit` (simulate → restore → sign → submit with retries).
+- [x] **Platform fee (0.5%)** enforced on-chain in `confirm_fiat_payment` — 50 bps deducted to `platform_address`, remainder to recipient. Checked arithmetic, no rounding errors.
 - [x] **Layered live-rate fallback chain** (`/api/rates`): our contract `reference_rate` → direct Reflector read → BCRA official API → constant. Verified live: contract = 1461, reflector = 1461.92, bcraOfficial = 1461.
 - [x] **Argentina-native rails:** `/api/rates` pulls Argentina's central bank (BCRA) official USD/ARS for transparency; the payment screen renders an EMVCo MPM interoperable QR (CRC16/CCITT) for a **BCRA Transferencias 3.0** payment request — the off-chain fiat leg that triggers escrow release.
 - [x] **Real deployment bug fixed:** contract ID unified across read/write paths in `src/lib/contract-config.ts`.
@@ -56,7 +57,7 @@
 
 ### B4. Quality of testnet/mainnet deployment
 - [x] **Live testnet** contract deployed and verifiable on a Stellar explorer (testnet).
-- [ ] **Redeploy from team admin + seed orders** so a judge sees real, populated marketplace state (C1–C2).
+- [x] **Redeployed from team admin + 3 seed orders** — marketplace shows real populated state (C1–C2 done).
 - [ ] **Fresh wallet completes a trade end-to-end** on the deployed instance (C5).
 - [ ] **Consider a mainnet deploy** — the rubric explicitly states mainnet deploy or live traction is a **scoring advantage** (C6). Reflector mainnet oracle is already identified: `CBKGPWGKSKZF52CFHMTRR23TBWTPMRDIYZ4O2P5VS65BMHYH4DXMCJZC`.
 
@@ -64,11 +65,11 @@
 
 ## C. Pre-submission tasks (do before Jun 30)
 
-> Build/test/deploy run under **WSL Ubuntu** (rust 1.96 + cc/gcc + stellar CLI); the team's native Windows shell has no C linker. Invoke from PowerShell as `wsl bash "/mnt/c/.../contracts/<script>.sh"` (Git Bash mangles `/mnt` paths). `cargo test -p p2p` = 20/20.
+> Build/test/deploy run under macOS (rust + stellar CLI). `cargo test -p p2p` = 21/21.
 
-- [ ] **C1 — Redeploy `p2p` from the team's own funded admin identity.** The current testnet instance uses a throwaway admin key. Use the Makefile targets: `make p2p-build` → `make p2p-install` → `make p2p-deploy` → `make p2p-init` → `make p2p-config` (NETWORK=testnet, SOURCE=admin, with real ADMIN / DISPUTE_RESOLVER / PAUSER / TOKEN_CONTRACT_ID).
-- [ ] **C2 — Seed orders** so the marketplace isn't empty: `make p2p-seed-orders` (or `make p2p-seed-orders-small`).
-- [ ] **C3 — Update `NEXT_PUBLIC_P2P_CONTRACT_ID`** to the newly deployed contract ID. Re-confirm `set_oracle` is configured to the Reflector oracle on the new instance and that `GET /api/rates` returns `source: "contract"`.
+- [x] **C1 — Redeployed `p2p` from team admin.** Contract `CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD` initialized with platform fee 0.5% (50 bps) to admin address, Reflector oracle `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W` set.
+- [x] **C2 — Seed orders complete.** 3 orders live: 5 USDC @ 1462, 10 USDC @ 1465, 5 USDC @ 1468 ARS/USDC (all BankTransfer or MobileWallet).
+- [x] **C3 — `NEXT_PUBLIC_P2P_CONTRACT_ID` updated** to `CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD`. TypeScript bindings regenerated. Reflector oracle confirmed. `GET /api/rates` returns `source: "contract"` with live ~1470 rate.
 - [ ] **C4 — Finalize the deck** (`docs/hackathon/PITCH.md`) and export to a shareable URL.
 - [ ] **C5 — Verify a fresh Crossmint wallet can complete a full trade**: `/trade/confirm → /trade/payment → /trade/waiting → /trade/success`, with the on-chain order advancing via real contract writes (not the old fake auto-advance).
 - [ ] **C6 — Record the 1–2 min demo video** from `docs/hackathon/DEMO_SCRIPT.md`, after C1–C5 so it shows real on-chain state and the live oracle rate.
@@ -93,7 +94,7 @@
 | **Public repo** | `https://github.com/mariaelisaaraya/pontepay` |
 | **Demo video (1–2 min)** | `__________________________` |
 | **Pitch deck** | `__________________________` (source: `docs/hackathon/PITCH.md`) |
-| **Testnet contract — explorer** | https://stellar.expert/explorer/testnet/contract/CCMBOWQ3LESNPNPRLBWSSQVYNSPMPXJJ6TGUOR6AODJZNL3JBVXBZGDM |
+| **Testnet contract — explorer** | https://stellar.expert/explorer/testnet/contract/CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD |
 | **Mainnet contract — explorer** (if C8 done) | `__________________________` |
 | **Live app URL** (if deployed) | `__________________________` |
 

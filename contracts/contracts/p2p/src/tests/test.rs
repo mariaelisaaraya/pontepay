@@ -32,8 +32,12 @@ struct Setup<'a> {
     dispute_resolver: Address,
     creator: Address,
     filler: Address,
+    platform: Address,
     token: TokenClient<'a>,
 }
+
+// Platform fee used in all tests: 50 bps = 0.5%
+const TEST_FEE_BPS: u32 = 50;
 
 fn setup<'a>() -> Setup<'a> {
     let env = Env::default();
@@ -44,6 +48,7 @@ fn setup<'a>() -> Setup<'a> {
     let dispute_resolver = Address::generate(&env);
     let creator = Address::generate(&env);
     let filler = Address::generate(&env);
+    let platform = Address::generate(&env);
 
     let (token, token_admin) = create_token(&env, &admin);
 
@@ -56,6 +61,8 @@ fn setup<'a>() -> Setup<'a> {
         &dispute_resolver,
         &pauser,
         &token.address,
+        &platform,
+        &TEST_FEE_BPS,
         &2_592_000,
         &1_800,
     );
@@ -67,8 +74,14 @@ fn setup<'a>() -> Setup<'a> {
         dispute_resolver,
         creator,
         filler,
+        platform,
         token,
     }
+}
+
+// Helper: expected fee for a given fill amount at TEST_FEE_BPS.
+fn expected_fee(amount: i128) -> i128 {
+    amount * TEST_FEE_BPS as i128 / 10_000
 }
 
 #[test]
@@ -154,12 +167,13 @@ fn test_submit_confirm_from_crypto_releases_to_filler() {
     let s = setup();
 
     let filler_before = s.token.balance(&s.filler);
+    let fill_amount: i128 = 400;
     let order_id = s.client.create_order(
         &s.creator,
         &FiatCurrency::Usd,
         &PaymentMethod::BankTransfer,
         &true,
-        &400,
+        &fill_amount,
         &1000,
         &600,
     );
@@ -168,11 +182,13 @@ fn test_submit_confirm_from_crypto_releases_to_filler() {
     s.client.submit_fiat_payment(&s.filler, &order_id);
     s.client.confirm_fiat_payment(&s.creator, &order_id);
 
+    let fee = expected_fee(fill_amount);
     let order = s.client.get_order(&order_id);
     assert_eq!(order.status, OrderStatus::Completed);
     assert_eq!(order.remaining_amount, 0);
-    assert_eq!(order.filled_amount, 400);
-    assert_eq!(s.token.balance(&s.filler), filler_before + 400);
+    assert_eq!(order.filled_amount, fill_amount);
+    assert_eq!(s.token.balance(&s.filler), filler_before + fill_amount - fee);
+    assert_eq!(s.token.balance(&s.platform), fee);
     assert_eq!(s.token.balance(&s.client.address), 0);
 }
 
@@ -181,12 +197,13 @@ fn test_submit_confirm_from_fiat_releases_to_creator() {
     let s = setup();
 
     let creator_before = s.token.balance(&s.creator);
+    let fill_amount: i128 = 450;
     let order_id = s.client.create_order(
         &s.creator,
         &FiatCurrency::Usd,
         &PaymentMethod::BankTransfer,
         &false,
-        &450,
+        &fill_amount,
         &1000,
         &600,
     );
@@ -195,11 +212,13 @@ fn test_submit_confirm_from_fiat_releases_to_creator() {
     s.client.submit_fiat_payment(&s.creator, &order_id);
     s.client.confirm_fiat_payment(&s.filler, &order_id);
 
+    let fee = expected_fee(fill_amount);
     let order = s.client.get_order(&order_id);
     assert_eq!(order.status, OrderStatus::Completed);
     assert_eq!(order.remaining_amount, 0);
-    assert_eq!(order.filled_amount, 450);
-    assert_eq!(s.token.balance(&s.creator), creator_before + 450);
+    assert_eq!(order.filled_amount, fill_amount);
+    assert_eq!(s.token.balance(&s.creator), creator_before + fill_amount - fee);
+    assert_eq!(s.token.balance(&s.platform), fee);
     assert_eq!(s.token.balance(&s.client.address), 0);
 }
 
@@ -296,6 +315,7 @@ fn test_partial_fill_reduces_remaining_and_reopens_order() {
     let s = setup();
 
     let creator_before = s.token.balance(&s.creator);
+    let fill_amount: i128 = 200;
     let order_id = s.client.create_order(
         &s.creator,
         &FiatCurrency::Usd,
@@ -306,17 +326,19 @@ fn test_partial_fill_reduces_remaining_and_reopens_order() {
         &600,
     );
 
-    s.client.take_order_with_amount(&s.filler, &order_id, &200);
+    s.client.take_order_with_amount(&s.filler, &order_id, &fill_amount);
     s.client.submit_fiat_payment(&s.creator, &order_id);
     s.client.confirm_fiat_payment(&s.filler, &order_id);
 
+    let fee = expected_fee(fill_amount);
     let order = s.client.get_order(&order_id);
     assert_eq!(order.status, OrderStatus::AwaitingFiller);
     assert_eq!(order.remaining_amount, 800);
-    assert_eq!(order.filled_amount, 200);
+    assert_eq!(order.filled_amount, fill_amount);
     assert_eq!(order.filler, None);
     assert_eq!(order.active_fill_amount, None);
-    assert_eq!(s.token.balance(&s.creator), creator_before + 200);
+    assert_eq!(s.token.balance(&s.creator), creator_before + fill_amount - fee);
+    assert_eq!(s.token.balance(&s.platform), fee);
 }
 
 #[test]
@@ -421,6 +443,7 @@ fn test_initialize_rejects_duplicate_and_invalid_timeouts() {
     let dispute_resolver = Address::generate(&env);
     let (token, _) = create_token(&env, &admin);
 
+    let platform = Address::generate(&env);
     let client = P2PContractClient::new(&env, &env.register(P2PContract {}, ()));
 
     client.initialize(
@@ -428,6 +451,8 @@ fn test_initialize_rejects_duplicate_and_invalid_timeouts() {
         &dispute_resolver,
         &pauser,
         &token.address,
+        &platform,
+        &50u32,
         &100,
         &10,
     );
@@ -437,14 +462,17 @@ fn test_initialize_rejects_duplicate_and_invalid_timeouts() {
         &dispute_resolver,
         &pauser,
         &token.address,
+        &platform,
+        &50u32,
         &100,
         &10,
     );
     assert!(duplicate.is_err());
 
     let second = P2PContractClient::new(&env, &env.register(P2PContract {}, ()));
-    let invalid_timeout =
-        second.try_initialize(&admin, &dispute_resolver, &pauser, &token.address, &100, &0);
+    let invalid_timeout = second.try_initialize(
+        &admin, &dispute_resolver, &pauser, &token.address, &platform, &50u32, &100, &0,
+    );
     assert!(invalid_timeout.is_err());
 }
 
@@ -688,6 +716,7 @@ fn test_reference_rate_reads_oracle() {
     let pauser = Address::generate(&env);
     let (token, _token_admin) = create_token(&env, &admin);
 
+    let platform = Address::generate(&env);
     let oracle_id = env.register(mock_oracle::MockOracle {}, ());
 
     let client = P2PContractClient::new(&env, &env.register(P2PContract {}, ()));
@@ -696,6 +725,8 @@ fn test_reference_rate_reads_oracle() {
         &dispute_resolver,
         &pauser,
         &token.address,
+        &platform,
+        &50u32,
         &2_592_000,
         &1_800,
     );
