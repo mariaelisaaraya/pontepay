@@ -1,17 +1,12 @@
 'use client';
 // Central Privy × Stellar adapter.
 // All pages import useStellarWallet() from here — single source of truth.
-//
-// ELI — two TODOs below:
-//   1. Confirm the exact Privy wallet field that identifies a Stellar embedded wallet.
-//   2. Implement signEscrowXdr() with Privy's Stellar raw_sign / signTransaction.
 
 import { useWallets } from '@privy-io/react-auth';
-import { TransactionBuilder, Networks } from '@stellar/stellar-sdk';
 
 export type PrivyStellarWallet = {
   address: string;
-  // Signs a Trustless Work unsigned XDR and returns the signed XDR (base64).
+  // Signs a Soroban unsigned XDR and returns the signed XDR (base64).
   signEscrowXdr: (unsignedXdr: string) => Promise<string>;
 };
 
@@ -22,11 +17,12 @@ export function useStellarWallet(): {
 } {
   const { wallets } = useWallets();
 
-  // ELI TODO-1: confirm the Privy ConnectedWallet field for Stellar.
-  // Privy follows the pattern `w.chain === 'stellar'` for non-EVM chains.
-  // If `useStellarWallets()` is exported by @privy-io/react-auth, prefer that.
+  // Privy v2 follows `w.chainType === 'stellar'` for Stellar embedded wallets.
   const raw = wallets.find(
-    (w) => w.walletClientType === 'privy' && (w as unknown as { chain?: string }).chain === 'stellar',
+    (w) =>
+      w.walletClientType === 'privy' &&
+      ((w as unknown as { chainType?: string }).chainType === 'stellar' ||
+        (w as unknown as { chain?: string }).chain === 'stellar'),
   );
 
   if (!raw) {
@@ -37,25 +33,22 @@ export function useStellarWallet(): {
     address: raw.address,
 
     async signEscrowXdr(unsignedXdr: string): Promise<string> {
-      // ELI TODO-2: Privy Stellar raw XDR signing.
-      //
-      // Suggested approach (verify against Privy docs for the installed version):
-      //
-      //   import { Transaction } from '@stellar/stellar-sdk';
-      //   const tx = TransactionBuilder.fromXDR(unsignedXdr, Networks.TESTNET);
-      //   // Option A — if Privy exposes signTransaction(xdrString):
-      //   const signedXdr = await (raw as any).signTransaction(unsignedXdr);
-      //   return signedXdr;
-      //
-      //   // Option B — if Privy exposes raw Ed25519 sign(buffer):
-      //   const hash = tx.hash();
-      //   const { signature } = await (raw as any).sign({ message: hash });
-      //   // Re-attach signature to tx envelope and return base64 XDR.
-      //
-      // Privy Stellar docs: https://docs.privy.io → Wallets → Stellar.
-      void TransactionBuilder; void Networks; // keep import alive until TODO is resolved
-      console.warn('[PeerlyPay] signEscrowXdr: not yet implemented.');
-      return unsignedXdr;
+      // Privy v2 embedded Stellar wallet — signTransaction takes the raw XDR string
+      // and returns the signed XDR string.
+      // See: https://docs.privy.io/wallets/embedded/stellar/sign-transactions
+      const privyWallet = raw as unknown as {
+        signTransaction: (xdr: string, opts?: Record<string, string>) => Promise<string>;
+      };
+      if (typeof privyWallet.signTransaction !== 'function') {
+        throw new Error(
+          '[PeerlyPay] Privy Stellar wallet does not expose signTransaction. ' +
+          'Ensure the user is authenticated and the Stellar embedded wallet is active.',
+        );
+      }
+      const networkPassphrase =
+        process.env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE?.trim() ||
+        'Test SDF Network ; September 2015';
+      return privyWallet.signTransaction(unsignedXdr, { networkPassphrase });
     },
   };
 
