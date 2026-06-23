@@ -64,6 +64,9 @@ impl OrderManager {
         e.storage()
             .instance()
             .set(&DataKey::OrderCount, &(next_order_id + 1));
+        e.storage()
+            .instance()
+            .extend_ttl(ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
 
         Ok(order)
     }
@@ -243,7 +246,7 @@ impl OrderManager {
 
     pub fn get_order(e: &Env, order_id: u64) -> Result<Order, ContractError> {
         e.storage()
-            .instance()
+            .persistent()
             .get(&DataKey::Order(order_id))
             .ok_or(ContractError::OrderNotFound)
     }
@@ -254,8 +257,15 @@ impl OrderManager {
     }
 
     fn store_order(e: &Env, order: &Order) {
+        let key = DataKey::Order(order.order_id);
+        e.storage().persistent().set(&key, order);
+        // Extend TTL so the order survives at least 30 days (~518 400 ledgers at 5 s/ledger).
         e.storage()
-            .instance()
-            .set(&DataKey::Order(order.order_id), order);
+            .persistent()
+            .extend_ttl(&key, ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
     }
 }
+
+// ~5 days before expiry → extend to ~30 days (at 5 s/ledger on testnet and mainnet).
+const ORDER_TTL_THRESHOLD: u32 = 86_400;
+const ORDER_TTL_LEDGERS: u32 = 518_400;

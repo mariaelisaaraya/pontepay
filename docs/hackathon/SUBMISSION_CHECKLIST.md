@@ -90,10 +90,10 @@
 | Artifact | URL |
 |----------|-----|
 | **DoraHacks project page** | `__________________________` |
-| **Public repo** | `https://github.com/PeerlyPay/peerlypay` |
+| **Public repo** | `https://github.com/mariaelisaaraya/pontepay` |
 | **Demo video (1–2 min)** | `__________________________` |
 | **Pitch deck** | `__________________________` (source: `docs/hackathon/PITCH.md`) |
-| **Testnet contract — explorer** | `__________________________` (contract `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ`, or the new team-admin contract from C1) |
+| **Testnet contract — explorer** | https://stellar.expert/explorer/testnet/contract/CCMBOWQ3LESNPNPRLBWSSQVYNSPMPXJJ6TGUOR6AODJZNL3JBVXBZGDM |
 | **Mainnet contract — explorer** (if C8 done) | `__________________________` |
 | **Live app URL** (if deployed) | `__________________________` |
 

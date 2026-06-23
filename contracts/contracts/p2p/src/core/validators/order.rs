@@ -17,7 +17,7 @@ pub fn validate_create_order(
         return Err(ContractError::InvalidExchangeRate);
     }
 
-    if duration_secs > config.max_duration_secs {
+    if duration_secs == 0 || duration_secs > config.max_duration_secs {
         return Err(ContractError::InvalidDuration);
     }
 

@@ -34,6 +34,9 @@ impl AdminManager {
 
         e.storage().instance().set(&DataKey::Config, &config);
         e.storage().instance().set(&DataKey::OrderCount, &0u64);
+        e.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_LEDGERS);
 
         Ok(config)
     }
@@ -49,6 +52,9 @@ impl AdminManager {
 
         config.paused = true;
         e.storage().instance().set(&DataKey::Config, &config);
+        e.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_LEDGERS);
 
         Ok(())
     }
@@ -64,6 +70,9 @@ impl AdminManager {
 
         config.paused = false;
         e.storage().instance().set(&DataKey::Config, &config);
+        e.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_LEDGERS);
 
         Ok(())
     }
@@ -84,6 +93,9 @@ impl AdminManager {
         }
 
         e.storage().instance().set(&DataKey::Oracle, &oracle);
+        e.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_LEDGERS);
 
         Ok(())
     }
@@ -106,3 +118,7 @@ impl AdminManager {
             .unwrap_or(0u64))
     }
 }
+
+// ~5 days threshold → extend to ~30 days (at 5 s/ledger).
+const INSTANCE_TTL_THRESHOLD: u32 = 86_400;
+const INSTANCE_TTL_LEDGERS: u32 = 518_400;
