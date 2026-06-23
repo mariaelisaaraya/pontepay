@@ -167,6 +167,19 @@ Hook disponible: `useLiveRate()` en `src/lib/useLiveRate.ts` — devuelve `{ usd
 
 ---
 
+## Backend — rutas API del servidor
+
+| Ruta | Qué hace | Estado |
+|------|----------|--------|
+| `GET /api/rates` | Tasa ARS/USD en vivo: consulta nuestro contrato Soroban (oráculo Reflector) + BCRA oficial. Caché 60s. | ✅ Real y funcionando |
+| `GET /api/anchor/info` | Descubre las capacidades SEP-24 del anchor (`testanchor.stellar.org`). Caché 1h. | ✅ Real y funcionando |
+| `POST /api/match-order` | Matchea una orden del libro con el mejor precio para el monto pedido. | 🟡 Lógica real, pero usa un order book **mock** hardcodeado — debería leer del contrato |
+| `GET /api/sep31` | Corredor ARS→BRL (SEP-31). | 🟡 Scaffold, no está completamente integrado |
+
+> El historial de órdenes del usuario sí está en localStorage (no hay base de datos). La "fuente de verdad" de las órdenes es el contrato Soroban, no un servidor.
+
+---
+
 ## Dudas técnicas
 
 | Pregunta | Respuesta |
@@ -175,4 +188,4 @@ Hook disponible: `useLiveRate()` en `src/lib/useLiveRate.ts` — devuelve `{ usd
 | ¿Cómo sé si es demo o real? | `searchParams.get('demo') === '1'` en la URL |
 | ¿Dónde está el hash de la TX? | Pendiente: `sorobanSubmit()` lo retorna, hay que pasarlo al success screen |
 | ¿Qué wallet usan los usuarios? | Privy embedded wallet (email login, sin extensión de browser) |
-| ¿Hay backend? | No. Todo es contrato Soroban + localStorage para el historial |
+| ¿Hay base de datos? | No. Las órdenes viven en el contrato Soroban. El historial del usuario en localStorage. |
