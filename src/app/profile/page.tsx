@@ -241,7 +241,7 @@ export default function ProfilePage() {
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
         >
           <ArrowLeftRight className="size-4" />
-          Bridge USDC from another chain
+          Move funds from another app
         </Link>
 
         <Link
@@ -249,22 +249,14 @@ export default function ProfilePage() {
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100"
         >
           <Globe className="size-4" />
-          ARS → BRL corridor (SEP-31)
-        </Link>
-
-        <Link
-          href="/admin/risk"
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
-        >
-          <Shield className="size-4" />
-          AML Risk Monitor
+          Send money to Brazil
         </Link>
 
         <Link
           href="/profile/liquidity-provider"
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
-          Liquidity Provider
+          Become a seller
         </Link>
 
         <button

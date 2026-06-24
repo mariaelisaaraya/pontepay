@@ -29,7 +29,7 @@ export default function RiskBadge({ level, score, size = 'compact', className }:
           riskLevelColor(level),
           className,
         )}
-        title={`AML Risk: ${level} (score ${score}/100)`}
+        title={`Trust level: ${level}`}
       >
         <span className={cn('size-1.5 rounded-full', riskLevelDot(level))} />
         {level}
@@ -48,10 +48,10 @@ export default function RiskBadge({ level, score, size = 'compact', className }:
       <Icon className="size-4 shrink-0" />
       <div>
         <p className="text-[12px] font-semibold leading-none">
-          AML Risk: {level}
+          Trust level: {level}
         </p>
         <p className="text-[10px] mt-0.5 opacity-75">
-          Score {score}/100 · gen-fraud-graph model
+          Verified score {score}/100
         </p>
       </div>
     </div>
