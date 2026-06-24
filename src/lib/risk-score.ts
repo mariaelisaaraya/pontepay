@@ -31,6 +31,7 @@ const ARS_STRUCT_HI = 999_999;
 // Source: UIF Res. 156/2018 + subsequent updates for VASPs (sujetos obligados).
 const UIF_REPORT_THRESHOLD_ARS = 300_000; // ~$205 USD @ 1,461 ARS/USDC
 
+
 // High-value cross-border wire threshold (gen-fraud-graph "high-value" pattern)
 const USDC_HIGH_VALUE = 5_000;
 
@@ -125,8 +126,6 @@ export function scoreOrder(
   }
 
   // ── 2. UIF mandatory reporting threshold ─────────────────────────────────
-  // Orders above UIF_REPORT_THRESHOLD_ARS must be held for manual review
-  // before being processed. Maps to dispute_resolver "hold" flow.
   const requiresHold = arsEquivalent >= UIF_REPORT_THRESHOLD_ARS;
   if (requiresHold) {
     flags.push(FLAGS.UIF_REPORT_REQUIRED);

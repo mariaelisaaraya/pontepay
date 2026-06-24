@@ -64,6 +64,8 @@ pub struct Config {
     pub dispute_resolver: Address,
     pub pauser: Address,
     pub token: Address,
+    pub platform_address: Address,
+    pub platform_fee_bps: u32,
     pub max_duration_secs: u64,
     pub filler_payment_timeout_secs: u64,
     pub paused: bool,

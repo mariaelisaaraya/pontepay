@@ -1,6 +1,9 @@
 use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{Address, Env};
 
+const ORDER_TTL_THRESHOLD: u32 = 86_400;
+const ORDER_TTL_LEDGERS: u32 = 518_400;
+
 use crate::core::admin::AdminManager;
 use crate::core::order::OrderManager;
 use crate::core::validators::admin::ensure_dispute_resolver;
@@ -31,9 +34,11 @@ impl DisputeManager {
         }
 
         order.status = OrderStatus::Disputed;
+        let key = DataKey::Order(order.order_id);
+        e.storage().persistent().set(&key, &order);
         e.storage()
-            .instance()
-            .set(&DataKey::Order(order.order_id), &order);
+            .persistent()
+            .extend_ttl(&key, ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
 
         Ok(order)
     }
@@ -92,9 +97,11 @@ impl DisputeManager {
         order.filler = None;
         order.active_fill_amount = None;
         order.fiat_transfer_deadline = None;
+        let key = DataKey::Order(order.order_id);
+        e.storage().persistent().set(&key, &order);
         e.storage()
-            .instance()
-            .set(&DataKey::Order(order.order_id), &order);
+            .persistent()
+            .extend_ttl(&key, ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
 
         Ok(order)
     }

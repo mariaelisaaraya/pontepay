@@ -1,19 +1,15 @@
 "use client";
 
 import { useEffect } from 'react';
-import {
-  CrossmintProvider,
-  CrossmintAuthProvider,
-  CrossmintWalletProvider,
-} from "@crossmint/client-sdk-react-ui";
+import dynamic from 'next/dynamic';
 import { UserProvider } from "@/contexts/UserContext";
 import { TradeHistoryProvider } from "@/contexts/TradeHistoryContext";
 import { useStore } from '@/lib/store';
 
-// ELI: set NEXT_PUBLIC_CROSSMINT_API_KEY in .env and Vercel.
-// Get it at app.crossmint.com → Projects → API Keys → Client-side key.
-// For testnet use a key starting with ck_staging_...
-const apiKey = process.env.NEXT_PUBLIC_CROSSMINT_API_KEY!;
+// PrivyProvider only runs client-side (ssr: false) to avoid build failures
+// when NEXT_PUBLIC_PRIVY_APP_ID is not set or invalid during prerendering.
+// Set the env var in Vercel dashboard + dashboard.privy.io (enable Stellar embedded wallets).
+const PrivyClientProvider = dynamic(() => import('./privy-provider'), { ssr: false });
 
 function ChainOrdersBootstrap() {
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
@@ -27,24 +23,13 @@ function ChainOrdersBootstrap() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <CrossmintProvider apiKey={apiKey}>
-      <CrossmintAuthProvider>
-        <CrossmintWalletProvider
-          createOnLogin={{
-            chain: "stellar",
-            signer: {
-              type: "email",
-            },
-          }}
-        >
-          <UserProvider>
-            <TradeHistoryProvider>
-              <ChainOrdersBootstrap />
-              {children}
-            </TradeHistoryProvider>
-          </UserProvider>
-        </CrossmintWalletProvider>
-      </CrossmintAuthProvider>
-    </CrossmintProvider>
+    <PrivyClientProvider>
+      <UserProvider>
+        <TradeHistoryProvider>
+          <ChainOrdersBootstrap />
+          {children}
+        </TradeHistoryProvider>
+      </UserProvider>
+    </PrivyClientProvider>
   );
 }

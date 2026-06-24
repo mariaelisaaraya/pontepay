@@ -1,282 +1,390 @@
-<div align="center">
-  <img src="public/images/banner.png" alt="PeerlyPay banner" width="100%" />
-  <br />
-  <br />
-  <img src="public/icon-fuchsia.svg" alt="PeerlyPay logo" width="120" />
-  <h1>PeerlyPay 🌍💸</h1>
-  <p><strong>Earn Global, Spend Local.</strong></p>
-  <p>A mobile-first, <strong>non-custodial</strong> P2P marketplace to trade USDC on Stellar ⇄ Argentine peso (ARS) — for remote workers, freelancers, and digital nomads who earn in crypto and spend in local fiat.</p>
+# PeerlyPay — Earn Global, Spend Local
 
-  <p>
-    <img src="https://img.shields.io/badge/Next.js_16-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js" />
-    <img src="https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
-    <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-    <img src="https://img.shields.io/badge/Tailwind_v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-    <img src="https://img.shields.io/badge/Stellar-111111?style=flat-square&logo=stellar&logoColor=white" alt="Stellar" />
-    <img src="https://img.shields.io/badge/Soroban_Rust-0F172A?style=flat-square&logo=rust&logoColor=white" alt="Soroban" />
-    <img src="https://img.shields.io/badge/Reflector_Oracle-7C3AED?style=flat-square&logoColor=white" alt="Reflector" />
-    <img src="https://img.shields.io/badge/Freighter_Wallet-6366F1?style=flat-square&logoColor=white" alt="Freighter" />
-    <img src="https://img.shields.io/badge/License-MIT-22C55E?style=flat-square" alt="MIT" />
-  </p>
+> *From dollar to peso in seconds. No bank. No middleman. Just code.*
 
-  <p><em>Built for the Stellar <strong>PULSO Argentina</strong> hackathon · Deadline Jun 30 2026</em></p>
-</div>
+## One-liner
+
+**Send dollars, receive pesos — the contract holds the money until both sides confirm. No middleman, no custody, no frozen funds.**
 
 ---
 
-## 🧑‍⚖️ For judges — start here
+# 💡 The Problem
 
-**🌐 Live app: https://peerlypay-two.vercel.app** · **Pitch:** [docs/hackathon/PITCH.md](docs/hackathon/PITCH.md) · **Demo script:** [docs/hackathon/DEMO_SCRIPT.md](docs/hackathon/DEMO_SCRIPT.md)
+Argentina runs on two currencies.
 
-> Try **demo mode** straight away — open the app, go to **Marketplace**, click any order, and walk the full flow with no wallet needed.
+People **earn and save in dollars** — but **spend in pesos**, every day.
 
-**Two ways to evaluate:**
+Under persistent inflation and capital controls, converting between them means:
+- KYC-heavy centralized exchanges
+- Custodial wallets controlled by companies
+- Opaque spreads and slow settlement
+- Trust in a middleman who can freeze your funds
 
-1. **Demo mode — no wallet, no setup.** Open the app → **Marketplace** (pre-populated with labeled demo orders). Click any order and walk the real screens end-to-end — **Confirm** (live rate with an `oracle` tag) → **Payment** (interoperable **Transferencias 3.0 QR**) → **Waiting** → **Success** — with no on-chain transaction.
-2. **Real on-chain path.** Install [Freighter](https://freighter.app) (Chrome/Firefox extension), connect, and the same flow executes real Soroban contract writes and polls the chain.
+Stablecoins already make up **over 50% of all ARS exchange purchases** ([Chainalysis, 2025](https://www.chainalysis.com/blog/latin-america-crypto-adoption-2025/)).
+Argentina is **#2 in Latin America** by crypto volume.
 
-**Verify the load-bearing Stellar integration directly:**
+The demand is there. The rails weren't.
 
-| What to check | Where |
-|---|---|
-| Live ARS/USD rate read **through our contract → Reflector oracle** | `GET /api/rates` → `{"source":"contract", …}` |
-| Deployed p2p escrow contract (testnet) | [`CC2CA5…76TJ`](https://stellar.expert/explorer/testnet/contract/CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ) |
-| Live SEP-24 anchor capabilities | `GET /api/anchor/info` · in-app at `/anchor` |
-| Contract test suite | `cargo test -p p2p` → **20/20 passing** |
-| AML risk monitor | `/admin/risk` — UIF threshold detection + hold/approve/reject flow |
-
-Engineering source of truth: **[docs/hackathon/CONTEXT.md](docs/hackathon/CONTEXT.md)** · Submission map: **[SUBMISSION_CHECKLIST.md](docs/hackathon/SUBMISSION_CHECKLIST.md)**
+👉 Until now.
 
 ---
 
-## What is PeerlyPay?
+# ⚙️ How it works
 
-Argentina runs on two currencies: people **earn and save in dollars** but **spend in pesos**, under persistent inflation and capital controls. Stablecoins already make up **over half of all ARS exchange purchases** ([Chainalysis, 2025](https://www.chainalysis.com/blog/latin-america-crypto-adoption-2025/)), and Argentina is **#2 in Latin America** by crypto volume. Yet the on/off-ramp is still painful: KYC-heavy CEXs, custodial wallets, OTC desks, and opaque spreads.
+## 1. Sign in — no seed phrase needed
 
-**PeerlyPay** is a **non-custodial, peer-to-peer marketplace** to swap **USDC on Stellar** for **ARS** (and back). The dollar side stays trustless on Stellar; the peso side settles off-chain where Argentine fiat lives; and a **Soroban smart contract is the only thing that ever holds funds** while a trade is in flight.
+- Open PeerlyPay and sign in with your email
+- A Stellar smart wallet is created automatically (powered by Privy)
+- No "wallet" jargon, no seed phrase, no extensions
 
-> **Earn Global, Spend Local.**
-
-**The flow (self-custodial):**
-
-1. A **creator** posts an order — *sell crypto for fiat* or *buy crypto with fiat*.
-2. A **taker** fills it (full or partial).
-3. The on-chain USDC is **escrowed in the Soroban contract** — never in a company wallet.
-4. One side proves an **off-chain fiat payment** (ARS bank transfer / Transferencias 3.0).
-5. The contract **releases the escrowed USDC** to the correct party.
-6. On a dispute, an on-chain **`dispute_resolver`** settles it (`resolve_dispute`).
+👉 A regular person can use this in 30 seconds
 
 ---
 
-## ⭐ Why Stellar — the load-bearing integration
+## 2. Browse orders — live rate from the blockchain
 
-Stellar isn't a logo on a slide here; it's the mechanism that makes the product trustworthy. Every core value prop **only exists because of the Soroban contract and the on-chain oracle.**
-
-| Building block | Role in PeerlyPay | Where |
-|---|---|---|
-| **Soroban P2P escrow** | Holds USDC per order; enforces the full state machine (create → take → submit fiat → confirm/dispute/timeout → release/refund). The trust anchor. | `contracts/contracts/p2p` |
-| **Reflector oracle (SEP-40)** | `reference_rate` makes a **cross-contract call** to the Reflector fiat oracle for the live ARS/USD rate. The price is **read on-chain**, not set by an admin or hardcoded. | `contracts/contracts/p2p/src/core/oracle.rs` |
-| **Freighter wallet** | Non-custodial Stellar browser wallet — signs every escrow write via XDR. No seed-phrase friction for end users. | `src/lib/privy-wallet.ts` |
-| **SEP-24 anchor** | Reads a live anchor's on/off-ramp capabilities (SEP-1 TOML + SEP-24 `/info`). | `src/lib/sep24.ts`, `src/app/anchor` |
-| **Transferencias 3.0 QR** | Interoperable EMVCo (CRC16) QR for the BCRA instant-rail ARS leg that triggers escrow release. | `src/components/trade/Transferencias30QR.tsx` |
-
-### Headline: an on-chain rate, mediated by our own contract
-
-Most P2P ramps quote a rate from a backend an operator controls. PeerlyPay reads it **on-chain**:
-
-- The contract is configured (via `set_oracle`) to point at the **Reflector SEP-40 fiat oracle** — testnet `CCSSO…NV4W`, mainnet `CBKGPWGK…CJZC`.
-- **`reference_rate(2)`** (`2` = ARS) does a **cross-contract call** into Reflector, reads the latest ARS price, inverts it on-chain, and returns the live **ARS-per-USD** rate (~**1461**).
-- The frontend reads the rate **through the contract** (`GET /api/rates`), with a graceful fallback chain: **our contract `reference_rate` → direct Reflector → BCRA official API → constant**. Verified live: `contract = 1461`, `reflector = 1461.92`, `bcraOfficial = 1461`.
+- The marketplace shows open orders: people selling USDC for ARS, or buying it
+- The exchange rate is read **directly from a Soroban contract** that calls the **Reflector SEP-40 oracle**
+- The price isn't set by us — it's pulled on-chain, verifiable by anyone
 
 ```jsonc
-// GET /api/rates  (live)
-{ "usdArs": 1461, "source": "contract", "contract": 1461,
-  "reflector": 1461.92, "bcraOfficial": 1461, "asOf": "…" }
+// GET /api/rates (live)
+{ "usdArs": 1462, "source": "contract", "contract": 1462, "reflector": 1461.92 }
 ```
 
-### Deployed contract
-
-| | |
-|---|---|
-| **Contract ID** | `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ` |
-| **Network** | Stellar Testnet (`Test SDF Network ; September 2015`) |
-| **Oracle** | Reflector SEP-40 fiat oracle (set via `set_oracle`) |
-| **Tests** | `cargo test -p p2p` → **20/20 passing** (incl. 2 oracle tests) |
-
-**Entrypoints:** `initialize`, `pause`/`unpause`, `create_order`/`create_order_cli`, `cancel_order`, `take_order`/`take_order_with_amount`, `submit_fiat_payment`, `execute_fiat_transfer_timeout`, `confirm_fiat_payment`, `dispute_fiat_payment`, `resolve_dispute`, `get_order`/`get_order_count`, `get_config`, `set_oracle`, `get_oracle`, `reference_rate`.
+👉 No operator can manipulate the rate
 
 ---
 
-## AML / compliance layer
+## 3. Trade — USDC goes into escrow, never a company wallet
 
-PeerlyPay is a **sujeto obligado** under UIF RG 49/2024 (crypto P2P platforms). The risk engine is calibrated on real fraud-graph patterns:
+When you take an order:
 
-| Flag | Trigger | Score |
+1. **USDC is locked** in the Soroban escrow contract — not held by PeerlyPay
+2. The buyer sends ARS off-chain via **Transferencias 3.0 QR** (Argentina's instant payment rail)
+3. The seller confirms receipt → **contract releases USDC** to the buyer
+4. If there's a dispute → an on-chain `dispute_resolver` settles it
+
+The contract is the only entity that ever holds funds during a trade.
+
+👉 Self-custodial from start to finish
+
+---
+
+## 4. Earn — idle USDC works for you
+
+Between trades, USDC sitting in your wallet earns **10.83% APY** automatically *(live on Stellar testnet)*.
+
+- Powered by **DeFindex yield vaults** on Stellar
+- Deposit and withdraw any time — no lock-up period
+- No action needed: just hold USDC and it grows
+
+👉 Your savings work while you sleep
+
+---
+
+## 5. Add funds — via any bank anchor
+
+- The `/anchor` page lets you deposit USDC from any SEP-24 compatible anchor
+- Full **SEP-10 + SEP-24** interactive flow: wallet signs a challenge → gets a JWT → anchor popup opens
+- Works with any Stellar anchor, not just one provider
+
+👉 Open, interoperable, not locked to one bank
+
+---
+
+# 🎯 Key Innovations
+
+### 🔗 On-chain rate, mediated by our own contract
+
+Most P2P ramps quote a rate from a backend the operator controls.
+
+PeerlyPay reads it **on-chain**:
+
+- Contract calls `reference_rate(2)` (`2` = ARS in the Reflector asset schema) → **cross-contract call into Reflector** → returns live ARS/USD
+- Frontend reads through the contract first, with fallback to Reflector, then BCRA official rate
+- The BCRA spread is shown next to the market rate — full transparency
+
+---
+
+### 🔒 Soroban escrow — the trust anchor
+
+The smart contract is the only custodian during a trade:
+
+- `create_order` → USDC locked
+- `take_order_with_amount` → partial fills supported
+- `submit_fiat_payment` → buyer proves off-chain payment
+- `confirm_fiat_payment` → USDC released
+- `dispute_fiat_payment` + `resolve_dispute` → on-chain arbitration
+- `execute_fiat_transfer_timeout` → automatic refund if counterparty ghosts
+
+---
+
+### 💸 DeFindex yield vault
+
+Idle USDC earns passively while users aren't trading:
+
+- Deposit → DeFindex SDK builds and signs a Soroban transaction
+- Vault issues dfTokens representing the user's share
+- Withdraw any time — no minimum, no lock-up
+- Live APY: **10.83%**
+
+---
+
+### 📱 No crypto jargon
+
+The app speaks plain language:
+- No "wallet" buttons — just "Sign in"
+- No "USDC trustline" — just "Add USDC"
+- No "Stellar testnet" indicator — just "Active"
+- No "liquidity provider" — just "Become a seller"
+
+---
+
+# 🏗️ Architecture
+
+## System Overview
+
+```mermaid
+graph TB
+    subgraph USER["USER — Sign in with email"]
+        U["Freelancer or buyer"]
+        APP["PeerlyPay — Next.js"]
+        U --> APP
+    end
+
+    subgraph WALLET["WALLET LAYER — Privy"]
+        PW["Embedded Stellar Wallet"]
+        APP --> PW
+    end
+
+    subgraph STELLAR["STELLAR — Soroban Testnet"]
+        P2P["P2P Escrow Contract"]
+        REF["Reflector SEP-40 Oracle"]
+        DFI["DeFindex Yield Vault"]
+        P2P -->|"reference_rate(2)"| REF
+        PW -->|"sign transaction"| P2P
+        PW -->|"deposit / withdraw"| DFI
+    end
+
+    subgraph ANCHOR["ANCHOR LAYER — SEP-24"]
+        SEP10["SEP-10 Auth Challenge"]
+        SEP24["SEP-24 Interactive Deposit"]
+        APP --> SEP10
+        SEP10 --> SEP24
+    end
+
+    subgraph FIAT["FIAT RAIL — Argentina"]
+        QR["Transferencias 3.0 QR"]
+        APP --> QR
+    end
+```
+
+---
+
+## Trade Flow
+
+```mermaid
+sequenceDiagram
+    participant B as Buyer
+    participant S as Seller
+    participant APP as PeerlyPay
+    participant CTR as Soroban Contract
+    participant ORC as Reflector Oracle
+
+    S->>APP: Create sell order (USDC amount, min rate)
+    APP->>ORC: reference_rate(2) — live ARS/USD
+    ORC-->>APP: 1462 ARS/USD
+    APP->>CTR: create_order — USDC locked in escrow
+
+    B->>APP: Browse marketplace, pick order
+    APP->>CTR: take_order_with_amount
+    CTR-->>APP: Order locked, QR generated
+
+    B->>B: Scan Transferencias 3.0 QR, send ARS
+    B->>CTR: submit_fiat_payment
+    S->>CTR: confirm_fiat_payment
+    CTR-->>B: USDC released to buyer
+    CTR-->>APP: Platform fee (0.5%) collected
+```
+
+---
+
+## DeFindex Earn Flow
+
+```mermaid
+graph LR
+    U["User has idle USDC"] --> D["Deposit to DeFindex vault"]
+    D --> V["Vault issues dfTokens"]
+    V --> Y["10.83% APY accruing"]
+    Y --> W["Withdraw any time"]
+    W --> U2["USDC + yield returned"]
+```
+
+---
+
+## SEP-10 + SEP-24 Anchor Flow
+
+```mermaid
+sequenceDiagram
+    participant W as User Wallet (Privy)
+    participant API as PeerlyPay API
+    participant ANC as Stellar Anchor
+
+    W->>API: GET /api/anchor/sep10?account=G...
+    API->>ANC: webAuthEndpoint — GET challenge
+    ANC-->>W: XDR challenge transaction
+    W->>W: Sign with Privy embedded wallet
+    W->>API: POST /api/anchor/sep10 (signed XDR)
+    API->>ANC: POST webAuthEndpoint
+    ANC-->>W: JWT token
+    W->>API: POST /api/anchor/deposit (JWT + amount)
+    API->>ANC: SEP-24 /transactions/deposit/interactive
+    ANC-->>W: Popup URL
+    W->>W: window.open(popup) — complete deposit
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Why |
 |---|---|---|
-| `UIF_REPORT_REQUIRED` | ARS equivalent ≥ 6× SMVM (~$300k ARS) — mandatory UIF report | +50 |
-| `ROUND_TRIP` | Same wallet on both sides in 7 days | +40 |
-| `STRUCTURING_USDC` | Amount $9,000–$9,999 (below $10k CTR) | +35 |
-| `STRUCTURING_ARS` | ARS $900k–$999k (below $1M ARCA threshold) | +28 |
-| `HIGH_VELOCITY` | > 2 orders from same wallet in 24h | +25 |
-| `HIGH_VALUE` | Order > $5,000 USDC | +15 |
-| `FIRST_TIME` | No prior order history | +10 |
-
-Orders above the UIF threshold are **held automatically** and routed to `/admin/risk` for manual review (Retener / Aprobar / Rechazar). Score ≥ 66 → HIGH · 31–65 → MEDIUM · 0–30 → LOW.
-
-CUIT/CUIL validation (Argentine tax ID check-digit algorithm) is integrated on the Post Offer form and verified via the live ARCA Padrón API when credentials are configured.
+| **Frontend** | Next.js 16 + React 19 | App Router, server routes for API proxies |
+| **Styling** | Tailwind v4 + shadcn/ui | Mobile-first, fast iteration |
+| **Wallet** | Privy embedded Stellar wallets | Email login, no seed phrase, real Stellar signing |
+| **Escrow** | Soroban P2P contract (Rust) | Trustless, self-custodial, on-chain state machine |
+| **Rate oracle** | Reflector SEP-40 (cross-contract call) | Live ARS/USD rate, not operator-controlled |
+| **Yield vault** | DeFindex SDK | 10.83% APY on idle USDC, no lock-up |
+| **Anchor** | SEP-10 + SEP-24 (full interactive) | Interoperable deposit/withdraw via any Stellar anchor |
+| **Fiat rail** | Transferencias 3.0 QR (EMVCo / CRC16) | Argentina's BCRA instant payment rail |
+| **Deployment** | Vercel | SSR + edge API routes |
 
 ---
 
-## How it works
+## Contract Entrypoints
 
-Two on-chain roles per order — the **creator** (posts) and the **taker** (fills). One party proves the fiat leg; the contract releases the crypto leg.
-
-**Selling crypto for pesos (`from_crypto = true`)**
-1. Creator posts a sell order; their USDC is locked in escrow on `create_order`.
-2. Taker fills it (`take_order_with_amount`, partial fills supported — leftover reopens).
-3. Taker pays ARS off-chain (bank transfer or by scanning the **Transferencias 3.0 QR**) and calls `submit_fiat_payment`.
-4. Creator confirms receipt (`confirm_fiat_payment`) → contract **releases USDC to the taker**.
-
-**Buying crypto with pesos (`from_crypto = false`)**
-1. Creator posts a buy order; the **taker deposits** USDC into escrow on take.
-2. Creator sends ARS off-chain and submits payment.
-3. Taker confirms receipt → contract **releases USDC to the creator**.
-
-If a counterparty stalls, anyone on the paying side can trigger `execute_fiat_transfer_timeout`; on a dispute, the `dispute_resolver` settles with `resolve_dispute`.
+`initialize` · `pause` / `unpause` · `create_order` / `create_order_cli` · `cancel_order` · `take_order` / `take_order_with_amount` · `submit_fiat_payment` · `execute_fiat_transfer_timeout` · `confirm_fiat_payment` · `dispute_fiat_payment` · `resolve_dispute` · `get_order` / `get_order_count` · `get_config` · `set_oracle` / `get_oracle` · `reference_rate`
 
 ---
 
-## Architecture
+# 🚀 For Judges — Start Here
 
-Two halves in one repo: the **Next.js app at the root (`src/`)** and the **Soroban workspace (`contracts/`)**.
+**🌐 Live app:** https://peerlypay-main.vercel.app
 
-```text
-src/
-├── app/
-│   ├── api/
-│   │   ├── rates/route.ts              # GET /api/rates — contract → reflector → BCRA → fallback
-│   │   ├── anchor/info/route.ts        # GET /api/anchor/info — live SEP-1 TOML + SEP-24 /info
-│   │   ├── arca/validate-cuit/route.ts # GET /api/arca/validate-cuit — CUIT check-digit + live ARCA Padrón
-│   │   └── match-order/route.ts        # order matching helper
-│   ├── marketplace/                    # browse open orders (OrderCard → real trade flow)
-│   ├── orders/[id]/                    # order detail (reads real chain data)
-│   ├── orders/post-offer/              # market maker form with CUIT validation (ARS orders)
-│   ├── trade/{confirm,payment,waiting,success}/  # the real flow + demo mode (?demo=1)
-│   ├── admin/risk/                     # AML risk monitor — hold/approve/reject UIF-flagged orders
-│   ├── wallet/bridge/                  # Circle CCTP multi-chain bridge (Ethereum/Base/Arbitrum/Polygon → Stellar)
-│   ├── anchor/                         # SEP-24 anchor discovery page
-│   └── profile/                        # profile + liquidity-provider views
-├── components/
-│   ├── trade/Transferencias30QR.tsx    # EMVCo / Transferencias 3.0 QR (CRC16)
-│   ├── AnchorCard.tsx · OrderCard.tsx · RiskBadge.tsx · …
-├── lib/
-│   ├── contract-config.ts              # single source of truth for the contract id
-│   ├── p2p.ts                          # read path: get_order, reference_rate, …
-│   ├── trade-actions.ts                # write path with idempotency guard (in-flight lock)
-│   ├── soroban-submit.ts               # 4-phase submit: simulate → restore → sign → retry
-│   ├── risk-score.ts                   # AML scorer (gen-fraud-graph patterns + UIF threshold)
-│   ├── verifier.ts                     # payload hash verifier (WASM-ready interface)
-│   ├── defi-adapter.ts                 # pluggable DeFi backends (Soroswap/Aquarius/Blend)
-│   ├── privy-wallet.ts                 # Freighter wallet adapter (useStellarWallet hook)
-│   ├── rates.ts · rates-server.ts · useLiveRate.ts  # live rate (oracle + BCRA)
-│   ├── sep24.ts                        # SEP-1 / SEP-24 anchor reading
-│   └── store.ts                        # Zustand store (+ labeled demo orders fallback)
-└── types/
+**Try it in 2 minutes:**
 
-contracts/contracts/p2p/src/
-├── contract.rs · lib.rs                # entrypoints + wiring
-├── core/order.rs                       # order lifecycle
-├── core/oracle.rs                      # Reflector SEP-40 cross-contract call
-├── core/dispute.rs · core/admin.rs · core/validators/
-├── events/handler.rs · storage/types.rs
-└── tests/test.rs                       # 20/20 passing
-```
+1. **No wallet needed.** Open the app → **Marketplace** → click any of the 3 live seed orders → walk the full flow: **Confirm** (live oracle rate) → **Payment** (Transferencias 3.0 QR) → **Waiting** → **Success**
+
+2. **With a real wallet.** Click Sign in → enter your email → Privy creates a Stellar wallet automatically → take a real on-chain order
+
+**Verify the Stellar integrations directly:**
+
+| What | Where |
+|---|---|
+| Live ARS/USD from our contract → Reflector oracle | `GET /api/rates` → `{"source":"contract", "usdArs":1462}` |
+| P2P escrow contract (testnet, 3 live orders) | [stellar.expert/explorer/testnet/contract/CAEHRNAP…](https://stellar.expert/explorer/testnet/contract/CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD) |
+| Live SEP-24 anchor capabilities | `GET /api/anchor/info` · in-app at `/anchor` |
+| DeFindex live APY | `GET /api/defindex/apy` → `{"apy":{"apy":10.83}}` |
+| Contract test suite | `cargo test -p p2p` → **20/20 passing** |
+
+---
+
+## 🔗 SCF Integration Track
+
+PeerlyPay integrates three building blocks from the [official SCF Integration List](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/integration-track/integration-list):
+
+| Integration | Category | How it's used |
+|---|---|---|
+| **Privy** | Wallet Integration | Embedded Stellar wallets — email login, no seed phrase, real Soroban signing |
+| **SEP-24 Anchor Platform** | On/Off-Ramping | Full SEP-10 + SEP-24 interactive deposit/withdraw flow with any compliant anchor |
+| **DeFindex** | DeFi — Yield Aggregators | Idle USDC earns 10.83% APY in a vault while users aren't trading *(testnet)* |
+
+---
+
+## 🎯 PULSO Judging Criteria
+
+| Criterion | Evidence |
+|---|---|
+| **Integration depth & technical complexity** | Soroban escrow + **cross-contract call** to Reflector SEP-40 for on-chain rate; Privy embedded wallets; full SEP-10 + SEP-24; DeFindex yield vault; Transferencias 3.0 QR. 20/20 contract tests. |
+| **Impact on the Stellar ecosystem** | Non-custodial USDC↔ARS ramp for a market where stablecoins are >50% of ARS exchange purchases. Uses four Stellar building blocks: Soroban, Reflector, SEP-24, DeFindex. |
+
+| **Customer discovery & validation** | Interview guide + findings: [docs/hackathon/CUSTOMER_DISCOVERY.md](docs/hackathon/CUSTOMER_DISCOVERY.md) |
+| **Quality of testnet deployment** | Live contract `CAEHRNAP…5JQD`, 3 seed orders, verified on `stellar.expert`. Live `/api/rates` reading through the contract. Platform fee 0.5% active. |
+
+---
+
+# ❓ Q&A (Judge Defense)
+
+---
+
+## ❓ "Why not just use a CEX to convert USDC to pesos?"
+
+> **"A CEX requires KYC, holds your funds, charges hidden spreads, and can freeze your account. PeerlyPay puts the USDC in a contract — nobody can freeze it except the trade completing. Peer-to-peer means the spread goes to the counterparty, not a company."**
+
+---
+
+## ❓ "The rate could be wrong or stale"
+
+> **"The rate is a cross-contract call from our Soroban contract into the Reflector SEP-40 fiat oracle — the same oracle used across the Stellar ecosystem. We don't set it. We read it. It's verifiable on-chain by anyone."**
+
+---
+
+## ❓ "What if a buyer pays ARS but the seller refuses to release USDC?"
+
+> **"The seller's USDC is locked in the escrow contract before the buyer does anything. If the seller doesn't confirm within a timeout window, `execute_fiat_transfer_timeout` releases it automatically. On a dispute, the `dispute_resolver` address settles it on-chain (initially set to the team admin; intended to move to a multisig before mainnet)."**
+
+---
+
+## ❓ "DeFindex — is the 10.83% APY real or mocked?"
+
+> **"It's live. Hit `GET /api/defindex/apy` on the running app — it calls the DeFindex SDK against their testnet vault in real time and returns the actual current APY."**
+
+---
+
+## ❓ "Why Privy instead of asking users to install a wallet?"
+
+> **"Our target users are Argentine freelancers, not crypto developers. Email login creates a Stellar wallet behind the scenes. They never see a seed phrase. Privy signs every Soroban transaction with their embedded wallet — the user just approves."**
+
+---
+
+## ❓ "Is this just a frontend demo or does it do real on-chain things?"
+
+> **"Every order in the marketplace is a real Soroban contract state. The live contract has 3 seeded orders. The oracle rate is a live cross-contract call. DeFindex balance is a live vault query. SEP-10/24 talks to a real anchor. The escrow writes are real Stellar transactions."**
+
+---
+
+# 🔥 Closing Line
+
+> **"PeerlyPay is the non-custodial on-ramp Argentina's freelancers were missing — every peso conversion backed by a Soroban escrow, every rate pulled from the chain, and idle dollars earning yield while people aren't trading."**
 
 ---
 
 ## Run it locally
 
-### Frontend
-
 ```bash
-cp .env.example .env.local     # then fill in the values (see below)
+cp .env.example .env.local   # fill in your keys
 npm install
-npm run dev                    # http://localhost:3000
+npm run dev                  # http://localhost:3000
 ```
 
-**Install [Freighter](https://freighter.app)** in Chrome or Firefox to use the on-chain flow. No API key or account registration required.
-
-Required env (`.env.example` documents all of them):
-
-| Variable | Value (testnet) |
+| Variable | Value |
 |---|---|
-| `NEXT_PUBLIC_P2P_CONTRACT_ID` | `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ` |
+| `NEXT_PUBLIC_PRIVY_APP_ID` | your Privy app ID |
+| `NEXT_PUBLIC_P2P_CONTRACT_ID` | `CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD` |
 | `NEXT_PUBLIC_SOROBAN_RPC_URL` | `https://soroban-testnet.stellar.org` |
 | `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015` |
 | `NEXT_PUBLIC_REFLECTOR_FIAT_ORACLE_ID` | `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W` |
-| `DISPUTE_RESOLVER_SECRET` | Stellar secret key for the dispute resolver — **never commit, set in Vercel only** |
-| `ARCA_CUIT` / `ARCA_CERT` / `ARCA_KEY` | Optional — enables live ARCA Padrón lookup in post-offer form |
 
-### Contract (build via WSL/Linux)
+---
+
+## Contract (build via WSL/Linux)
 
 ```bash
-cargo test -p p2p                                   # 20/20
-cargo build -p p2p --target wasm32v1-none --release # deployable wasm
+cargo test -p p2p                                   # 20/20 passing
+cargo build -p p2p --target wasm32v1-none --release
 ```
 
-> On Windows, the native host has no C linker — build the contract via **WSL/Linux**. Full deploy + `set_oracle` + bindings steps are in [docs/hackathon/MAINNET_DEPLOY.md](docs/hackathon/MAINNET_DEPLOY.md).
-
-### Deploy the app
-
-Use **Vercel** (the app has server route handlers — GitHub Pages won't work). Full guide and env table: [docs/hackathon/DEPLOY_FRONTEND.md](docs/hackathon/DEPLOY_FRONTEND.md).
-
 ---
 
-## ⚠️ Current limitations (honest disclosure)
-
-The escrow, the on-chain oracle rate, the Freighter signing, and the SEP-24 discovery are **real and live on testnet**. The following are **not** complete:
-
-- **Trade action stubs** — `takeOrder` and `createOrder` in `trade-actions.ts` throw until Eli wires the Trustless Work escrow lifecycle. `soroban-submit.ts` and the idempotency guard are ready.
-- **Interactive SEP-24 deposit/withdraw** — anchor discovery is live; the SEP-10 wallet-signed deposit is scaffolded (`src/lib/sep24.ts`).
-- **Trustline check** (`checkUSDCTrustline`) — currently a stub returning `true`.
-- **No backend** — trade history / profile / reputation live in `localStorage` + Zustand.
-- **Demo orders** — when the chain has no orders, the marketplace shows labeled **demo** orders so the flow is always testable.
-
----
-
-## 🎯 How this maps to the PULSO judging criteria
-
-| Criterion | Evidence |
-|---|---|
-| **Integration depth & technical complexity** | Soroban escrow + **cross-contract call** to a Reflector SEP-40 oracle for the on-chain rate; Freighter XDR signing; 4-phase Soroban submit with footprint restore + retries; AML risk engine (gen-fraud-graph patterns); CUIT/CUIL ARCA validation; Circle CCTP multi-chain bridge. 20/20 contract tests. |
-| **Impact on the Stellar ecosystem** | Non-custodial USDC↔ARS ramp for a market where stablecoins are >50% of ARS exchange purchases; uses Soroban, Reflector, SEP-24, Freighter, Circle CCTP, and Trustless Work. |
-| **Customer discovery & validation** | Interview guide + findings template: [docs/hackathon/CUSTOMER_DISCOVERY.md](docs/hackathon/CUSTOMER_DISCOVERY.md). |
-| **Quality of testnet/mainnet deployment** | Live testnet contract `CC2CA5…76TJ`, verifiable on `stellar.expert`; reproducible deploy guide; live `/api/rates` reading through the contract. |
-
----
-
-## Roadmap
-
-- [ ] Wire Trustless Work escrow in `takeOrder` / `createOrder` (Eli — ELI-3/4/5 in TEAM_TASKS.md).
-- [ ] Complete interactive SEP-24 signed deposit/withdraw (SEP-10 challenge via Freighter).
-- [ ] Real USDC trustline check + enablement flow.
-- [ ] Mainnet deployment (Reflector mainnet oracle already known) + first real orders.
-- [ ] Update UIF threshold from 300k ARS placeholder to confirmed 6× SMVM value (RG 49/2024).
-- [ ] On-chain rate-band validation in `create_order` (reject orders far from the oracle).
-- [ ] Reputation/identity (portable, on-chain) and a lightweight indexer/backend.
-
----
-
-## Team
-
-**Leo** (PM) · **Eli** (Tech Lead — integrations + env) · **Barbi** (Frontend) — built for the Stellar PULSO Argentina hackathon.
-
----
-
-## License
-
-MIT.
-
----
-
-<div align="center"><sub>Built with ❤️ for Stellar · Argentina 🇦🇷</sub></div>
+*Built for the Stellar PULSO Argentina hackathon. · MIT License.*

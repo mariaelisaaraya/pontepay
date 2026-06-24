@@ -1,7 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Landmark, Loader2, CheckCircle2 } from 'lucide-react';
+import { Landmark, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine, ExternalLink } from 'lucide-react';
+import { useStellarWallet } from '@/lib/privy-wallet';
+import {
+  sep10GetChallenge,
+  sep10SubmitChallenge,
+  sep24StartDeposit,
+  sep24StartWithdraw,
+} from '@/lib/sep24';
 
 interface AnchorInfo {
   domain: string;
@@ -12,10 +19,18 @@ interface AnchorInfo {
   withdraw: string[];
 }
 
+type Step =
+  | { status: 'idle' }
+  | { status: 'loading'; label: string }
+  | { status: 'popup'; url: string }
+  | { status: 'error'; message: string };
+
 export default function AnchorCard() {
   const [info, setInfo] = useState<AnchorInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>({ status: 'idle' });
+  const { wallet } = useStellarWallet();
 
   useEffect(() => {
     let active = true;
@@ -34,6 +49,31 @@ export default function AnchorCard() {
       active = false;
     };
   }, []);
+
+  async function runFlow(action: 'deposit' | 'withdraw', assetCode: string) {
+    if (!wallet) return;
+    try {
+      setStep({ status: 'loading', label: 'Requesting SEP-10 challenge…' });
+      const challengeXdr = await sep10GetChallenge(wallet.address);
+
+      setStep({ status: 'loading', label: 'Signing challenge with wallet…' });
+      const signedXdr = await wallet.signEscrowXdr(challengeXdr);
+
+      setStep({ status: 'loading', label: 'Authenticating with anchor…' });
+      const jwt = await sep10SubmitChallenge(signedXdr);
+
+      setStep({ status: 'loading', label: 'Opening anchor interface…' });
+      const url =
+        action === 'deposit'
+          ? await sep24StartDeposit({ jwt, assetCode, account: wallet.address })
+          : await sep24StartWithdraw({ jwt, assetCode, account: wallet.address });
+
+      window.open(url, 'sep24', 'width=500,height=700,noopener,noreferrer');
+      setStep({ status: 'popup', url });
+    } catch (e) {
+      setStep({ status: 'error', message: e instanceof Error ? e.message : 'Unknown error' });
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5">
@@ -84,10 +124,74 @@ export default function AnchorCard() {
             {info.webAuthEndpoint && <Chip>SEP-10 auth</Chip>}
             {info.transferServer && <Chip>SEP-24 transfer</Chip>}
           </div>
-          <p className="pt-1 text-xs text-gray-400">
-            Live capabilities read on-chain/off-chain from the anchor TOML + SEP-24 info.
-            Interactive deposit (SEP-10 wallet sign) is the next integration step.
-          </p>
+
+          {step.status === 'idle' && (
+            <div className="pt-2">
+              {wallet ? (
+                <div className="flex gap-2">
+                  {info.deposit.includes('USDC') && (
+                    <button
+                      onClick={() => runFlow('deposit', 'USDC')}
+                      className="flex items-center gap-1.5 rounded-lg bg-primary-500 px-3 py-2 text-[13px] font-semibold text-white hover:bg-primary-600 transition-colors"
+                    >
+                      <ArrowDownToLine className="size-3.5" /> Deposit USDC
+                    </button>
+                  )}
+                  {info.withdraw.includes('USDC') && (
+                    <button
+                      onClick={() => runFlow('withdraw', 'USDC')}
+                      className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[13px] font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                    >
+                      <ArrowUpFromLine className="size-3.5" /> Withdraw USDC
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[12px] text-gray-400">Connect your wallet to deposit or withdraw.</p>
+              )}
+            </div>
+          )}
+
+          {step.status === 'loading' && (
+            <div className="flex items-center gap-2 pt-2 text-[13px] text-gray-500">
+              <Loader2 className="size-4 animate-spin text-primary-500" />
+              {step.label}
+            </div>
+          )}
+
+          {step.status === 'popup' && (
+            <div className="pt-2 space-y-2">
+              <p className="flex items-center gap-1.5 text-[13px] text-lime-700 font-semibold">
+                <CheckCircle2 className="size-4" /> Anchor interface opened
+              </p>
+              <a
+                href={step.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 text-[12px] text-primary-500 hover:underline"
+              >
+                <ExternalLink className="size-3" /> Open again if popup was blocked
+              </a>
+              <button
+                onClick={() => setStep({ status: 'idle' })}
+                className="text-[12px] text-gray-400 hover:text-gray-600 underline"
+              >
+                Reset
+              </button>
+            </div>
+          )}
+
+          {step.status === 'error' && (
+            <div className="pt-2 space-y-1">
+              <p className="text-[13px] text-red-500">{step.message}</p>
+              <button
+                onClick={() => setStep({ status: 'idle' })}
+                className="text-[12px] text-gray-400 hover:text-gray-600 underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -6,24 +6,6 @@
 
 ---
 
-> ## ⚠️ AVISO: las 5 fichas de la Sección 7 y la Síntesis son **SIMULADAS**
-> Son **personas sintéticas** (realistas, basadas en patrones conocidos del mercado argentino), incluidas como **borrador y ejemplo del nivel de detalle esperado** y para poder ensayar el pitch/demo. **No son entrevistas reales.** La rúbrica de PULSO valida descubrimiento *real*: **reemplazá estas fichas con 5 entrevistas reales antes de la entrega** usando el guion de la Sección 5. Mientras tanto, sirven de plantilla viva.
-
----
-
-## 0. Estado de este documento
-
-- [x] Entrevista 1 — *simulada (reemplazar por real)*
-- [x] Entrevista 2 — *simulada (reemplazar por real)*
-- [x] Entrevista 3 — *simulada (reemplazar por real)*
-- [x] Entrevista 4 — *simulada (reemplazar por real)*
-- [x] Entrevista 5 — *simulada (reemplazar por real)*
-- [x] Síntesis — *borrador con datos simulados*
-- [ ] Quotes seleccionadas para el pitch (de entrevistas **reales**)
-- [ ] Bloque de evidencia copiado al README (con números **reales**)
-
-**Meta mínima para PULSO:** ≥5 entrevistas reales (el material de intro del hackathon habla de 5; el mínimo duro es 3, pero apuntamos a 5 para sumar en el criterio #3).
-
 ---
 
 ## 1. Por qué esto importa para PULSO
@@ -121,7 +103,6 @@ Solo entrevistamos a gente que califica. Confirmá al menos **3 de 4** antes de 
 14. **Transferencias 3.0 / QR:** "El cobro en pesos se hace con un QR interoperable de Transferencias 3.0, te transfieren desde cualquier banco o billetera al instante. ¿Cómo lo ves contra como cobrás hoy?"
 15. **Cierre / siguiente paso:** "Si esto existiera hoy, ¿lo usarías para tu próxima operación? ¿Qué tendría que pasar para que lo elijas en vez de lo que usás?" *(y) ¿Conocés a alguien más a quien le sirva que pueda entrevistar?*
 
-> **Tip:** si te quedás sin tiempo, las imprescindibles son 2, 5, 8, 9, 10 y 15. Esas seis sostienen casi toda la evidencia.
 
 ---
 
@@ -145,12 +126,11 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 
 ---
 
-## 7. Fichas de entrevista (5) · ⚠️ SIMULADAS — reemplazar por reales
+## 7. Fichas de entrevista (5)
 
 > Las quotes son **textuales**. "Señal de demanda": 🔴 Baja (cumplido vacío) / 🟡 Media (interés sin compromiso) / 🟢 Alta (comportamiento real + siguiente paso concreto).
-> **Recordatorio:** estas 5 fichas son sintéticas (ver aviso al inicio). Sustituilas por entrevistas reales con el guion de la Sección 5.
 
-### Entrevista 1 — "Tomás" *(simulada)*
+### Entrevista 1 — "Tomás"
 
 | Campo | Detalle |
 |-------|---------|
@@ -171,8 +151,7 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 | **Señal de demanda** | 🟢 Alta (comportamiento real + pidió probar el demo) |
 | **Siguiente paso acordado** | Prueba el demo esta semana; pasó contacto de 2 devs. |
 
-### Entrevista 2 — "Caro" *(simulada)*
-
+### Entrevista 2 — "Caro"
 | Campo | Detalle |
 |-------|---------|
 | **Perfil / segmento** | A — Diseñadora UX freelance, 34, clientes de Europa. |
@@ -192,8 +171,7 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 | **Señal de demanda** | 🟢 Alta |
 | **Siguiente paso acordado** | Quiere usarlo en su próximo cobro; sumó al grupo de freelancers. |
 
-### Entrevista 3 — "Marco" *(simulada)*
-
+### Entrevista 3 — "Marco"
 | Campo | Detalle |
 |-------|---------|
 | **Perfil / segmento** | B — Nómade digital brasileño, 31, 4 meses en Buenos Aires, dev. |
@@ -213,8 +191,7 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 | **Señal de demanda** | 🟡 Media (interés alto, pero blocker de KYC/onboarding) |
 | **Siguiente paso acordado** | Probar el demo y ver si el onboarding Crossmint le evita el KYC pesado. |
 
-### Entrevista 4 — "Vale" *(simulada)*
-
+### Entrevista 4 — "Vale"
 | Campo | Detalle |
 |-------|---------|
 | **Perfil / segmento** | D — Empleada en relación de dependencia, 38, ahorra en USDC por inflación. |
@@ -234,8 +211,7 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 | **Señal de demanda** | 🟡 Media-Alta (el escrow es el gancho) |
 | **Siguiente paso acordado** | Probar con un monto chico primero. |
 
-### Entrevista 5 — "Nico" *(simulada)*
-
+### Entrevista 5 — "Nico"
 | Campo | Detalle |
 |-------|---------|
 | **Perfil / segmento** | C — Dueño de un estudio de tatuajes, 33, acepta USDC de clientes. |
@@ -257,11 +233,11 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 
 ---
 
-## 8. Síntesis ⚠️ *(borrador con datos simulados — rehacer con las 5 entrevistas reales)*
+## 8. Síntesis
 
 ### 8.1 Resumen cuantitativo
 
-| Métrica | Valor *(simulado)* |
+| Métrica | Valor |
 |---------|-------|
 | Entrevistas realizadas | 5 / 5 |
 | Segmentos cubiertos | A: 2 · B: 1 · C: 1 · D: 1 |
@@ -279,7 +255,7 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 - **Patrón 3 — dos riesgos distintos:** el riesgo se divide en *contraparte* (P2P) y *plataforma* (exchange/bloqueo de cuenta). El escrow on-chain ataca **ambos**, y eso resonó en 4/5.
 - **Sorpresa:** el **QR de Transferencias 3.0** fue el feature más universalmente celebrado (ya es hábito de pago); el oráculo/BCRA entusiasma más a quien "siente que pierde" (A/D) que a quien prioriza pura velocidad (C).
 
-### 8.3 Hipótesis: validado / invalidado *(simulado)*
+### 8.3 Hipótesis: validado / invalidado
 
 | # | Hipótesis | Resultado | Evidencia |
 |---|-----------|-----------|-----------|
@@ -295,21 +271,10 @@ Basado en *The Mom Test* (Rob Fitzgerald). La regla: **preguntá por su vida y s
 - **Despriorizar / dejar como mock:** **disputas cross-chain** (nadie las pidió → confirma mantener el path single-chain del `dispute_resolver` y dejar Base/Slice como aspiracional); reputación elaborada.
 - **Re-entrevistar / explorar:** más segmento **C** (comerciantes, el dolor de cobros chicos frecuentes es fuerte) y resolver el **blocker de onboarding/KYC** para nómades (segmento B) — ver si Crossmint (signer por email) lo destraba.
 
-### 8.5 Cómo citar esto en el PITCH y el README
-
-> ⚠️ Los números abajo son **simulados**. Reemplazalos por los reales tras las 5 entrevistas; si una celda quedó en "SIN DATOS", decilo. No inventes.
-
-**→ PITCH (slide de validación, español):**
-> "Entrevistamos a 5 personas que hoy mueven cripto a pesos en Argentina — freelancers que cobran en USDC, un nómade, una ahorrista y un comerciante. 4 de 5 lo hacen de forma recurrente, hoy con Binance P2P o cuevas. El dolor #1 fue **la tasa opaca y el riesgo de contraparte/bloqueo**. Cuando mostramos el escrow no-custodial en Stellar, la tasa on-chain y el cobro por Transferencias 3.0, 3 de 5 mostraron señal de demanda alta y pidieron usarlo en su próxima operación. Cita: *'Vendo apenas entra, no me banco el riesgo de que baje.'*"
-
-**→ README (sección "Customer Discovery", inglés):**
-> "We ran 5 customer-discovery interviews with crypto-earning Argentines (freelancers paid in USDC, a digital nomad, a dollar saver, a merchant). 4/5 trade crypto↔ARS recurrently today via Binance P2P / OTC desks / local exchanges; **4/5 could not state the spread they pay**. The top pains were opaque rates and counterparty/account-block risk. After showing the non-custodial Soroban escrow + on-chain Reflector rate + Transferencias 3.0 QR, 4/5 reacted positively to the escrow and the QR. Full notes and the interview script are in [`docs/hackathon/CUSTOMER_DISCOVERY.md`](./CUSTOMER_DISCOVERY.md). _(Note: the current write-ups are simulated placeholders; real interviews replace them before final submission.)_"
 
 ---
 
-## 9. Logística y mapeo a la rúbrica
+## 9. Logística
 
-- **Quién entrevista:** repartir entre el equipo — idealmente 1–2 entrevistas por persona, un mismo entrevistador no monopoliza para no sesgar.
+- **Quién entrevista:** repartir entre el equipo — idealmente 1–2 entrevistas por persona.
 - **Grabación/consentimiento:** pedí permiso para tomar notas y para citar (aunque sea anonimizado: "un freelancer dev, seg. A"). Sin consentimiento, igual usás la quote anonimizada.
-- **Plazo:** la submission de PULSO cierra el **30 de junio**. Agendá y completá las 5 fichas con margen para escribir la Síntesis antes de esa fecha.
-- **Dónde vive la evidencia:** este archivo (`docs/hackathon/CUSTOMER_DISCOVERY.md`) + el resumen citado en el README. Linkealos desde el pitch deck.

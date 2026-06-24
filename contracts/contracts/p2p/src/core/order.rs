@@ -2,6 +2,7 @@ use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{Address, Env};
 
 use crate::core::admin::AdminManager;
+use crate::core::oracle::OracleManager;
 use crate::core::validators::admin::ensure_not_paused;
 use crate::core::validators::order::{
     ensure_active_fill_amount, ensure_creator, ensure_fiat_timeout_expired, ensure_filler,
@@ -31,6 +32,34 @@ impl OrderManager {
         // escrow is never trapped (security audit P2P-01).
         ensure_not_paused(&config)?;
         validate_create_order(amount, exchange_rate, duration_secs, &config)?;
+
+        // Validate exchange_rate against the on-chain oracle (±5% band).
+        // If the oracle is unavailable or doesn't support this currency, allow
+        // the order through — don't block creation on oracle failure.
+        let oracle_currency_code: Option<u32> = match fiat_currency {
+            FiatCurrency::Eur => Some(1),
+            FiatCurrency::Ars => Some(2),
+            FiatCurrency::Gbp => Some(5),
+            _ => None,
+        };
+        if let Some(code) = oracle_currency_code {
+            if let Ok(oracle_rate) = OracleManager::reference_rate(e, code) {
+                let tolerance_bps: i128 = 500; // 5%
+                let lower = oracle_rate
+                    .checked_mul(10_000 - tolerance_bps)
+                    .ok_or(ContractError::Overflow)?
+                    .checked_div(10_000)
+                    .ok_or(ContractError::DivisionError)?;
+                let upper = oracle_rate
+                    .checked_mul(10_000 + tolerance_bps)
+                    .ok_or(ContractError::Overflow)?
+                    .checked_div(10_000)
+                    .ok_or(ContractError::DivisionError)?;
+                if exchange_rate < lower || exchange_rate > upper {
+                    return Err(ContractError::ExchangeRateOutOfBounds);
+                }
+            }
+        }
 
         let now = e.ledger().timestamp();
         let next_order_id = Self::next_order_id(e)?;
@@ -64,6 +93,9 @@ impl OrderManager {
         e.storage()
             .instance()
             .set(&DataKey::OrderCount, &(next_order_id + 1));
+        e.storage()
+            .instance()
+            .extend_ttl(ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
 
         Ok(order)
     }
@@ -212,10 +244,29 @@ impl OrderManager {
         };
 
         let token_client = TokenClient::new(e, &config.token);
+
+        let fee_amount = active_fill_amount
+            .checked_mul(config.platform_fee_bps as i128)
+            .ok_or(ContractError::Overflow)?
+            .checked_div(10_000)
+            .ok_or(ContractError::DivisionError)?;
+
+        let recipient_amount = active_fill_amount
+            .checked_sub(fee_amount)
+            .ok_or(ContractError::Underflow)?;
+
+        if fee_amount > 0 {
+            token_client.transfer(
+                &e.current_contract_address(),
+                &config.platform_address,
+                &fee_amount,
+            );
+        }
+
         token_client.transfer(
             &e.current_contract_address(),
             &recipient,
-            &active_fill_amount,
+            &recipient_amount,
         );
 
         order.filled_amount = order
@@ -243,7 +294,7 @@ impl OrderManager {
 
     pub fn get_order(e: &Env, order_id: u64) -> Result<Order, ContractError> {
         e.storage()
-            .instance()
+            .persistent()
             .get(&DataKey::Order(order_id))
             .ok_or(ContractError::OrderNotFound)
     }
@@ -254,8 +305,15 @@ impl OrderManager {
     }
 
     fn store_order(e: &Env, order: &Order) {
+        let key = DataKey::Order(order.order_id);
+        e.storage().persistent().set(&key, order);
+        // Extend TTL so the order survives at least 30 days (~518 400 ledgers at 5 s/ledger).
         e.storage()
-            .instance()
-            .set(&DataKey::Order(order.order_id), order);
+            .persistent()
+            .extend_ttl(&key, ORDER_TTL_THRESHOLD, ORDER_TTL_LEDGERS);
     }
 }
+
+// ~5 days before expiry → extend to ~30 days (at 5 s/ledger on testnet and mainnet).
+const ORDER_TTL_THRESHOLD: u32 = 86_400;
+const ORDER_TTL_LEDGERS: u32 = 518_400;

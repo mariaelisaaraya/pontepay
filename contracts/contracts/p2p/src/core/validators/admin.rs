@@ -6,9 +6,14 @@ use crate::storage::types::Config;
 pub fn validate_initialize_inputs(
     max_duration_secs: u64,
     filler_payment_timeout_secs: u64,
+    platform_fee_bps: u32,
 ) -> Result<(), ContractError> {
     if max_duration_secs == 0 || filler_payment_timeout_secs == 0 {
         return Err(ContractError::InvalidTimeout);
+    }
+
+    if platform_fee_bps > 10_000 {
+        return Err(ContractError::InvalidAmount);
     }
 
     Ok(())
