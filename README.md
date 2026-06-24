@@ -270,7 +270,7 @@ sequenceDiagram
 
 # 🚀 For Judges — Start Here
 
-**🌐 Live app:** https://peerlypay-main-55r1wgdyr-peerlypaypay-6565s-projects.vercel.app
+**🌐 Live app:** https://peerlypay-main.vercel.app
 
 **Try it in 2 minutes:**
 
