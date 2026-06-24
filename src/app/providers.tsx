@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect } from 'react';
-import { PrivyProvider } from '@privy-io/react-auth';
+import dynamic from 'next/dynamic';
 import { UserProvider } from "@/contexts/UserContext";
 import { TradeHistoryProvider } from "@/contexts/TradeHistoryContext";
 import { useStore } from '@/lib/store';
 
-// ELI: set NEXT_PUBLIC_PRIVY_APP_ID in .env and Vercel. Get it at dashboard.privy.io.
-// Also enable Stellar embedded wallets in the Privy dashboard:
-//   Settings → Embedded Wallets → Stellar → ON
-//   Add allowed domains: localhost:3000 and peerlypay-two.vercel.app.
-const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '';
+// PrivyProvider only runs client-side (ssr: false) to avoid build failures
+// when NEXT_PUBLIC_PRIVY_APP_ID is not set or invalid during prerendering.
+// Set the env var in Vercel dashboard + dashboard.privy.io (enable Stellar embedded wallets).
+const PrivyClientProvider = dynamic(() => import('./privy-provider'), { ssr: false });
 
 function ChainOrdersBootstrap() {
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
@@ -24,24 +23,13 @@ function ChainOrdersBootstrap() {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <PrivyProvider
-      appId={PRIVY_APP_ID}
-      config={{
-        loginMethods: ['email', 'google'],
-        embeddedWallets: {
-          // ELI: verify the exact Privy config key for Stellar embedded wallets.
-          // Privy docs: https://docs.privy.io → Wallets → Stellar.
-          // If the type error appears, check @privy-io/react-auth version for Stellar support.
-          stellar: { createOnLogin: 'users-without-wallets' },
-        } as Record<string, unknown>,
-      }}
-    >
+    <PrivyClientProvider>
       <UserProvider>
         <TradeHistoryProvider>
           <ChainOrdersBootstrap />
           {children}
         </TradeHistoryProvider>
       </UserProvider>
-    </PrivyProvider>
+    </PrivyClientProvider>
   );
 }
