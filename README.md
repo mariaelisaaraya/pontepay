@@ -308,6 +308,7 @@ PeerlyPay integrates three building blocks from the [official SCF Integration Li
 |---|---|
 | **Integration depth & technical complexity** | Soroban escrow + **cross-contract call** to Reflector SEP-40 for on-chain rate; Privy embedded wallets; full SEP-10 + SEP-24; DeFindex yield vault; Transferencias 3.0 QR. 20/20 contract tests. |
 | **Impact on the Stellar ecosystem** | Non-custodial USDC↔ARS ramp for a market where stablecoins are >50% of ARS exchange purchases. Uses four Stellar building blocks: Soroban, Reflector, SEP-24, DeFindex. |
+
 | **Customer discovery & validation** | Interview guide + findings: [docs/hackathon/CUSTOMER_DISCOVERY.md](docs/hackathon/CUSTOMER_DISCOVERY.md) |
 | **Quality of testnet deployment** | Live contract `CAEHRNAP…5JQD`, 3 seed orders, verified on `stellar.expert`. Live `/api/rates` reading through the contract. Platform fee 0.5% active. |
 
