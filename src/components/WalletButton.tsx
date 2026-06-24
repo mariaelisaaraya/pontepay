@@ -42,7 +42,6 @@ export default function WalletButton() {
 
       const key = `peerlypay_faucet_${stellarAddress}`;
       if (!localStorage.getItem(key) && wallet) {
-        localStorage.setItem(key, '1');
         (async () => {
           try {
             const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
@@ -55,7 +54,7 @@ export default function WalletButton() {
               body: JSON.stringify({ address: stellarAddress, step: 'prepare' }),
             }).then(r => r.json());
 
-            if (!prep.xdr) return;
+            if (!prep.xdr) return; // retryable — key not set yet
 
             // Step 2: sign trustline tx with Privy and submit
             const signedXdr = await wallet.signEscrowXdr(prep.xdr);
@@ -69,9 +68,12 @@ export default function WalletButton() {
               body: JSON.stringify({ address: stellarAddress, step: 'send' }),
             }).then(r => r.json());
 
-            if (result.success) toast.success('10 USDC added to your account!');
+            if (result.success) {
+              localStorage.setItem(key, '1'); // only lock after success
+              toast.success('10 USDC added to your account!');
+            }
           } catch {
-            localStorage.removeItem(key);
+            // key not set — next login will retry automatically
           }
         })();
       }
