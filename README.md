@@ -4,7 +4,7 @@
 
 ## One-liner
 
-**A non-custodial P2P marketplace where Argentine freelancers swap USDC for pesos instantly — backed by a Soroban escrow, a live on-chain oracle, and a yield vault that puts idle dollars to work.**
+**Send dollars, receive pesos — the contract holds the money until both sides confirm. No middleman, no custody, no frozen funds.**
 
 ---
 
@@ -73,7 +73,7 @@ The contract is the only entity that ever holds funds during a trade.
 
 ## 4. Earn — idle USDC works for you
 
-Between trades, USDC sitting in your wallet earns **10.83% APY** automatically.
+Between trades, USDC sitting in your wallet earns **10.83% APY** automatically *(live on Stellar testnet)*.
 
 - Powered by **DeFindex yield vaults** on Stellar
 - Deposit and withdraw any time — no lock-up period
@@ -101,7 +101,7 @@ Most P2P ramps quote a rate from a backend the operator controls.
 
 PeerlyPay reads it **on-chain**:
 
-- Contract calls `reference_rate(2)` → **cross-contract call into Reflector** → returns live ARS/USD
+- Contract calls `reference_rate(2)` (`2` = ARS in the Reflector asset schema) → **cross-contract call into Reflector** → returns live ARS/USD
 - Frontend reads through the contract first, with fallback to Reflector, then BCRA official rate
 - The BCRA spread is shown next to the market rate — full transparency
 
@@ -290,6 +290,18 @@ sequenceDiagram
 
 ---
 
+## 🔗 SCF Integration Track
+
+PeerlyPay integrates three building blocks from the [official SCF Integration List](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/integration-track/integration-list):
+
+| Integration | Category | How it's used |
+|---|---|---|
+| **Privy** | Wallet Integration | Embedded Stellar wallets — email login, no seed phrase, real Soroban signing |
+| **SEP-24 Anchor Platform** | On/Off-Ramping | Full SEP-10 + SEP-24 interactive deposit/withdraw flow with any compliant anchor |
+| **DeFindex** | DeFi — Yield Aggregators | Idle USDC earns 10.83% APY in a vault while users aren't trading *(testnet)* |
+
+---
+
 ## 🎯 PULSO Judging Criteria
 
 | Criterion | Evidence |
@@ -319,7 +331,7 @@ sequenceDiagram
 
 ## ❓ "What if a buyer pays ARS but the seller refuses to release USDC?"
 
-> **"The seller's USDC is locked in the escrow contract before the buyer does anything. If the seller doesn't confirm within a timeout window, `execute_fiat_transfer_timeout` releases it automatically. On a dispute, the `dispute_resolver` address settles it on-chain."**
+> **"The seller's USDC is locked in the escrow contract before the buyer does anything. If the seller doesn't confirm within a timeout window, `execute_fiat_transfer_timeout` releases it automatically. On a dispute, the `dispute_resolver` address settles it on-chain (initially set to the team admin; intended to move to a multisig before mainnet)."**
 
 ---
 
