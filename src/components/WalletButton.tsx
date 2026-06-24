@@ -102,7 +102,7 @@ export default function WalletButton() {
       await logout();
       disconnectWallet();
       setIsOpen(false);
-      toast.info("Wallet desconectada");
+      toast.info("Sesión cerrada");
     } catch {
       toast.error("No se pudo cerrar la sesion");
     }
@@ -152,8 +152,8 @@ export default function WalletButton() {
           </>
         ) : (
           <>
-            <Wallet className="size-4" />
-            <span>Connect Wallet</span>
+            <User className="size-4" />
+            <span>Ingresar</span>
           </>
         )}
       </button>
@@ -170,7 +170,7 @@ export default function WalletButton() {
         <span className="inline-flex size-7 items-center justify-center rounded-full bg-fuchsia-500 text-white ring-1 ring-fuchsia-200">
           <User className="size-3.5" strokeWidth={2.25} aria-hidden />
         </span>
-        <span className="font-medium text-gray-700">Account</span>
+        <span className="font-medium text-gray-700">Mi cuenta</span>
         <ChevronDown
           className={`size-3.5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
@@ -221,7 +221,7 @@ export default function WalletButton() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-sm text-red-500 transition-colors hover:bg-red-50"
             >
               <Power className="size-4" />
-              Desconectar
+              Cerrar sesión
             </button>
           </div>
         </div>
