@@ -19,7 +19,7 @@ import { fetchWalletUsdcBalance } from "@/lib/wallet-balance";
 export default function WalletButton() {
   const { user, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
   const { login, logout, ready, authenticated } = usePrivy();
-  const { address: stellarAddress } = useStellarWallet();
+  const { address: stellarAddress, wallet } = useStellarWallet();
   const { isConnected, walletAddress, balance } = user;
 
   const [isConnecting, setIsConnecting] = useState(false);
@@ -39,6 +39,43 @@ export default function WalletButton() {
 
     if (stellarAddress) {
       connectWallet(stellarAddress, null, 'logged-in');
+
+      const key = `peerlypay_faucet_${stellarAddress}`;
+      if (!localStorage.getItem(key) && wallet) {
+        localStorage.setItem(key, '1');
+        (async () => {
+          try {
+            const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
+            const server = new Horizon.Server('https://horizon-testnet.stellar.org');
+
+            // Step 1: Friendbot + get unsigned changeTrust XDR
+            const prep = await fetch('/api/faucet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ address: stellarAddress, step: 'prepare' }),
+            }).then(r => r.json());
+
+            if (!prep.xdr) return;
+
+            // Step 2: sign trustline tx with Privy and submit
+            const signedXdr = await wallet.signEscrowXdr(prep.xdr);
+            const signedTx = new Transaction(signedXdr, Networks.TESTNET);
+            await server.submitTransaction(signedTx);
+
+            // Step 3: send 10 USDC
+            const result = await fetch('/api/faucet', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ address: stellarAddress, step: 'send' }),
+            }).then(r => r.json());
+
+            if (result.success) toast.success('10 USDC added to your account!');
+          } catch {
+            localStorage.removeItem(key);
+          }
+        })();
+      }
+
       return;
     }
 

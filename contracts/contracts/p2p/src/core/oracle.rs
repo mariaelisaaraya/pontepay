@@ -71,6 +71,12 @@ impl OracleManager {
             return Err(ContractError::OracleUnavailable);
         }
 
+        // Reject prices older than 1 hour to prevent trades at stale rates.
+        let now = e.ledger().timestamp();
+        if now.saturating_sub(price_data.timestamp) > 3_600 {
+            return Err(ContractError::OraclePriceStale);
+        }
+
         let scale = 10i128
             .checked_pow(oracle.decimals())
             .ok_or(ContractError::Overflow)?;

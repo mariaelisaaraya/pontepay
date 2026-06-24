@@ -2,6 +2,7 @@ use soroban_sdk::token::Client as TokenClient;
 use soroban_sdk::{Address, Env};
 
 use crate::core::admin::AdminManager;
+use crate::core::oracle::OracleManager;
 use crate::core::validators::admin::ensure_not_paused;
 use crate::core::validators::order::{
     ensure_active_fill_amount, ensure_creator, ensure_fiat_timeout_expired, ensure_filler,
@@ -31,6 +32,34 @@ impl OrderManager {
         // escrow is never trapped (security audit P2P-01).
         ensure_not_paused(&config)?;
         validate_create_order(amount, exchange_rate, duration_secs, &config)?;
+
+        // Validate exchange_rate against the on-chain oracle (±5% band).
+        // If the oracle is unavailable or doesn't support this currency, allow
+        // the order through — don't block creation on oracle failure.
+        let oracle_currency_code: Option<u32> = match fiat_currency {
+            FiatCurrency::Eur => Some(1),
+            FiatCurrency::Ars => Some(2),
+            FiatCurrency::Gbp => Some(5),
+            _ => None,
+        };
+        if let Some(code) = oracle_currency_code {
+            if let Ok(oracle_rate) = OracleManager::reference_rate(e, code) {
+                let tolerance_bps: i128 = 500; // 5%
+                let lower = oracle_rate
+                    .checked_mul(10_000 - tolerance_bps)
+                    .ok_or(ContractError::Overflow)?
+                    .checked_div(10_000)
+                    .ok_or(ContractError::DivisionError)?;
+                let upper = oracle_rate
+                    .checked_mul(10_000 + tolerance_bps)
+                    .ok_or(ContractError::Overflow)?
+                    .checked_div(10_000)
+                    .ok_or(ContractError::DivisionError)?;
+                if exchange_rate < lower || exchange_rate > upper {
+                    return Err(ContractError::ExchangeRateOutOfBounds);
+                }
+            }
+        }
 
         let now = e.ledger().timestamp();
         let next_order_id = Self::next_order_id(e)?;

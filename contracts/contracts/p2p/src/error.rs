@@ -29,6 +29,8 @@ pub enum ContractError {
     OracleNotSet = 23,
     OracleUnavailable = 24,
     UnsupportedCurrency = 25,
+    OraclePriceStale = 26,
+    ExchangeRateOutOfBounds = 27,
 }
 
 impl fmt::Display for ContractError {
@@ -68,6 +70,12 @@ impl fmt::Display for ContractError {
             }
             ContractError::UnsupportedCurrency => {
                 write!(f, "Currency is not supported by the price oracle")
+            }
+            ContractError::OraclePriceStale => {
+                write!(f, "Oracle price is stale (older than 1 hour)")
+            }
+            ContractError::ExchangeRateOutOfBounds => {
+                write!(f, "Exchange rate deviates more than 5% from the oracle price")
             }
         }
     }
