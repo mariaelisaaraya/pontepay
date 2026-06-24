@@ -65,15 +65,60 @@ export async function fetchAnchorInfo(
   return { domain, webAuthEndpoint, transferServer, signingKey, deposit, withdraw };
 }
 
-// Interactive SEP-24 deposit — scaffold. Full production flow:
-//   1. SEP-10: GET {webAuthEndpoint}?account=<G...> -> sign the returned
-//      challenge transaction with the wallet -> POST it back -> receive a JWT.
-//   2. SEP-24: POST {transferServer}/transactions/deposit/interactive with the
-//      JWT + asset_code -> receive an interactive `url` -> open it in a popup.
-// The remaining piece for production is signing the SEP-10 challenge with the
-// Crossmint smart wallet.
-export interface Sep24DepositRequest {
+// SEP-10: fetch challenge XDR from anchor (via Next.js proxy to avoid CORS).
+export async function sep10GetChallenge(account: string): Promise<string> {
+  const res = await fetch(`/api/anchor/sep10?account=${encodeURIComponent(account)}`);
+  const data = (await res.json()) as { transaction?: string; error?: string };
+  if (!res.ok || !data.transaction)
+    throw new Error(data.error ?? `SEP-10 challenge HTTP ${res.status}`);
+  return data.transaction;
+}
+
+// SEP-10: submit signed challenge XDR, receive JWT.
+export async function sep10SubmitChallenge(signedXdr: string): Promise<string> {
+  const res = await fetch('/api/anchor/sep10', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ signedXdr }),
+  });
+  const data = (await res.json()) as { token?: string; error?: string };
+  if (!res.ok || !data.token)
+    throw new Error(data.error ?? `SEP-10 submit HTTP ${res.status}`);
+  return data.token;
+}
+
+// SEP-24: open interactive deposit. Returns the anchor's popup URL.
+export async function sep24StartDeposit(params: {
+  jwt: string;
   assetCode: string;
   account: string;
+  amount?: string;
+}): Promise<string> {
+  const res = await fetch('/api/anchor/deposit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  const data = (await res.json()) as { url?: string; error?: string };
+  if (!res.ok || !data.url)
+    throw new Error(data.error ?? `SEP-24 deposit HTTP ${res.status}`);
+  return data.url;
+}
+
+// SEP-24: open interactive withdrawal. Returns the anchor's popup URL.
+export async function sep24StartWithdraw(params: {
   jwt: string;
+  assetCode: string;
+  account: string;
+  amount?: string;
+}): Promise<string> {
+  const res = await fetch('/api/anchor/withdraw', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  const data = (await res.json()) as { url?: string; error?: string };
+  if (!res.ok || !data.url)
+    throw new Error(data.error ?? `SEP-24 withdraw HTTP ${res.status}`);
+  return data.url;
 }
