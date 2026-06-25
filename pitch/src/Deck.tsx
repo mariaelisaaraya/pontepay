@@ -355,47 +355,45 @@ const Revenue: React.FC<{f: number}> = ({f}) => (
       <div style={{display: 'flex', gap: 60, alignItems: 'flex-start'}}>
 
         <div style={{flex: 1}}>
-          <div style={{...up(f, 10), ...t(26, 600, C.muted), marginBottom: 20}}>Fee efectivo por trade — hoy</div>
-          <div style={{...up(f, 18), border: `1px solid ${C.border}`, borderRadius: 20, overflow: 'hidden'}}>
-            {[
-              {label: 'Spread en tipo de cambio', sub: 'Embebido — auditable en src/lib/pricing.ts', val: '0.8%'},
-              {label: 'Fee on-chain (Soroban)', sub: 'Se ejecuta en confirm_fiat_payment', val: '0.5%'},
-            ].map(({label, sub, val}, i) => (
-              <div key={label} style={{
-                padding: '22px 28px',
-                borderBottom: i === 0 ? `1px solid ${C.border}` : 'none',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                background: C.card,
-              }}>
-                <div>
-                  <div style={{...t(20, 600)}}>{label}</div>
-                  <div style={{...t(15, 400, C.muted)}}>{sub}</div>
-                </div>
-                <div style={{...t(30, 800, C.accent)}}>{val}</div>
-              </div>
-            ))}
-            <div style={{
-              padding: '22px 28px',
-              background: C.primarySoft,
-              borderTop: `1px solid ${C.border}`,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            }}>
-              <div style={{...t(22, 700)}}>Total efectivo</div>
-              <div style={{...t(44, 900, C.accent)}}>~1.3%</div>
+          {/* launch offer banner */}
+          <div style={{
+            ...up(f, 8),
+            marginBottom: 16,
+            background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.4)',
+            borderRadius: 14, padding: '14px 20px',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <div>
+              <div style={{...t(16, 700, C.green)}}>🎉 Oferta de lanzamiento</div>
+              <div style={{...t(13, 400, C.muted)}}>0% spread hasta el mainnet — activada por env var</div>
             </div>
+            <div style={{...t(28, 900, C.green)}}>GRATIS</div>
           </div>
 
-          <div style={{
-            ...up(f, 35),
-            marginTop: 20,
-            background: C.card, border: `1px solid ${C.border}`,
-            borderRadius: 14, padding: '16px 22px',
-          }}>
-            <div style={{...t(16, 400, C.muted)}}>
-              Benchmark: <span style={{color: C.white}}>Foxbit Swap cobra 0.5–2% </span>
-              con waiver contractual (ToS 4.2.3) para no tener que explicarlo.
-              <span style={{color: C.green}}> Nosotros lo publicamos.</span>
-            </div>
+          {/* tiered fees */}
+          <div style={{...up(f, 18), ...t(14, 600, C.muted), marginBottom: 10, letterSpacing: 1, textTransform: 'uppercase'}}>Fee post-lanzamiento — decreasing</div>
+          <div style={{...up(f, 22), border: `1px solid ${C.border}`, borderRadius: 16, overflow: 'hidden'}}>
+            {[
+              {rango: '< $10',    fee: '2.5%', color: C.yellow},
+              {rango: '$10–$50',  fee: '1.5%', color: '#fb923c'},
+              {rango: '$50–$200', fee: '1.0%', color: C.accent},
+              {rango: '$200+',    fee: '0.8%', color: C.green},
+            ].map(({rango, fee, color}, i) => (
+              <div key={rango} style={{
+                ...up(f, 26 + i * 8),
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '14px 22px',
+                borderBottom: i < 3 ? `1px solid ${C.border}` : 'none',
+                background: C.card,
+              }}>
+                <div style={{...t(17, 500, C.muted)}}>{rango} USDC</div>
+                <div style={{...t(26, 800, color)}}>{fee}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{...up(f, 58), marginTop: 12, ...t(13, 400, C.muted)}}>
+            Auditable en <span style={{color: C.white}}>src/lib/pricing.ts</span> · costo marginal por tx ≈ $0.000012
           </div>
         </div>
 
@@ -507,7 +505,7 @@ const Competition: React.FC<{f: number}> = ({f}) => {
           Únicos <span style={{color: C.accent}}>no-custodiales</span> con spread auditable + T3.0
         </div>
 
-        <div style={{...up(f, 20), border: `1px solid ${C.border}`, borderRadius: 20, overflow: 'hidden'}}>
+        <div style={{...up(f, 20), border: `1px solid ${C.border}`, borderRadius: 20, overflow: 'hidden', marginBottom: 28}}>
           <div style={{
             display: 'grid', gridTemplateColumns: '1.4fr 1.1fr 1.1fr 0.9fr 1fr',
             background: C.primarySoft, padding: '14px 24px',
@@ -531,6 +529,51 @@ const Competition: React.FC<{f: number}> = ({f}) => {
               <div style={colStyle(dispute)}>{dispute}</div>
             </div>
           ))}
+        </div>
+
+        {/* insight callout */}
+        <div style={{...up(f, 90), display: 'flex', gap: 16, alignItems: 'stretch'}}>
+
+          {/* competitor pain */}
+          <div style={{
+            flex: 1, background: 'rgba(239,68,68,0.08)',
+            border: '1px solid rgba(239,68,68,0.3)', borderRadius: 14,
+            padding: '16px 22px',
+          }}>
+            <div style={{...t(12, 700, C.red), letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8}}>Competencia — fee plana</div>
+            <div style={{...t(15, 400, C.muted), lineHeight: 1.5}}>
+              Stripe: 2.9% <span style={{color:C.white,fontWeight:700}}>+ $0.30</span> fijo.
+              En $1 = <span style={{color:C.red,fontWeight:700}}>32.9%</span>.{' '}
+              Meru bloquea {'<'} $5. Binance P2P bloquea {'<'} $10.{' '}
+              <span style={{color:C.white,fontStyle:'italic'}}>El usuario no lo nota hasta que hace las cuentas.</span>
+            </div>
+          </div>
+
+          {/* PontePay fee tiers */}
+          <div style={{
+            flex: 1.4, background: 'rgba(124,58,237,0.08)',
+            border: '1px solid rgba(124,58,237,0.4)', borderRadius: 14,
+            padding: '16px 22px',
+          }}>
+            <div style={{...t(12, 700, C.accent), letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10}}>PontePay — fee decreciente, sin mínimo</div>
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '4px 0'}}>
+              {[
+                {rango: '< $10',    fee: '2.5%', color: C.yellow},
+                {rango: '$10–$50',  fee: '1.5%', color: '#fb923c'},
+                {rango: '$50–$200', fee: '1.0%', color: C.accent},
+                {rango: '$200+',    fee: '0.8%', color: C.green},
+              ].map(({rango, fee, color}) => (
+                <div key={rango} style={{textAlign: 'center', padding: '6px 4px'}}>
+                  <div style={{...t(18, 700, color)}}>{fee}</div>
+                  <div style={{...t(11, 500, C.muted)}}>{rango}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{...t(12, 400, C.muted), marginTop: 8}}>
+              A más monto, menos fee. <span style={{color:C.white}}>Sin sorpresas, sin letra chica.</span>
+            </div>
+          </div>
+
         </div>
       </div>
     </AbsoluteFill>

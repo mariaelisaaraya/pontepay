@@ -1,6 +1,6 @@
 // Trustless Work — single-release escrow types + constants.
 // Source of truth: the `trustless-work-dev` skill (skills/api/types.md, trustlines.md,
-// core-concepts.md). PeerlyPay uses single-release escrows (one milestone) on testnet.
+// core-concepts.md). PontePay uses single-release escrows (one milestone) on testnet.
 
 export const TW_TESTNET_BASE = 'https://dev.api.trustlesswork.com';
 export const TW_MAINNET_BASE = 'https://api.trustlesswork.com';

@@ -1,73 +1,140 @@
-// Platform pricing engine — spread-based revenue model.
+// Platform pricing engine — decreasing-fee spread model with launch offer.
 //
-// Revenue is captured by embedding our margin into the exchange rate shown to
-// users rather than displaying an explicit "platform fee" line. This matches
-// industry practice: Foxbit (stablecoin invisible rails), Meru (dynamic rate
-// in-app), and most LatAm fintechs do not expose a separate fee for FX.
+// Fee schedule — decreasing tiers, any amount accepted:
 //
-// Model:
-//   - Spread: 0.80% on each side (buy and sell)
-//   - Rounding: displayed rate snaps to nearest ROUND_STEP_ARS (5 ARS)
-//     so the rate looks like a clean market quote, not a calculated number.
+//   Amount (USDC)  │ Spread BPS │ Effective % │ Use case
+//   ───────────────┼────────────┼─────────────┼──────────────────────────
+//      < $10       │   250 bps  │    2.5%     │ micro-pagos, splits
+//   $10 – $50      │   150 bps  │    1.5%     │ pagos cotidianos
+//   $50 – $200     │   100 bps  │    1.0%     │ P2P estándar, remesas
+//   $200 +         │    80 bps  │    0.8%     │ ahorro, volumen
 //
-// Competitive context (jun 2026):
-//   - Meru:         1% + $1 USD per crypto deposit
-//   - Lemon Cash:   ~1.2–1.5% effective (unverified)
-//   - PontePay:    0.80% spread (cheaper than Meru, invisible like Foxbit)
+// Marginal cost per tx ≈ $0.000012 (Stellar fee only).
+// Every tx with spread > 0 is profitable. Tiers are competitive positioning.
+//
+// Launch offer: 0% spread until LAUNCH_OFFER_EXPIRES.
+// Users see the exact oracle mid-rate. Flip off by advancing the date.
 
-export const SPREAD_BPS = 80;       // 0.80 %
-export const ROUND_STEP_ARS = 5;    // round displayed rate to nearest 5 ARS
+export const ROUND_STEP_ARS = 5;
 
-/** Round value UP to the nearest `step`. Used for buy rates: user pays more. */
+// ── Launch offer ─────────────────────────────────────────────────────────────
+
+/**
+ * Launch offer control — via environment variables, no code changes needed.
+ *
+ * To activate:   set NEXT_PUBLIC_LAUNCH_OFFER=true  in Vercel dashboard
+ * To deactivate: set NEXT_PUBLIC_LAUNCH_OFFER=false (or delete the var)
+ *
+ * Optionally set NEXT_PUBLIC_LAUNCH_OFFER_EXPIRES to an ISO date string
+ * (e.g. "2026-10-01") to auto-expire on a known date once mainnet launches.
+ * If not set, the offer stays active as long as the flag is true.
+ */
+export function isLaunchOfferActive(): boolean {
+  if (process.env.NEXT_PUBLIC_LAUNCH_OFFER !== 'true') return false;
+  const expires = process.env.NEXT_PUBLIC_LAUNCH_OFFER_EXPIRES;
+  if (!expires) return true;
+  return new Date() < new Date(expires);
+}
+
+/** Days remaining in the launch offer (null if no expiry date is set). */
+export function launchOfferDaysLeft(): number | null {
+  const expires = process.env.NEXT_PUBLIC_LAUNCH_OFFER_EXPIRES;
+  if (!expires) return null;
+  const ms = new Date(expires).getTime() - Date.now();
+  return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+}
+
+// ── Fee tiers ─────────────────────────────────────────────────────────────────
+
+export interface FeeTier {
+  minUsdc: number;
+  spreadBps: number;
+  label: string;
+}
+
+export const FEE_TIERS: readonly FeeTier[] = [
+  { minUsdc:   0, spreadBps: 250, label: 'Micro'    },  // < $10   → 2.5%
+  { minUsdc:  10, spreadBps: 150, label: 'Pequeño'  },  // $10–$50  → 1.5%
+  { minUsdc:  50, spreadBps: 100, label: 'Estándar' },  // $50–$200 → 1.0%
+  { minUsdc: 200, spreadBps:  80, label: 'Pro'      },  // $200+    → 0.8%
+] as const;
+
+const LAUNCH_TIER: FeeTier = { minUsdc: 0, spreadBps: 0, label: 'Lanzamiento 🎉' };
+
+/** Backward-compatible constant — spread for the Standard tier. */
+export const SPREAD_BPS = 100;
+
+export function getFeeTier(amountUsdc: number): FeeTier {
+  if (isLaunchOfferActive()) return LAUNCH_TIER;
+  let active = FEE_TIERS[0];
+  for (const tier of FEE_TIERS) {
+    if (amountUsdc >= tier.minUsdc) active = tier;
+  }
+  return active;
+}
+
+export function getSpreadBps(amountUsdc: number): number {
+  return getFeeTier(amountUsdc).spreadBps;
+}
+
+// ── Rounding helpers ──────────────────────────────────────────────────────────
+
 export function roundUp(value: number, step = ROUND_STEP_ARS): number {
   return Math.ceil(value / step) * step;
 }
 
-/** Round value DOWN to the nearest `step`. Used for sell rates: user receives less. */
 export function roundDown(value: number, step = ROUND_STEP_ARS): number {
   return Math.floor(value / step) * step;
 }
 
-/**
- * Rate the user pays in ARS to buy 1 USDC.
- * Higher than mid-rate → platform captures the difference.
- * e.g. mid = 1,461 ARS → buyRate = ceil(1,461 × 1.008 / 5) × 5 = 1,475
- */
 export function applyBuySpread(midRate: number): number {
   return roundUp(midRate * (1 + SPREAD_BPS / 10_000));
 }
 
-/**
- * Rate the user receives in ARS when selling 1 USDC.
- * Lower than mid-rate → platform captures the difference.
- * e.g. mid = 1,461 ARS → sellRate = floor(1,461 × 0.992 / 5) × 5 = 1,449
- */
 export function applySellSpread(midRate: number): number {
   return roundDown(midRate * (1 - SPREAD_BPS / 10_000));
 }
 
+// ── Rate output ───────────────────────────────────────────────────────────────
+
 export interface PlatformRates {
-  /** Oracle mid-market rate. Never displayed directly. */
-  midRate: number;
-  /** Rate shown when user wants to buy USDC (they pay this many ARS per USDC). */
-  buyRate: number;
-  /** Rate shown when user wants to sell USDC (they receive this many ARS per USDC). */
-  sellRate: number;
-  /** Spread width in basis points (informational). */
-  spreadBps: number;
-  /** ARS per USDC spread width (buy minus sell). */
-  spreadArs: number;
+  midRate:        number;
+  buyRate:        number;
+  sellRate:       number;
+  spreadBps:      number;
+  spreadArs:      number;
+  tierLabel:      string;
+  isLaunchOffer:  boolean;
+  launchDaysLeft: number;
 }
 
-/** Derive all platform-facing rates from a single oracle mid-price. */
+/** Standard tier rates — used when amount is unknown. */
 export function getPlatformRates(midRate: number): PlatformRates {
-  const buyRate = applyBuySpread(midRate);
-  const sellRate = applySellSpread(midRate);
+  const buy  = applyBuySpread(midRate);
+  const sell = applySellSpread(midRate);
   return {
-    midRate,
-    buyRate,
-    sellRate,
-    spreadBps: SPREAD_BPS,
-    spreadArs: buyRate - sellRate,
+    midRate, buyRate: buy, sellRate: sell,
+    spreadBps: SPREAD_BPS, spreadArs: buy - sell,
+    tierLabel: 'Estándar',
+    isLaunchOffer: false, launchDaysLeft: 0,
+  };
+}
+
+/**
+ * Amount-aware rates — picks tier automatically.
+ * During launch offer: buyRate = sellRate = midRate (0% spread).
+ */
+export function getPlatformRatesForAmount(midRate: number, amountUsdc: number): PlatformRates {
+  const tier      = getFeeTier(amountUsdc);
+  const factor    = tier.spreadBps / 10_000;
+  const buy       = factor === 0 ? midRate : roundUp(midRate * (1 + factor));
+  const sell      = factor === 0 ? midRate : roundDown(midRate * (1 - factor));
+  const launch    = isLaunchOfferActive();
+  return {
+    midRate, buyRate: buy, sellRate: sell,
+    spreadBps: tier.spreadBps, spreadArs: buy - sell,
+    tierLabel: tier.label,
+    isLaunchOffer: launch,
+    launchDaysLeft: launch ? launchOfferDaysLeft() : 0,
   };
 }

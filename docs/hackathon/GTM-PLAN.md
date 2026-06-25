@@ -78,14 +78,35 @@ El pitch del 6 de julio ante el jurado Stellar es el primer hito de PR. Quedar f
 
 ## Estrategia de precios para el lanzamiento
 
-No competir en bps durante los primeros 6 meses. Competir en **confianza y transparencia**.
+### Fase 1 — Oferta de lanzamiento: 0% spread
 
-El 1.3% efectivo (spread 0.8% + fee on-chain 0.5%) se justifica con:
-1. Oracle mid-rate visible en pantalla
-2. Tasa BCRA al lado (evidencia de la brecha de mercado)
-3. Escrow on-chain auditable (sin bloqueos posibles, sin comisiones ocultas)
+Al momento del mainnet launch, se activa una oferta de 0% spread controlada por variable de entorno en Vercel (`NEXT_PUBLIC_LAUNCH_OFFER=true`). El usuario opera al mid-rate exacto del oracle Reflector — precio de mercado puro, sin margen.
 
-Una vez que hay volumen y datos, se introducen tiers (Maker Premium, DCA, Earn).
+**Por qué funciona:**
+- Costo marginal por transacción en Stellar ≈ $0.000012 → cualquier volumen es sostenible
+- El 0% spread es el gancho de adquisición más fuerte posible: la competencia no puede igualarlo sin operar a pérdida (ellos sí tienen costos variables)
+- Replica el movimiento de Foxbit con "taxa zero em saques" en Brasil (2021) — adquirieron masa crítica en 90 días
+
+**Cómo se activa/desactiva** sin tocar código:
+
+| Variable en Vercel | Valor | Resultado |
+|---|---|---|
+| `NEXT_PUBLIC_LAUNCH_OFFER` | `true` | 0% spread activo |
+| `NEXT_PUBLIC_LAUNCH_OFFER_EXPIRES` | `"2026-10-01"` (opcional) | Auto-expira en esa fecha |
+| `NEXT_PUBLIC_LAUNCH_OFFER` | `false` o ausente | Tiers normales |
+
+### Fase 2 — Tiers post-lanzamiento: fee decreciente
+
+Una vez que hay volumen y usuarios habituados, se desactiva la oferta y entran los tiers automáticamente:
+
+| Monto | Fee | Posicionamiento |
+|-------|-----|----------------|
+| < $10 USDC | 2.5% | Micro-pagos, splits |
+| $10 – $50 | 1.5% | Pagos cotidianos |
+| $50 – $200 | 1.0% | P2P estándar |
+| $200+ | 0.8% | Ahorro, volumen |
+
+No competir en bps — competir en **confianza y transparencia**. El fee está embebido en el tipo de cambio (invisible como la industria), pero auditable en código abierto (diferenciador).
 
 ---
 

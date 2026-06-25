@@ -10,7 +10,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "tsc && eslint"
+    "lint": "tsc && eslint",
+    "rates": "node scripts/rate-scraper.mjs",
+    "rates:watch": "node scripts/rate-scraper.mjs --watch"
   },
   "dependencies": {
     "@crossmint/client-sdk-react-ui": "^2.6.18",
