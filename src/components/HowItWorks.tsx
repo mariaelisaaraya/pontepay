@@ -17,7 +17,7 @@ export default function HowItWorks() {
     <section className="flex flex-col gap-4 pt-8 pb-5">
       <div className="px-1">
         <h3 className="font-display text-[22px] font-bold leading-normal text-dark-500">
-          How Peerly Pay works
+          How PontePay works
         </h3>
       </div>
 

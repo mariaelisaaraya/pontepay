@@ -18,7 +18,7 @@ export type EscrowRegistryEntry = {
   status?: string; // last-known status snapshot for fast listing
 };
 
-const KEY = 'peerlypay.escrow.registry.v1';
+const KEY = 'pontepay.escrow.registry.v1';
 
 function read(): EscrowRegistryEntry[] {
   if (typeof window === 'undefined') return [];

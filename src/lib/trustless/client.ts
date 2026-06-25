@@ -1,4 +1,4 @@
-// Trustless Work escrow client for PeerlyPay.
+// Trustless Work escrow client for PontePay.
 //
 // Flow for every write op:
 //   POST /api/tw/<path> → { unsignedTransaction } → sign with Privy → POST /api/tw/helper/send-transaction

@@ -17,6 +17,17 @@ export interface RateSnapshot {
   bcraOfficial: number | null;
   /** ISO date/time the rate is valid as of. */
   asOf: string;
+  /**
+   * Platform buy rate: ARS a user pays to buy 1 USDC.
+   * Derived from usdArs with spread + rounding applied (see pricing.ts).
+   * Displayed in the UI instead of the raw oracle mid-rate.
+   */
+  buyRate: number;
+  /**
+   * Platform sell rate: ARS a user receives when selling 1 USDC.
+   * Derived from usdArs with spread + rounding applied (see pricing.ts).
+   */
+  sellRate: number;
 }
 
 // Last-resort constant if both live sources fail. Matches the previous MOCK_RATE
@@ -31,6 +42,8 @@ export function fallbackSnapshot(): RateSnapshot {
     reflector: null,
     bcraOfficial: null,
     asOf: '',
+    buyRate: FALLBACK_USD_ARS + 12,  // ~0.8% above fallback, rounded
+    sellRate: FALLBACK_USD_ARS - 12, // ~0.8% below fallback, rounded
   };
 }
 

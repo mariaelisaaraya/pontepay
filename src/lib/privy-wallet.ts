@@ -41,7 +41,7 @@ export function useStellarWallet(): {
       };
       if (typeof privyWallet.signTransaction !== 'function') {
         throw new Error(
-          '[PeerlyPay] Privy Stellar wallet does not expose signTransaction. ' +
+          '[PontePay] Privy Stellar wallet does not expose signTransaction. ' +
           'Ensure the user is authenticated and the Stellar embedded wallet is active.',
         );
       }

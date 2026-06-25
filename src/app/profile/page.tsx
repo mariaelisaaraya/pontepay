@@ -13,7 +13,7 @@ import ShareProfileDrawer from "@/components/profile/ShareProfileDrawer";
 import { useUser } from "@/contexts/UserContext";
 import { useStore } from "@/lib/store";
 
-const PROFILE_OVERRIDES_STORAGE_KEY = "peerlypay_profile_overrides";
+const PROFILE_OVERRIDES_STORAGE_KEY = "pontepay_profile_overrides";
 
 type ProfileOverrides = Record<
   string,
@@ -65,7 +65,7 @@ export default function ProfilePage() {
     : "Not connected";
 
   const defaultDisplayName = activeWalletAddress
-    ? `Peerly ${activeWalletAddress.slice(2, 6).toLowerCase()}`
+    ? `Ponte ${activeWalletAddress.slice(2, 6).toLowerCase()}`
     : "Guest user";
 
   const defaultHandle = activeWalletAddress
@@ -73,8 +73,8 @@ export default function ProfilePage() {
     : "@guest";
 
   const defaultBio = user
-    ? "Fast, secure P2P trading on PeerlyPay."
-    : "Create your profile to start trading on PeerlyPay.";
+    ? "Fast, secure P2P trading on PontePay."
+    : "Create your profile to start trading on PontePay.";
 
   const profileStorageKey = activeWalletAddress ?? "guest";
   const storedProfile = profileOverrides[profileStorageKey];

@@ -40,7 +40,7 @@ export default function WalletButton() {
     if (stellarAddress) {
       connectWallet(stellarAddress, null, 'logged-in');
 
-      const key = `peerlypay_faucet_${stellarAddress}`;
+      const key = `pontepay_faucet_${stellarAddress}`;
       if (!localStorage.getItem(key) && wallet) {
         (async () => {
           try {

@@ -7,7 +7,7 @@
 //     "round-trip transaction", "rapid movement of funds between accounts",
 //     "layered transfer via intermediary", "dormant account sudden activity"
 //
-// We port these patterns to PeerlyPay's P2P USDC↔ARS domain:
+// We port these patterns to PontePay's P2P USDC↔ARS domain:
 //   - Structuring → amounts just below common reporting thresholds (USDC or ARS)
 //   - Cycles → wallet appearing as both maker and counterparty in recent orders
 //   - Velocity → high order frequency from the same address

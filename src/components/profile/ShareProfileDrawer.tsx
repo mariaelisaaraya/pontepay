@@ -61,8 +61,8 @@ export default function ShareProfileDrawer({
 
     try {
       await navigator.share({
-        title: `${displayName} on PeerlyPay`,
-        text: `Check out ${handle} on PeerlyPay`,
+        title: `${displayName} on PontePay`,
+        text: `Check out ${handle} on PontePay`,
         url: getProfileShareUrl(),
       });
       onOpenChange(false);

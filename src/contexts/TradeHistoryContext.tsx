@@ -22,7 +22,7 @@ interface TradeHistoryContextType {
 }
 
 const TradeHistoryContext = createContext<TradeHistoryContextType | undefined>(undefined);
-const TRADES_STORAGE_KEY = 'peerlypay_trades';
+const TRADES_STORAGE_KEY = 'pontepay_trades';
 
 export function TradeHistoryProvider({ children }: { children: ReactNode }) {
   const [trades, setTrades] = useState<CompletedTrade[]>([]);

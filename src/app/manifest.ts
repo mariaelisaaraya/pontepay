@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'PeerlyPay',
-    short_name: 'PeerlyPay',
+    name: 'PontePay',
+    short_name: 'PontePay',
     description: 'Earn Global, Spend Local - Trustless ramp for the borderless economy.',
     start_url: '/',
     display: 'standalone',

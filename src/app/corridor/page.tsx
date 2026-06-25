@@ -57,7 +57,7 @@ const STEPS = [
   {
     n: 1,
     title: 'P2P escrow (ARS leg)',
-    desc: 'Seller locks ARS via PeerlyPay Soroban contract and releases USDC.',
+    desc: 'Seller locks ARS via PontePay Soroban contract and releases USDC.',
     anchor: false,
   },
   {
@@ -69,7 +69,7 @@ const STEPS = [
   {
     n: 3,
     title: 'SEP-31 direct payment',
-    desc: 'PeerlyPay sends USDC to the receiving anchor via SEP-31 cross-border protocol.',
+    desc: 'PontePay sends USDC to the receiving anchor via SEP-31 cross-border protocol.',
     anchor: true,
   },
   {
@@ -262,7 +262,7 @@ export default function CorridorPage() {
           <div className="pl-1 flex items-center gap-2">
             <ArrowDown className="size-4 text-gray-300" />
             <span className="text-[11px] text-indigo-500 font-medium">
-              PeerlyPay P2P escrow → USDC on Stellar
+              PontePay P2P escrow → USDC on Stellar
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -450,7 +450,7 @@ export default function CorridorPage() {
               <code className="font-[family-name:var(--font-jetbrains-mono)] bg-sky-100 px-1 rounded text-[10px]">
                 POST /sep31/transactions
               </code>
-              {' '}initiates the corridor. PeerlyPay then sends USDC to the anchor&apos;s Stellar account and polls status until delivery.
+              {' '}initiates the corridor. PontePay then sends USDC to the anchor&apos;s Stellar account and polls status until delivery.
             </p>
           </div>
         </div>

@@ -2,7 +2,7 @@
 //
 // SEP-31 is the direct payment protocol: a sending entity (app or anchor)
 // submits a payment to a receiving anchor, which delivers local fiat to the
-// recipient. For PeerlyPay the narrative is:
+// recipient. For PontePay the narrative is:
 //   ARS (P2P escrow leg) → USDC on Stellar (SEP-31 send leg) → BRL (anchor delivers via PIX)
 //
 // All network calls go through /api/sep31 to avoid CORS.

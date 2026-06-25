@@ -16,6 +16,7 @@ import {
 
 import { FALLBACK_USD_ARS, type RateSnapshot, type RateSource } from '@/lib/rates';
 import { loadReferenceRateFromContract } from '@/lib/p2p';
+import { applyBuySpread, applySellSpread } from '@/lib/pricing';
 
 // FiatCurrency::from_code in the p2p contract: 2 = ARS.
 const ARS_CURRENCY_CODE = 2;
@@ -105,7 +106,7 @@ export async function fetchContractReferenceRate(): Promise<number | null> {
 export async function fetchBcraOfficialUsdArs(): Promise<{ rate: number; asOf: string } | null> {
   try {
     const res = await fetch(BCRA_USD_URL, {
-      headers: { 'User-Agent': 'PeerlyPay/1.0' },
+      headers: { 'User-Agent': 'PontePay/1.0' },
       next: { revalidate: 300 },
     });
     if (!res.ok) throw new Error(`BCRA HTTP ${res.status}`);
@@ -161,5 +162,7 @@ export async function getRateSnapshot(): Promise<RateSnapshot> {
     reflector,
     bcraOfficial,
     asOf: bcra?.asOf || '',
+    buyRate: applyBuySpread(usdArs),
+    sellRate: applySellSpread(usdArs),
   };
 }

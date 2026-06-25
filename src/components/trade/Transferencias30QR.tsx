@@ -37,8 +37,8 @@ export interface Transferencias30QRProps {
 export default function Transferencias30QR({
   amountArs,
   alias,
-  recipientName = 'PeerlyPay',
-  concept = 'PeerlyPay',
+  recipientName = 'PontePay',
+  concept = 'PontePay',
   size = 176,
 }: Transferencias30QRProps) {
   const merchantAccount = tlv('00', 'ar.com.transferencias3') + tlv('01', alias);

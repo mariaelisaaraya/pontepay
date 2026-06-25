@@ -15,7 +15,7 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const USER_STORAGE_KEY = 'peerlypay_user';
+const USER_STORAGE_KEY = 'pontepay_user';
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

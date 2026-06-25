@@ -1,6 +1,6 @@
 import type { EscrowRoles } from './types';
 
-// Map a PeerlyPay P2P trade onto Trustless Work single-release escrow roles.
+// Map a PontePay P2P trade onto Trustless Work single-release escrow roles.
 //
 // The escrow ALWAYS custodies the crypto (USDC). Whoever gives up USDC funds the
 // escrow (signs fund_escrow); whoever pays local fiat receives the USDC. The single
@@ -10,13 +10,13 @@ import type { EscrowRoles } from './types';
 //   - approver        = the crypto seller     (confirms fiat received → approve_milestone)
 //   - releaseSigner   = the crypto seller     (releases USDC → release_funds; same actor as approver)
 //   - receiver        = the fiat payer        (gets the USDC)
-//   - platformAddress = PeerlyPay platform    (owner; collects platform fee)
-//   - disputeResolver = PeerlyPay platform    (arbiter; cannot itself open a dispute)
+//   - platformAddress = PontePay platform    (owner; collects platform fee)
+//   - disputeResolver = PontePay platform    (arbiter; cannot itself open a dispute)
 //
 // NOTE: the funder (fund_escrow signer) is NOT an escrow role — it's the crypto seller.
 // serviceProvider !== approver by construction (avoids self-approval).
 export type TradeParties = {
-  platform: string; // PeerlyPay platform Stellar address
+  platform: string; // PontePay platform Stellar address
   cryptoSeller: string; // gives up USDC, funds the escrow
   fiatPayer: string; // pays local fiat, receives USDC
 };
@@ -32,7 +32,7 @@ export function escrowRolesForTrade(p: TradeParties): EscrowRoles {
   };
 }
 
-// Resolve the two trade parties from a PeerlyPay order's `from_crypto` flag.
+// Resolve the two trade parties from a PontePay order's `from_crypto` flag.
 //   from_crypto = true  → maker SELLS crypto (maker = cryptoSeller, taker = fiatPayer)
 //   from_crypto = false → maker BUYS crypto  (taker = cryptoSeller, maker = fiatPayer)
 export function partiesFromOrder(args: {

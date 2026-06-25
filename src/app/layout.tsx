@@ -5,7 +5,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "PeerlyPay",
+  title: "PontePay",
   description: "P2P Exchange on Stellar",
 };
 

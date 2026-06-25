@@ -11,13 +11,13 @@ export default function Header() {
         <div className="flex items-center gap-2 min-w-0">
           <Image
             src="/icon-fuchsia.svg"
-            alt="PeerlyPay"
+            alt="PontePay"
             width={28}
             height={28}
             className="shrink-0 object-contain h-7 w-7"
           />
           <span className="font-display font-bold text-xl truncate">
-            PeerlyPay
+            PontePay
           </span>
         </div>
 

@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
 import { estimateQuickTrade, findBestMatch } from '@/lib/match-order';
+import { fetchRateSnapshot } from '@/lib/rates';
 import type { QuickTradeEstimate } from '@/types';
 
 /** Transaction limit in USDC */
@@ -22,8 +23,8 @@ const USDC_LIMIT = 500;
 /** Debounce delay for rate calculation (ms) */
 const DEBOUNCE_MS = 500;
 
-/** Fallback rate until first estimation */
-const DEFAULT_RATE = 1200;
+/** Fallback rate until platform rates load */
+const DEFAULT_RATE = 1485;
 
 type TradeMode = 'sell' | 'buy';
 type InputCurrency = 'ars' | 'usdc';
@@ -105,6 +106,10 @@ export default function QuickTradeInput({ initialMode, onClose, showToggle = tru
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentRate, setCurrentRate] = useState<number>(DEFAULT_RATE);
+  // Platform spread rates: buyRate (user pays to buy USDC) and sellRate (user receives selling USDC).
+  // Used as the reference conversion display when no order-book match is available yet.
+  const [platformBuyRate, setPlatformBuyRate] = useState<number>(DEFAULT_RATE + 12);
+  const [platformSellRate, setPlatformSellRate] = useState<number>(DEFAULT_RATE - 12);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const rateRef = useRef<number>(DEFAULT_RATE);
@@ -121,14 +126,31 @@ export default function QuickTradeInput({ initialMode, onClose, showToggle = tru
   const hasEnoughBalance = mode === 'buy' || usdcAmount <= user.balance.usdc;
   const hasValidAmount = numericValue > 0 && !isOverLimit && hasEnoughBalance;
 
-  // Fetch initial rate on mount / mode change
+  // Fetch platform spread rates once on mount (used as reference when order book is empty).
+  useEffect(() => {
+    fetchRateSnapshot().then((snap) => {
+      setPlatformBuyRate(snap.buyRate);
+      setPlatformSellRate(snap.sellRate);
+      // Seed currentRate with the spread rate for the current mode
+      const initialRate = initialMode === 'sell' ? snap.sellRate : snap.buyRate;
+      rateRef.current = initialRate;
+      setCurrentRate(initialRate);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Refresh currentRate when mode changes using the spread rate if no order-book match.
   useEffect(() => {
     const result = estimateQuickTrade(orders, 1, mode);
     if (result) {
       rateRef.current = result.rate;
       setCurrentRate(result.rate);
+    } else {
+      const fallback = mode === 'sell' ? platformSellRate : platformBuyRate;
+      rateRef.current = fallback;
+      setCurrentRate(fallback);
     }
-  }, [orders, mode]);
+  }, [orders, mode, platformBuyRate, platformSellRate]);
 
   // Debounced estimation — uses rateRef to avoid cascading re-renders
   useEffect(() => {
