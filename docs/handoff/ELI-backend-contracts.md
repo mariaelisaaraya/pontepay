@@ -1,8 +1,8 @@
 # Handoff → Eli · Backend + Smart Contracts
 
-Hola Eli 👋 — tu lote de tareas de **backend + Soroban smart contracts** para PeerlyPay (PULSO). Priorizado por impacto en la demo real y los criterios del jurado (#1 profundidad de integración, #4 calidad de deploy).
+Hola Eli 👋 — tu lote de tareas de **backend + Soroban smart contracts** para PontePay (PULSO). Priorizado por impacto en la demo real y los criterios del jurado (#1 profundidad de integración, #4 calidad de deploy).
 
-- **App en vivo:** https://peerlypay-two.vercel.app · **Repo:** `leocagli/peerlypay` (`main`)
+- **App en vivo:** https://peerlypay-two.vercel.app · **Repo:** `mariaelisaaraya/pontepay` (`main`)
 - **Fuente de verdad:** [`docs/hackathon/CONTEXT.md`](../hackathon/CONTEXT.md) · **Deploy de contrato:** [`docs/hackathon/MAINNET_DEPLOY.md`](../hackathon/MAINNET_DEPLOY.md)
 - **Contrato p2p (testnet):** `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ` · **Oráculo Reflector (testnet):** `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W`
 
@@ -77,3 +77,94 @@ stellar contract bindings typescript --network testnet --contract-id <CID> --out
 - `cargo test -p p2p` verde tras tus cambios.
 
 Cualquier duda de estado real/mock → `docs/hackathon/CONTEXT.md`. A romperla. 🚀
+
+---
+
+## 🔍 Auditoría técnica — 2026-06-25
+
+Auditoría completa del proyecto. Lo que te toca a vos directamente:
+
+### 🔴 BLOQUEANTES (sin esto no se puede deployar el 30/06)
+
+**B-1 · Build falla — `@afipsdk/afip.js` no está en package.json**
+- Archivo: `src/app/api/arca/validate-cuit/route.ts:70`
+- `npm run build` devuelve exit code 1 — Vercel no puede deployar
+- Fix: agregar `@afipsdk/afip.js` al `package.json` con `npm install @afipsdk/afip.js`, o si no se va a usar en la demo, mockear el endpoint para que devuelva `{ valid: true }` hardcodeado
+- Prioridad máxima — bloquea todo lo demás
+
+**B-2 · `NEXT_PUBLIC_PRIVY_APP_ID` no configurado — auth rota**
+- Privy silently se deshabilita cuando la variable está vacía → los usuarios no pueden crear wallet ni firmar transacciones
+- Fix: en el [Privy Console](https://console.privy.io) crear una app, copiar el App ID, setearlo en:
+  - `.env.local` en local: `NEXT_PUBLIC_PRIVY_APP_ID=clxxxxxxxx`
+  - Vercel dashboard → Settings → Environment Variables → mismo nombre
+- Sin esto la app carga pero el flujo completo está roto
+
+### 🟠 ALTOS (rompen el flujo P2P)
+
+**A-1 · Rate endpoint sin manejo de errores**
+- Archivo: `src/app/api/rates/route.ts`
+- Si Reflector RPC o BCRA están caídos, el endpoint crashea con 500 → la pantalla de trade queda en blanco
+- Fix: wrap en try/catch, devolver rate de fallback con `source: 'error'`
+
+```typescript
+// src/app/api/rates/route.ts
+export async function GET() {
+  try {
+    const snapshot = await getRateSnapshot();
+    return NextResponse.json(snapshot);
+  } catch (e) {
+    return NextResponse.json(
+      { error: 'rate_unavailable', source: 'error', midRate: null },
+      { status: 503 }
+    );
+  }
+}
+```
+
+**A-2 · Spread 0.8% definido pero no verificado en UI**
+- `src/lib/pricing.ts` tiene `applyBuySpread`/`applySellSpread` pero no hay evidencia de que se muestren en la pantalla de pago al usuario
+- Si el spread no es visible antes de confirmar, el diferenciador "tasa transparente" no se comunica en la demo
+- Verificar que `getPlatformRates(midRate)` se llama en el componente de trade y el resultado se muestra
+
+### 🟡 MEDIOS (importante antes del 30/06)
+
+**M-1 · Wallet testnet expuesta en `.env`**
+- `TEST_WALLET_SECRET` y `SEED` están en `.env` — aunque `.env` está en `.gitignore`, verificar que nunca hayan sido commiteados con `git log --all -- .env`
+- Si están en el historial: revocar esa wallet (ya fue comprometida) y generar una nueva
+
+**M-2 · Sin `error.tsx`**
+- Un error de React en cualquier página crashea sin UI de fallback
+- Agregar `src/app/error.tsx` mínimo:
+
+```tsx
+'use client';
+export default function Error({ reset }: { reset: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <p className="text-red-400">Algo salió mal.</p>
+      <button onClick={reset} className="text-purple-400 underline">Reintentar</button>
+    </div>
+  );
+}
+```
+
+**M-3 · `src/lib/trustless/types.ts` modificado sin commitear**
+- Aparece en `git status` como modified — commitearlo antes del 30/06
+
+### 🔵 BAJOS (si hay tiempo)
+
+- `src/app/trade/enable-usdc/page.tsx:156` — `<img>` cruda, reemplazar con `next/image`
+- `src/app/api/match-order/route.ts` — endpoint sin uso real, decidir: cablear o borrar
+- `src/app/api/faucet/route.ts` — rate limiting solo en memoria (OK para testnet, flag para mainnet)
+- `README.md:1` — dice "PeerlyPay", actualizar a "PontePay"
+
+### Orden de acción sugerido para el 30/06
+
+```
+1. Fix B-1 (build error afipsdk) → verificar que `npm run build` pasa
+2. Fix B-2 (Privy App ID) en Vercel → verificar login funciona
+3. Fix A-1 (error handling en rates) → 10 min
+4. Verificar A-2 (spread visible en UI)
+5. Commit M-3 (types.ts)
+6. Agregar M-2 (error.tsx) → 5 min
+```
