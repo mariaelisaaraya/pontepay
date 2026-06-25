@@ -80,6 +80,60 @@ Cualquier duda de estado real/mock → `docs/hackathon/CONTEXT.md`. A romperla. 
 
 ---
 
+## Diario de cambios — Leo
+
+### 25/06/2026
+
+**4 commits pusheados hoy. Nada de lo de abajo toca el contrato ni los bindings — tu zona está intacta.**
+
+---
+
+#### `src/lib/pricing.ts` — motor de fees reescrito
+
+El spread pasó de un valor fijo a tiers decrecientes por monto:
+
+| Monto | Spread |
+|-------|--------|
+| < $10 USDC | 2.5% |
+| $10–$50 | 1.5% |
+| $50–$200 | 1.0% |
+| $200+ | 0.8% |
+
+También hay una **oferta de lanzamiento** (0% spread). Se activa con env var en Vercel, sin tocar código:
+
+```
+NEXT_PUBLIC_LAUNCH_OFFER=true                        → 0% spread activo
+NEXT_PUBLIC_LAUNCH_OFFER_EXPIRES=2026-10-01          → auto-expira (opcional)
+```
+
+Las funciones que ya usabas (`getPlatformRates`, `getSpreadBps`) siguen siendo las mismas. La nueva es `getPlatformRatesForAmount(midRate, amountUsdc)` — esa es la que hay que usar en el flujo P2P cuando el usuario ingresa el monto.
+
+---
+
+#### `src/lib/trade-limits.ts` — archivo nuevo
+
+Constantes de anti-abuso listas para importar desde API routes y UI:
+- Rate lock: 10 min
+- Máx cancelaciones/día: 3 + cooldown 24hs
+- Límite diario sin KYC: $500 USDC
+- Completion rate mínimo para makers: 70% (después de 10 trades)
+- Max órdenes abiertas: 1 cuenta nueva / 3 establecida
+
+---
+
+#### `scripts/rate-scraper.mjs` — archivo nuevo
+
+Scraper que pollean BCRA + la API local (`/api/rates`) cada 15 min y guarda historial en `data/rate-history.csv`. Correr con `npm run rates:watch`. Para el hackathon es suficiente así — en producción se reemplaza con webhook del oracle Reflector.
+
+---
+
+#### Docs del pitch actualizados (no tocan código de app)
+
+- `docs/hackathon/REVENUE-MODEL.md` y `GTM-PLAN.md`: documentados los tiers y la oferta de lanzamiento
+- `pitch/src/Deck.tsx`: slide de Revenue actualizado con banner de lanzamiento y tabla de tiers
+
+---
+
 ## 🔍 Auditoría técnica — 2026-06-25
 
 Auditoría completa del proyecto. Lo que te toca a vos directamente:
