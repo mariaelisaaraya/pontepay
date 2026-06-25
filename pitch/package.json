@@ -1,0 +1,15 @@
+{
+  "name": "pontepay-pitch",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "slidev slides.md --open",
+    "build": "slidev build slides.md --base /pitch/",
+    "export": "slidev export slides.md --format pdf --output pontepay-pitch.pdf"
+  },
+  "dependencies": {
+    "@slidev/cli": "^0.50.0",
+    "@slidev/theme-default": "latest",
+    "vue": "^3.5.0"
+  }
+}
