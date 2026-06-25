@@ -1,15 +1,20 @@
 {
-  "name": "pontepay-pitch",
+  "name": "pontepay-deck",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "slidev slides.md --open",
-    "build": "slidev build slides.md --base /pitch/",
-    "export": "slidev export slides.md --format pdf --output pontepay-pitch.pdf"
+    "dev": "remotion studio",
+    "render": "remotion render src/index.ts PontePay --output out/pontepay-pitch.mp4 --codec h264"
   },
   "dependencies": {
-    "@slidev/cli": "^0.50.0",
-    "@slidev/theme-default": "latest",
-    "vue": "^3.5.0"
+    "@remotion/cli": "^4.0.241",
+    "remotion": "^4.0.241",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5.4.5"
   }
 }
