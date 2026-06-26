@@ -12,13 +12,12 @@ import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { getFeeTier } from '@/lib/pricing';
 
 async function checkUSDCTrustline(): Promise<boolean> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return true;
 }
-
-const FEE_RATE = 0.005;
 
 function formatUsdc(value: number): string {
   return value.toLocaleString('en-US', {
@@ -53,9 +52,10 @@ function ConfirmContent() {
 
   const rate = liveRate.usdArs;
   const fiatAmount = fillUsdc * rate;
-  const feeArs = fillUsdc * FEE_RATE * rate;
-  const feeUsdc = fillUsdc * FEE_RATE;
-  // Fee already deducted from receive amount
+  const tier = getFeeTier(fillUsdc);
+  const feeRate = tier.spreadBps / 10_000;
+  const feeArs = fillUsdc * feeRate * rate;
+  const feeUsdc = fillUsdc * feeRate;
   const receiveArs = isSell ? fiatAmount - feeArs : fiatAmount;
   const receiveUsdc = isSell ? fillUsdc : fillUsdc - feeUsdc;
 
@@ -189,6 +189,18 @@ function ConfirmContent() {
                   ? 'oracle'
                   : liveRate.source}
               </span>
+            </span>
+          </div>
+
+          {/* Platform fee */}
+          <div className="flex items-center justify-between">
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Comisión</span>
+            <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] tabular-nums">
+              {tier.spreadBps === 0 ? (
+                <span className="text-green-600">0% {tier.label}</span>
+              ) : (
+                <span className="text-gray-900">{(feeRate * 100).toFixed(1)}% · {tier.label}</span>
+              )}
             </span>
           </div>
 

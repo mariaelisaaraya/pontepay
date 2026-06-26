@@ -5,8 +5,15 @@ import { getRateSnapshot } from '@/lib/rates-server';
 export const revalidate = 60;
 
 export async function GET() {
-  const snapshot = await getRateSnapshot();
-  return Response.json(snapshot, {
-    headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=120' },
-  });
+  try {
+    const snapshot = await getRateSnapshot();
+    return Response.json(snapshot, {
+      headers: { 'Cache-Control': 's-maxage=60, stale-while-revalidate=120' },
+    });
+  } catch {
+    return Response.json(
+      { error: 'rate_unavailable', source: 'error', midRate: null },
+      { status: 503 },
+    );
+  }
 }
