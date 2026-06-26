@@ -66,7 +66,10 @@ export async function GET(req: NextRequest) {
 
   if (hasCredentials) {
     try {
-      // Dynamic import so the server doesn't crash if env vars are missing
+      // Dynamic import so the server doesn't crash if env vars are missing.
+      // Listed in next.config serverExternalPackages — not bundled at build time.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore: package installed only when ARCA credentials are configured
       const Afip = (await import('@afipsdk/afip.js')).default;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const afip = new (Afip as any)({

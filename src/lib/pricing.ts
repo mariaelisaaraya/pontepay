@@ -135,6 +135,6 @@ export function getPlatformRatesForAmount(midRate: number, amountUsdc: number): 
     spreadBps: tier.spreadBps, spreadArs: buy - sell,
     tierLabel: tier.label,
     isLaunchOffer: launch,
-    launchDaysLeft: launch ? launchOfferDaysLeft() : 0,
+    launchDaysLeft: launch ? (launchOfferDaysLeft() ?? 0) : 0,
   };
 }
