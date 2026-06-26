@@ -126,6 +126,7 @@ export default function WalletButton() {
   }, [isOpen]);
 
   const handleConnect = async () => {
+    if (authenticated) return; // Privy ya tiene sesión — evita "already logged in"
     setIsConnecting(true);
     try {
       await login();
