@@ -13,14 +13,14 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
-import { useStellarWallet } from "@/lib/privy-wallet";
+import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/privy-wallet";
 import { fetchWalletUsdcBalance } from "@/lib/wallet-balance";
 
 export default function WalletButton() {
-  const { user, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
-  const { login, logout, ready, authenticated } = usePrivy();
+  const { user: storeUser, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
+  const { login, logout, ready, authenticated, user: privyUser } = usePrivy();
   const { address: stellarAddress, wallet } = useStellarWallet();
-  const { isConnected, walletAddress, balance } = user;
+  const { isConnected, walletAddress, balance } = storeUser;
 
   const [isConnecting, setIsConnecting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -35,56 +35,55 @@ export default function WalletButton() {
   }, [ready, authenticated, setWalletStatus]);
 
   useEffect(() => {
-    if (!ready) return;
-
-    if (stellarAddress) {
-      connectWallet(stellarAddress, null, 'logged-in');
-
-      const key = `pontepay_faucet_${stellarAddress}`;
-      if (!localStorage.getItem(key) && wallet) {
-        (async () => {
-          try {
-            const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
-            const server = new Horizon.Server('https://horizon-testnet.stellar.org');
-
-            // Step 1: Friendbot + get unsigned changeTrust XDR
-            const prep = await fetch('/api/faucet', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ address: stellarAddress, step: 'prepare' }),
-            }).then(r => r.json());
-
-            if (!prep.xdr) return; // retryable — key not set yet
-
-            // Step 2: sign trustline tx with Privy and submit
-            const signedXdr = await wallet.signEscrowXdr(prep.xdr);
-            const signedTx = new Transaction(signedXdr, Networks.TESTNET);
-            await server.submitTransaction(signedTx);
-
-            // Step 3: send 10 USDC
-            const result = await fetch('/api/faucet', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ address: stellarAddress, step: 'send' }),
-            }).then(r => r.json());
-
-            if (result.success) {
-              localStorage.setItem(key, '1'); // only lock after success
-              toast.success('10 USDC added to your account!');
-            }
-          } catch {
-            // key not set — next login will retry automatically
-          }
-        })();
-      }
-
+    if (!ready || !authenticated) {
+      if (!authenticated) disconnectWallet();
       return;
     }
 
-    if (!authenticated) {
-      disconnectWallet();
+    // Case 1: Privy native Stellar wallet (future-proof)
+    if (stellarAddress) {
+      connectWallet(stellarAddress, null, 'logged-in');
+      runFaucet(stellarAddress, wallet);
+      return;
     }
-  }, [ready, authenticated, stellarAddress, connectWallet, disconnectWallet]);
+
+    // Case 2: Fallback — generate/load local keypair from localStorage
+    if (privyUser?.id) {
+      getOrCreateLocalKeypair(privyUser.id).then(({ address }) => {
+        connectWallet(address, null, 'logged-in');
+        runFaucet(address, wallet);
+      }).catch(console.error);
+    }
+  }, [ready, authenticated, stellarAddress, privyUser?.id, connectWallet, disconnectWallet, wallet]);
+
+  function runFaucet(address: string, w: typeof wallet) {
+    const key = `pontepay_faucet_${address}`;
+    if (localStorage.getItem(key) || !w) return;
+    (async () => {
+      try {
+        const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
+        const server = new Horizon.Server('https://horizon-testnet.stellar.org');
+        const prep = await fetch('/api/faucet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, step: 'prepare' }),
+        }).then(r => r.json());
+        if (!prep.xdr) return;
+        const signedXdr = await w.signEscrowXdr(prep.xdr);
+        const signedTx = new Transaction(signedXdr, Networks.TESTNET);
+        await server.submitTransaction(signedTx);
+        const result = await fetch('/api/faucet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address, step: 'send' }),
+        }).then(r => r.json());
+        if (result.success) {
+          localStorage.setItem(key, '1');
+          toast.success('5 USDC added to your account!');
+        }
+      } catch { /* retryable */ }
+    })();
+  }
 
   const refreshWalletBalance = useCallback(async () => {
     if (!activeWalletAddress || !authenticated) return;
@@ -177,7 +176,7 @@ export default function WalletButton() {
 
   // --- Disconnected ---
   if (!isConnected) {
-    // Show spinner while Privy session is active but embedded wallet is still loading
+    // Spinner while Privy initializes or while local keypair is being resolved
     const isAuthLoading = !ready || isConnecting || (authenticated && !isConnected);
 
     return (

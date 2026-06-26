@@ -12,7 +12,8 @@
     "start": "next start",
     "lint": "tsc && eslint",
     "rates": "node scripts/rate-scraper.mjs",
-    "rates:watch": "node scripts/rate-scraper.mjs --watch"
+    "rates:watch": "node scripts/rate-scraper.mjs --watch",
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@crossmint/client-sdk-react-ui": "^2.6.18",
