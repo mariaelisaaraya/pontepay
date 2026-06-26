@@ -54,7 +54,7 @@ export async function takeOrder(args: {
     const tx = await p2p.take_order_with_amount({
       caller: args.caller,
       order_id: BigInt(args.orderId),
-      fill_amount: BigInt(args.fillAmount),
+      fill_amount: BigInt(Math.round(args.fillAmount * 10_000_000)),
     });
     await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
   } finally {
@@ -123,8 +123,8 @@ export async function createOrder(args: {
       fiat_currency_code: args.input.fiatCurrencyCode ?? 2, // 2 = ARS
       payment_method_code: args.input.paymentMethodCode ?? 0, // 0 = BankTransfer
       from_crypto: args.input.type === 'sell',
-      amount: BigInt(args.input.amount),
-      exchange_rate: BigInt(args.input.rate),
+      amount: BigInt(Math.round(args.input.amount * 10_000_000)),
+      exchange_rate: BigInt(Math.round(args.input.rate)),
       duration_secs: BigInt(args.input.durationSecs ?? 604800),
     });
     await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));

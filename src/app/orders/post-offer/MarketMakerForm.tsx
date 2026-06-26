@@ -19,6 +19,7 @@ import {
 import { useStore } from "@/lib/store";
 import { createOrder } from "@/lib/trade-actions";
 import { FiatCurrencyCode, PaymentMethodCode } from "@/types";
+import { saveMakerPaymentDetails } from "@/lib/payment-details-registry";
 
 const LATAM_CURRENCIES = [
   { code: FiatCurrencyCode.Ars, label: "ARS", marketRate: 1400 },
@@ -59,6 +60,10 @@ type OfferForm = {
   minTrade: string;
   maxTrade: string;
   cuit: string;
+  accountHolder: string;
+  cbu: string;
+  alias: string;
+  phone: string;
 };
 
 const initialForm: OfferForm = {
@@ -70,11 +75,27 @@ const initialForm: OfferForm = {
   minTrade: "",
   maxTrade: "",
   cuit: "",
+  accountHolder: "",
+  cbu: "",
+  alias: "",
+  phone: "",
 };
 
 function parseNum(value: string): number {
   const parsed = parseFloat(value.replace(/,/g, "."));
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function paymentFields(code: number) {
+  const hasCbu = code === PaymentMethodCode.BankTransfer;
+  const hasPhone = [
+    PaymentMethodCode.MercadoPago,
+    PaymentMethodCode.Nequi,
+    PaymentMethodCode.PagoMovil,
+    PaymentMethodCode.Zelle,
+  ].includes(code as never);
+  const hasAlias = code !== PaymentMethodCode.Cash;
+  return { hasCbu, hasPhone, hasAlias };
 }
 
 function getCurrencyMeta(code: number) {
@@ -205,6 +226,17 @@ export default function MarketMakerForm() {
 
     try {
       if (!wallet) throw new Error('Wallet not ready');
+
+      // Persist maker payment details so takers can read them on the payment screen
+      if (user.walletAddress) {
+        saveMakerPaymentDetails(user.walletAddress, {
+          accountHolder: form.accountHolder || 'N/D',
+          ...(form.cbu ? { cbu: form.cbu } : {}),
+          ...(form.alias ? { alias: form.alias } : {}),
+          ...(form.phone ? { phone: form.phone } : {}),
+        });
+      }
+
       await createOrder({
         wallet,
         caller: user.walletAddress as string,
@@ -404,6 +436,70 @@ export default function MarketMakerForm() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Payment detail fields — shown to takers on the payment screen */}
+            {(() => {
+              const { hasCbu, hasPhone, hasAlias } = paymentFields(form.paymentMethodCode);
+              return (
+                <div className="space-y-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Your payment details (shown to buyer)
+                  </p>
+                  <div>
+                    <Label className="mb-1.5 block text-body-sm text-gray-700">
+                      Account holder name
+                    </Label>
+                    <Input
+                      type="text"
+                      value={form.accountHolder}
+                      onChange={(e) => setForm((prev) => ({ ...prev, accountHolder: e.target.value }))}
+                      placeholder="Nombre Apellido"
+                      className="h-12 rounded-xl border border-gray-200 bg-white"
+                    />
+                  </div>
+                  {hasCbu && (
+                    <div>
+                      <Label className="mb-1.5 block text-body-sm text-gray-700">CBU</Label>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={form.cbu}
+                        onChange={(e) => setForm((prev) => ({ ...prev, cbu: e.target.value.replace(/\D/g, '') }))}
+                        placeholder="22 dígitos"
+                        maxLength={22}
+                        className="h-12 rounded-xl border border-gray-200 bg-white font-mono"
+                      />
+                    </div>
+                  )}
+                  {hasAlias && (
+                    <div>
+                      <Label className="mb-1.5 block text-body-sm text-gray-700">
+                        {hasCbu ? 'Alias / CVU' : 'Alias / usuario'}
+                      </Label>
+                      <Input
+                        type="text"
+                        value={form.alias}
+                        onChange={(e) => setForm((prev) => ({ ...prev, alias: e.target.value }))}
+                        placeholder={hasCbu ? 'mi.alias.banco' : 'usuario@mp'}
+                        className="h-12 rounded-xl border border-gray-200 bg-white"
+                      />
+                    </div>
+                  )}
+                  {hasPhone && (
+                    <div>
+                      <Label className="mb-1.5 block text-body-sm text-gray-700">Teléfono</Label>
+                      <Input
+                        type="tel"
+                        value={form.phone}
+                        onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        placeholder="+54 9 11 1234-5678"
+                        className="h-12 rounded-xl border border-gray-200 bg-white font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             <div>
               <Label className="mb-1.5 block text-body-sm text-gray-700">

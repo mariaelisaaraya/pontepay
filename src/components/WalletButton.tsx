@@ -176,7 +176,8 @@ export default function WalletButton() {
 
   // --- Disconnected ---
   if (!isConnected) {
-    const isAuthLoading = !ready || isConnecting;
+    // Show spinner while Privy session is active but embedded wallet is still loading
+    const isAuthLoading = !ready || isConnecting || (authenticated && !isConnected);
 
     return (
       <button

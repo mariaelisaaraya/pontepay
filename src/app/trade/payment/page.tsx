@@ -22,6 +22,7 @@ import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { PaymentMethodCode } from '@/types';
+import { getMakerPaymentDetails } from '@/lib/payment-details-registry';
 
 // ─── Static mock payment details by payment method ────────────────────────────
 
@@ -249,9 +250,25 @@ function PaymentContent() {
   const order = orders.find((o) => o.id === orderId);
   const paymentMethodCode =
     order?.paymentMethodCode ?? PaymentMethodCode.BankTransfer;
-  const payment =
+
+  // Prefer real maker details saved to localStorage when they posted the offer
+  const staticFallback =
     PAYMENT_DETAILS[paymentMethodCode] ??
     PAYMENT_DETAILS[PaymentMethodCode.BankTransfer];
+  const makerStoredDetails = order?.createdBy
+    ? getMakerPaymentDetails(order.createdBy)
+    : null;
+  const payment: PaymentDetails = makerStoredDetails
+    ? {
+        label: staticFallback.label,
+        icon: staticFallback.icon,
+        accountHolder: makerStoredDetails.accountHolder,
+        bank: makerStoredDetails.bank,
+        cbu: makerStoredDetails.cbu,
+        alias: makerStoredDetails.alias,
+        phone: makerStoredDetails.phone,
+      }
+    : staticFallback;
 
   const makerName = order?.displayName ?? 'JuanC_AR';
   const makerAddress = order?.createdBy ?? '0x1234...5678';

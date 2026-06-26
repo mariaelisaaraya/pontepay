@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 
 const USDC_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
-const FAUCET_AMOUNT = '10';
+const FAUCET_AMOUNT = '5';
 
 // Module-level set — persists across invocations in the same process instance.
 // Guards against rapid abuse within a single Vercel function container.
