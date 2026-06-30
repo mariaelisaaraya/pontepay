@@ -266,7 +266,7 @@ export default function CorridorPage() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-400 to-indigo-500 text-white text-[9px] font-bold shrink-0">
+            <span className="inline-flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-indigo-500 text-white text-[9px] font-bold shrink-0">
               ✦
             </span>
             <span className="text-[13px] font-semibold text-gray-800">Stellar</span>
@@ -494,7 +494,7 @@ export default function CorridorPage() {
             <button
               type="button"
               onClick={() => router.push('/orders')}
-              className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 shadow-lg shadow-fuchsia-500/25 hover:opacity-90 transition-all active:scale-[0.98]"
+              className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-gradient-to-r from-primary-700 to-primary-800 shadow-lg shadow-primary-700/25 hover:opacity-90 transition-all active:scale-[0.98]"
             >
               Back to marketplace
             </button>

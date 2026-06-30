@@ -47,88 +47,93 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   
-  /* Colores custom de PeerlyPay - WCAG AA Compliant */
-  
-  /* Principal (Magenta/Fuchsia) */
-  --color-primary-50: #fdf4ff;
-  --color-primary-100: #fae8ff;
-  --color-primary-200: #f5d0fe;
-  --color-primary-300: #f0abfc;
-  --color-primary-400: #e879f9;
-  --color-primary-500: #d946ef;
-  --color-primary-600: #c026d3;
-  --color-primary-700: #a21caf;
-  --color-primary-800: #86198f;
-  --color-primary-900: #701a75;
-  --color-primary-950: #4a044e;
-  
-  /* Secundario (Cyan) */
-  --color-secondary-50: #ecfeff;
-  --color-secondary-100: #cffafe;
-  --color-secondary-200: #a5f3fc;
-  --color-secondary-300: #67e8f9;
-  --color-secondary-400: #22d3ee;
-  --color-secondary-500: #00ccff;
-  --color-secondary-600: #0891b2;
-  --color-secondary-700: #0e7490;
-  --color-secondary-800: #155e75;
-  --color-secondary-900: #164e63;
-  --color-secondary-950: #083344;
-  
-  /* Acento (Lime) */
-  --color-accent-50: #f7fee7;
-  --color-accent-100: #ecfccb;
-  --color-accent-200: #d9f99d;
-  --color-accent-300: #bef264;
-  --color-accent-400: #a3e635;
-  --color-accent-500: #ccff33;
-  --color-accent-600: #65a30d;
-  --color-accent-700: #4d7c0f;
-  --color-accent-800: #3f6212;
-  --color-accent-900: #365314;
-  --color-accent-950: #1a2e05;
-  
-  /* Base/Neutral */
-  --color-neutral-50: #fefef9;
-  --color-neutral-100: #fcfdf4;
-  --color-neutral-200: #f9fbea;
-  --color-neutral-300: #f6f8ec;
-  --color-neutral-400: #e8edd1;
-  --color-neutral-500: #d9e2b6;
-  --color-neutral-600: #b8c584;
-  --color-neutral-700: #97a852;
-  --color-neutral-800: #5c662e;
-  --color-neutral-900: #2e3317;
-  --color-neutral-950: #17190b;
-  
-  /* Dark */
-  --color-dark-50: #e6e6e6;
-  --color-dark-100: #cccccc;
-  --color-dark-200: #999999;
-  --color-dark-300: #666666;
-  --color-dark-400: #404040;
-  --color-dark-500: #191919;
-  --color-dark-600: #141414;
-  --color-dark-700: #0f0f0f;
-  --color-dark-800: #0a0a0a;
-  --color-dark-900: #050505;
-  --color-dark-950: #000000;
-  
-  /* Legacy aliases para compatibilidad */
-  --color-magenta: #d946ef;
-  --color-magenta-500: #d946ef;
-  --color-magenta-600: #c026d3;
-  --color-magenta-700: #a21caf;
-  
-  --color-lime: #ccff33;
-  --color-lime-500: #ccff33;
-  --color-lime-600: #65a30d;
-  --color-lime-700: #4d7c0f;
-  
-  --color-cyan: #00ccff;
-  --color-cyan-500: #00ccff;
-  --color-cyan-600: #0891b2;
-  --color-cyan-700: #0e7490;
+  /* Colores custom de PontePay LATAM - WCAG AA Compliant */
+
+/* Primario (Verde bosque - PontePay) */
+--color-primary-50: #e6f4ed;
+--color-primary-100: #c2e2cf;
+--color-primary-200: #8ec8a8;
+--color-primary-300: #5aad82;
+--color-primary-400: #2e8f60;
+--color-primary-500: #1a6e48;
+--color-primary-600: #015c38;
+--color-primary-700: #014A2D;
+--color-primary-800: #013520;
+--color-primary-900: #012114;
+--color-primary-950: #00100a;
+
+/* Secundario (Naranja cálido) */
+--color-secondary-50: #fff4ec;
+--color-secondary-100: #ffe4cc;
+--color-secondary-200: #ffc49a;
+--color-secondary-300: #ff9f65;
+--color-secondary-400: #ff7d3b;
+--color-secondary-500: #f56020;
+--color-secondary-600: #e05a18;
+--color-secondary-700: #b84310;
+--color-secondary-800: #7a2e00;
+--color-secondary-900: #4a1c00;
+--color-secondary-950: #280f00;
+
+/* Acento (Amarillo dorado) */
+--color-accent-50: #fffbeb;
+--color-accent-100: #fef3c7;
+--color-accent-200: #fde68a;
+--color-accent-300: #fcd34d;
+--color-accent-400: #f5b942;
+--color-accent-500: #e8a020;
+--color-accent-600: #d4870a;
+--color-accent-700: #a86208;
+--color-accent-800: #6b4800;
+--color-accent-900: #3d2a00;
+--color-accent-950: #1f1500;
+
+/* Neutral (Grises cálidos) */
+--color-neutral-50: #fafaf9;
+--color-neutral-100: #f5f4f2;
+--color-neutral-200: #e8e5e1;
+--color-neutral-300: #d4d0ca;
+--color-neutral-400: #b8b2aa;
+--color-neutral-500: #9c9690;
+--color-neutral-600: #7a7470;
+--color-neutral-700: #5c5750;
+--color-neutral-800: #3d3935;
+--color-neutral-900: #2a2724;
+--color-neutral-950: #1c1a18;
+
+/* Dark */
+--color-dark-50: #e6e6e6;
+--color-dark-100: #cccccc;
+--color-dark-200: #999999;
+--color-dark-300: #666666;
+--color-dark-400: #404040;
+--color-dark-500: #191919;
+--color-dark-600: #141414;
+--color-dark-700: #0f0f0f;
+--color-dark-800: #0a0a0a;
+--color-dark-900: #050505;
+--color-dark-950: #000000;
+
+/* Legacy aliases - PontePay */
+--color-teal: #014A2D;
+--color-teal-500: #015c38;
+--color-teal-600: #014A2D;
+--color-teal-700: #013520;
+
+--color-magenta: #014A2D;
+--color-magenta-500: #015c38;
+--color-magenta-600: #014A2D;
+--color-magenta-700: #013520;
+
+--color-lime: #d4870a;
+--color-lime-500: #e8a020;
+--color-lime-600: #d4870a;
+--color-lime-700: #a86208;
+
+--color-cyan: #e05a18;
+--color-cyan-500: #f56020;
+--color-cyan-600: #e05a18;
+--color-cyan-700: #b84310;
   
   /* Typography Scale */
   --font-size-xs: 0.75rem;

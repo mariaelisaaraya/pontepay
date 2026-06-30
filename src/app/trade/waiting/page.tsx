@@ -269,7 +269,7 @@ function WaitingContent() {
         <div className="flex flex-col items-center text-center">
           {/* Animated spinner ring */}
           <div className="relative flex items-center justify-center size-24 mb-6">
-            <div className="absolute inset-0 rounded-full bg-fuchsia-100 animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-primary-100 animate-pulse" />
             <svg className="absolute inset-0 size-24 animate-spin" style={{ animationDuration: '3s' }} viewBox="0 0 96 96">
               <circle
                 cx="48" cy="48" r="42"
@@ -281,7 +281,7 @@ function WaitingContent() {
               />
             </svg>
             <div className="relative z-10 flex items-center justify-center size-16 rounded-full bg-white shadow-sm">
-              <Shield className="size-8 text-fuchsia-500" />
+              <Shield className="size-8 text-primary-700" />
             </div>
           </div>
 
@@ -299,7 +299,7 @@ function WaitingContent() {
           <div className={cn(
             'flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300',
             isChecking
-              ? 'bg-fuchsia-50 text-fuchsia-600'
+              ? 'bg-primary-50 text-primary-800'
               : 'bg-gray-50 text-gray-400'
           )}>
             <Loader2 className={cn(
@@ -319,7 +319,7 @@ function WaitingContent() {
           <button
             type="button"
             onClick={navigateToSuccess}
-            className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-fuchsia-500 hover:bg-fuchsia-600 transition-all active:scale-[0.98]"
+            className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-primary-700 hover:bg-primary-800 transition-all active:scale-[0.98]"
           >
             Continue (demo)
           </button>
@@ -329,7 +329,7 @@ function WaitingContent() {
             type="button"
             onClick={handleConfirmReceipt}
             disabled={!canConfirmPaymentReceipt || isConfirming}
-            className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-fuchsia-500 hover:bg-fuchsia-600 transition-all active:scale-[0.98] disabled:opacity-70"
+            className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-primary-700 hover:bg-primary-800 transition-all active:scale-[0.98] disabled:opacity-70"
           >
             {verifyPaymentLabel}
           </button>
@@ -340,7 +340,7 @@ function WaitingContent() {
           sellerLabel={counterpartyLabel}
           flowId={flowId}
           enableVendorRequest={mode === 'sell'}
-          triggerClassName="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-fuchsia-600 border border-fuchsia-200 bg-white hover:bg-fuchsia-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+          triggerClassName="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-primary-800 border border-primary-200 bg-white hover:bg-primary-50 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
         />
         <button
           type="button"

@@ -149,7 +149,7 @@ export default function ProfilePage() {
   return (
     <div className="space-y-7 py-4">
       <div className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="h-32 bg-gradient-to-r from-fuchsia-500 to-fuchsia-400" />
+      <div className="h-32 bg-gradient-to-r from-primary-700 to-primary-600" />
 
         <div className="absolute top-32 left-5 z-10 -translate-y-1/2">
           <ProfileAvatarModal

@@ -183,7 +183,7 @@ export default function WalletButton() {
       <button
         disabled={isAuthLoading}
         onClick={handleConnect}
-        className="flex items-center gap-2 rounded-lg bg-magenta px-4 py-2 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-magenta-600 active:scale-[0.97] disabled:opacity-70"
+        className="flex items-center gap-2 rounded-lg bg-primary-700 px-4 py-2 font-sans text-sm font-semibold text-white transition-all duration-200 hover:bg-primary-800 active:scale-[0.97] disabled:opacity-70"
       >
         {isAuthLoading ? (
           <>
@@ -207,7 +207,7 @@ export default function WalletButton() {
         onClick={() => setIsOpen((o) => !o)}
         className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 font-sans text-sm transition-all duration-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]"
       >
-        <span className="inline-flex size-7 items-center justify-center rounded-full bg-fuchsia-500 text-white ring-1 ring-fuchsia-200">
+        <span className="inline-flex size-7 items-center justify-center rounded-full bg-primary-700 text-white ring-1 ring-primary-200">
           <User className="size-3.5" strokeWidth={2.25} aria-hidden />
         </span>
         <span className="font-medium text-gray-700">Account</span>

@@ -399,7 +399,7 @@ function PaymentContent() {
           <div className="flex items-center gap-3 mb-3">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="size-11 rounded-full bg-gradient-to-br from-fuchsia-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold font-[family-name:var(--font-space-grotesk)] select-none">
+              <div className="size-11 rounded-full bg-gradient-to-br from-primary-600 to-indigo-500 flex items-center justify-center text-white text-sm font-bold font-[family-name:var(--font-space-grotesk)] select-none">
                 {avatarInitials}
               </div>
               <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-lime-400 border-2 border-white" />
@@ -465,10 +465,10 @@ function PaymentContent() {
               Total to send
             </span>
             <div className="text-right">
-              <span className="font-[family-name:var(--font-jetbrains-mono)] text-2xl font-bold text-fuchsia-600 tabular-nums">
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-2xl font-bold text-primary-800 tabular-nums">
                 ${formatFiat(totalToPay)}
               </span>
-              <span className="font-[family-name:var(--font-jetbrains-mono)] text-sm font-semibold text-fuchsia-400 ml-1">
+              <span className="font-[family-name:var(--font-jetbrains-mono)] text-sm font-semibold text-primary-600 ml-1">
                 ARS
               </span>
             </div>
@@ -613,7 +613,7 @@ function PaymentContent() {
             'w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white transition-all active:scale-[0.98]',
             isSubmitting || expired
               ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
-              : 'bg-gradient-to-r from-fuchsia-500 to-fuchsia-600 shadow-lg shadow-fuchsia-500/25 hover:opacity-90',
+              : 'bg-gradient-to-r from-primary-700 to-primary-800 shadow-lg shadow-primary-700/25 hover:opacity-90',
           )}
         >
           {isSubmitting ? (
@@ -639,7 +639,7 @@ function PaymentContent() {
           sellerLabel={makerName}
           flowId={flowId}
           enableVendorRequest={mode === 'sell'}
-          triggerClassName="w-full flex items-center justify-center gap-2 text-body-sm font-medium text-fuchsia-600 hover:text-fuchsia-700 transition-colors"
+          triggerClassName="w-full flex items-center justify-center gap-2 text-body-sm font-medium text-primary-800 hover:text-primary-900 transition-colors"
         />
       </div>
     </div>

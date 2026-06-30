@@ -53,7 +53,7 @@ export default function RecentTransactions() {
         {!isEmpty && (
           <Link
             href="/orders"
-            className="text-xs font-medium text-magenta-500 hover:text-magenta-600 transition-colors"
+            className="text-xs font-medium text-primary-700 hover:text-primary-800 transition-colors"
           >
             View all →
           </Link>
