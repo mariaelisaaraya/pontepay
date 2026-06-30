@@ -247,7 +247,7 @@ export default function TradeChatDrawer({
                   className={cn(
                     'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
                     isMe
-                      ? 'bg-fuchsia-500 text-white rounded-br-md'
+                      ? 'bg-primary-700 text-white rounded-br-md'
                       : 'bg-gray-100 text-gray-900 rounded-bl-md'
                   )}
                 >
@@ -275,7 +275,7 @@ export default function TradeChatDrawer({
           <button
             type="submit"
             disabled={!draft.trim()}
-            className="flex size-11 items-center justify-center rounded-xl bg-fuchsia-500 text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex size-11 items-center justify-center rounded-xl bg-primary-700 text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Send message"
           >
             <SendHorizontal className="size-4" />

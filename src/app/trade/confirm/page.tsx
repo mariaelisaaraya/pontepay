@@ -230,8 +230,8 @@ function ConfirmContent() {
           className={cn(
             'w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white transition-all active:scale-[0.98]',
             isChecking
-              ? 'bg-magenta-500/70 cursor-wait'
-              : 'bg-magenta-500 shadow-lg shadow-magenta-500/25 hover:bg-magenta-600'
+              ? 'bg-primary-700/70 cursor-wait'
+              : 'bg-primary-700 shadow-lg shadow-primary-700/25 hover:bg-primary-800'
           )}
         >
           {isChecking ? (

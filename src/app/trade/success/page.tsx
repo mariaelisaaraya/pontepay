@@ -193,7 +193,7 @@ function SuccessContent() {
         <button
           type="button"
           onClick={() => router.push("/trade")}
-          className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-fuchsia-500 shadow-lg shadow-fuchsia-500/25 hover:bg-fuchsia-600 transition-all active:scale-[0.98]"
+          className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-primary-700 shadow-lg shadow-primary-700/25 hover:bg-primary-800 transition-all active:scale-[0.98]"
         >
           Start new trade
         </button>

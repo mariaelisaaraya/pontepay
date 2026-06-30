@@ -17,7 +17,7 @@ export default function ProfileAvatarModal({
       <Dialog.Trigger asChild>
         <button
           type="button"
-          className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-fuchsia-500 text-white shadow-sm transition-transform active:scale-95"
+          className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-primary-700 text-white shadow-sm transition-transform active:scale-95"
           aria-label="Open profile picture"
         >
           <User className="h-7 w-7" />
@@ -28,7 +28,7 @@ export default function ProfileAvatarModal({
         <Dialog.Content className="fixed inset-0 z-50 flex items-center justify-center p-6 focus:outline-none">
           <Dialog.Title className="sr-only">Profile picture</Dialog.Title>
           <div className="relative">
-            <div className="flex h-72 w-72 items-center justify-center rounded-full border-8 border-white bg-fuchsia-500 text-white shadow-2xl sm:h-80 sm:w-80">
+            <div className="flex h-72 w-72 items-center justify-center rounded-full border-8 border-white bg-primary-700 text-white shadow-2xl sm:h-80 sm:w-80">
               <User className="h-24 w-24 sm:h-28 sm:w-28" />
             </div>
             <Dialog.Close asChild>

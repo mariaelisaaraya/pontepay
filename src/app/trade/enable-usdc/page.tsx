@@ -181,8 +181,8 @@ function EnableUsdcContent() {
           className={cn(
             'w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white transition-all active:scale-[0.98]',
             isEnabling
-              ? 'bg-fuchsia-400 cursor-wait'
-              : 'bg-fuchsia-500 hover:bg-fuchsia-600 shadow-lg shadow-fuchsia-500/25'
+              ? 'bg-primary-600 cursor-wait'
+              : 'bg-primary-700 hover:bg-primary-800 shadow-lg shadow-primary-700/25'
           )}
         >
           {isEnabling ? (

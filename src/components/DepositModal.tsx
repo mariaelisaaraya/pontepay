@@ -115,22 +115,22 @@ export default function DepositModal({
             </div>
           </div>
 
-          <div className="rounded-xl border border-fuchsia-200 bg-fuchsia-50 p-4">
+          <div className="rounded-xl border border-primary-200 bg-primary-50 p-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-fuchsia-600" />
+              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary-800" />
               <div>
-                <p className="mb-2 font-semibold text-fuchsia-800">Important</p>
-                <ul className="space-y-1.5 text-sm text-fuchsia-700">
+                <p className="mb-2 font-semibold text-primary-900">Important</p>
+                <ul className="space-y-1.5 text-sm text-primary-900">
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-500">•</span>
+                    <span className="text-primary-700">•</span>
                     Only send USDC on Stellar network
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-500">•</span>
+                    <span className="text-primary-700">•</span>
                     Sending other tokens will result in permanent loss
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-fuchsia-500">•</span>
+                    <span className="text-primary-700">•</span>
                     Minimum deposit: 1 USDC
                   </li>
                 </ul>

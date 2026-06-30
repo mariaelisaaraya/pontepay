@@ -26,7 +26,7 @@ export default function EmptyState({
         <button
           type="button"
           onClick={onAction}
-          className="text-magenta-500 text-sm font-semibold cursor-pointer hover:underline focus:outline-none focus:underline"
+          className="text-primary-700 text-sm font-semibold cursor-pointer hover:underline focus:outline-none focus:underline"
         >
           {actionText}
         </button>

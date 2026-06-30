@@ -84,7 +84,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         <button
           type="button"
           onClick={() => router.push('/marketplace')}
-          className="rounded-xl bg-magenta-500 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-xl bg-primary-700 px-4 py-2 text-sm font-semibold text-white"
         >
           Back to marketplace
         </button>
@@ -132,7 +132,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
 
         <div className="flex flex-col gap-3 rounded-md border border-neutral-300 bg-white p-4">
           <Row label="Type">
-            <span className={order.type === 'sell' ? 'text-green-600' : 'text-magenta-600'}>
+            <span className={order.type === 'sell' ? 'text-green-600' : 'text-primary-800'}>
               {order.type === 'sell' ? 'Selling USDC' : 'Buying USDC'}
             </span>
           </Row>
@@ -160,7 +160,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           <button
             type="button"
             onClick={handleTrade}
-            className="h-14 w-full rounded-2xl bg-magenta-500 font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white shadow-lg shadow-magenta-500/25 transition-all hover:bg-magenta-600 active:scale-[0.98]"
+            className="h-14 w-full rounded-2xl bg-primary-700 font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white shadow-lg shadow-primary-700/25 transition-all hover:bg-primary-800 active:scale-[0.98]"
           >
             {order.type === 'sell' ? 'Buy USDC' : 'Sell USDC'}
           </button>

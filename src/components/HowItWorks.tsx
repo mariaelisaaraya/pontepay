@@ -27,7 +27,7 @@ export default function HowItWorks() {
             const Icon = step.icon;
             return (
               <div key={i} className="flex items-center gap-3 px-1 py-1">
-                <span className="inline-flex size-8 items-center justify-center rounded-lg border border-fuchsia-200 bg-white">
+                <span className="inline-flex size-8 items-center justify-center rounded-lg border border-primary-200 bg-white">
                   <Icon
                     className="size-4 shrink-0 text-primary-500"
                     strokeWidth={1.75}
@@ -44,7 +44,7 @@ export default function HowItWorks() {
         <Button
           onClick={() => router.push("/trade")}
           size="lg"
-          className="h-12 w-full rounded-xl bg-magenta-500 text-base font-semibold text-white hover:bg-magenta-600"
+          className="h-12 w-full rounded-xl bg-primary-700 text-base font-semibold text-white hover:bg-primary-800"
         >
           Make my first trade
         </Button>

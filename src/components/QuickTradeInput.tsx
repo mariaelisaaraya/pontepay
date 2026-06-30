@@ -402,7 +402,7 @@ export default function QuickTradeInput({ initialMode, onClose, showToggle = tru
             className={cn(
               'w-full h-[52px] rounded-2xl font-[family-name:var(--font-space-grotesk)] text-[15px] font-semibold text-white transition-all active:scale-[0.98]',
               hasValidAmount && !error
-                ? 'bg-fuchsia-500 hover:bg-fuchsia-600 shadow-lg shadow-fuchsia-500/20'
+                ? 'bg-primary-700 hover:bg-primary-800 shadow-lg shadow-primary-700/20'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
             )}
           >
