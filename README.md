@@ -1,4 +1,4 @@
-# PeerlyPay — Earn Global, Spend Local
+# PontePay — Earn Global, Spend Local
 
 > *From dollar to peso in seconds. No bank. No middleman. Just code.*
 
@@ -33,7 +33,7 @@ The demand is there. The rails weren't.
 
 ## 1. Sign in — no seed phrase needed
 
-- Open PeerlyPay and sign in with your email
+- Open PontePay and sign in with your email
 - A Stellar smart wallet is created automatically (powered by Privy)
 - No "wallet" jargon, no seed phrase, no extensions
 
@@ -60,7 +60,7 @@ The demand is there. The rails weren't.
 
 When you take an order:
 
-1. **USDC is locked** in the Soroban escrow contract — not held by PeerlyPay
+1. **USDC is locked** in the Soroban escrow contract — not held by PontePay
 2. The buyer sends ARS off-chain via **Transferencias 3.0 QR** (Argentina's instant payment rail)
 3. The seller confirms receipt → **contract releases USDC** to the buyer
 4. If there's a dispute → an on-chain `dispute_resolver` settles it
@@ -99,7 +99,7 @@ Between trades, USDC sitting in your wallet earns **10.83% APY** automatically *
 
 Most P2P ramps quote a rate from a backend the operator controls.
 
-PeerlyPay reads it **on-chain**:
+PontePay reads it **on-chain**:
 
 - Contract calls `reference_rate(2)` (`2` = ARS in the Reflector asset schema) → **cross-contract call into Reflector** → returns live ARS/USD
 - Frontend reads through the contract first, with fallback to Reflector, then BCRA official rate
@@ -149,7 +149,7 @@ The app speaks plain language:
 graph TB
     subgraph USER["USER — Sign in with email"]
         U["Freelancer or buyer"]
-        APP["PeerlyPay — Next.js"]
+        APP["PontePay — Next.js"]
         U --> APP
     end
 
@@ -188,7 +188,7 @@ graph TB
 sequenceDiagram
     participant B as Buyer
     participant S as Seller
-    participant APP as PeerlyPay
+    participant APP as PontePay
     participant CTR as Soroban Contract
     participant ORC as Reflector Oracle
 
@@ -228,7 +228,7 @@ graph LR
 ```mermaid
 sequenceDiagram
     participant W as User Wallet (Privy)
-    participant API as PeerlyPay API
+    participant API as PontePay API
     participant ANC as Stellar Anchor
 
     W->>API: GET /api/anchor/sep10?account=G...
@@ -270,7 +270,7 @@ sequenceDiagram
 
 # 🚀 For Judges — Start Here
 
-**🌐 Live app:** https://peerlypay-main.vercel.app
+**🌐 Live app:** https://Pontepay-main.vercel.app
 
 **Try it in 2 minutes:**
 
@@ -292,7 +292,7 @@ sequenceDiagram
 
 ## 🔗 SCF Integration Track
 
-PeerlyPay integrates three building blocks from the [official SCF Integration List](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/integration-track/integration-list):
+PontePay integrates three building blocks from the [official SCF Integration List](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/integration-track/integration-list):
 
 | Integration | Category | How it's used |
 |---|---|---|
@@ -320,7 +320,7 @@ PeerlyPay integrates three building blocks from the [official SCF Integration Li
 
 ## ❓ "Why not just use a CEX to convert USDC to pesos?"
 
-> **"A CEX requires KYC, holds your funds, charges hidden spreads, and can freeze your account. PeerlyPay puts the USDC in a contract — nobody can freeze it except the trade completing. Peer-to-peer means the spread goes to the counterparty, not a company."**
+> **"A CEX requires KYC, holds your funds, charges hidden spreads, and can freeze your account. PontePay puts the USDC in a contract — nobody can freeze it except the trade completing. Peer-to-peer means the spread goes to the counterparty, not a company."**
 
 ---
 
@@ -356,7 +356,7 @@ PeerlyPay integrates three building blocks from the [official SCF Integration Li
 
 # 🔥 Closing Line
 
-> **"PeerlyPay is the non-custodial on-ramp Argentina's freelancers were missing — every peso conversion backed by a Soroban escrow, every rate pulled from the chain, and idle dollars earning yield while people aren't trading."**
+> **"PontePay is the non-custodial on-ramp Argentina's freelancers were missing — every peso conversion backed by a Soroban escrow, every rate pulled from the chain, and idle dollars earning yield while people aren't trading."**
 
 ---
 
