@@ -10,7 +10,7 @@ export default function Header() {
         {/* Logo */}
         <div className="flex items-center gap-2 min-w-0">
           <Image
-            src="/icon-fuchsia.svg"
+            src="/pontepay-logo.svg"
             alt="PontePay"
             width={28}
             height={28}
