@@ -11,10 +11,8 @@ import {
   loadVendorPaymentRequest,
 } from "@/lib/vendor-payment-request";
 
-// Mock trade data
 const MOCK_MAKER = "crypto_trader_ar";
 const FEE_RATE = 0.005;
-const MOCK_TXN_ID = "#TXN123456";
 
 function formatFiat(value: number): string {
   return value.toLocaleString("es-AR", {
@@ -45,6 +43,12 @@ function SuccessContent() {
   const flowId = searchParams.get("flowId") || "";
   const mode = (searchParams.get("mode") || "buy") as "buy" | "sell";
   const orderId = searchParams.get("orderId") || "";
+
+  const txnId = (() => {
+    const raw = orderId || flowId;
+    if (!raw || raw === 'test' || raw === 'demo') return null;
+    return `#${raw.replace(/[^A-Z0-9a-z]/g, '').substring(0, 10).toUpperCase()}`;
+  })();
   const rate = useLiveRate().usdArs;
   const fiatAmount = fillUsdc * rate;
   const feeArs = fillUsdc * FEE_RATE * rate;
@@ -77,7 +81,7 @@ function SuccessContent() {
       rate: Math.round(rate),
       marketMaker: MOCK_MAKER,
       paymentMethod: "MercadoPago",
-      txnId: MOCK_TXN_ID,
+      txnId: txnId ?? `#${Date.now().toString(36).toUpperCase()}`,
     });
 
     sessionStorage.setItem(processedKey, "true");
@@ -85,7 +89,7 @@ function SuccessContent() {
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(MOCK_TXN_ID);
+      await navigator.clipboard.writeText(txnId ?? '');
     } catch {
       // clipboard unavailable
     } finally {
@@ -156,24 +160,26 @@ function SuccessContent() {
                 </span>
                 <div className="flex items-center justify-center gap-2">
                   <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-gray-400 tabular-nums">
-                    {MOCK_TXN_ID}
+                    {txnId ?? '—'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className={cn(
-                      "flex items-center justify-center size-7 rounded-md transition-all active:scale-95",
-                      copied
-                        ? "bg-emerald-100 text-emerald-600"
-                        : "bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100",
-                    )}
-                  >
-                    {copied ? (
-                      <Check className="size-3.5" strokeWidth={2.5} />
-                    ) : (
-                      <Copy className="size-3.5" />
-                    )}
-                  </button>
+                  {txnId && (
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className={cn(
+                        "flex items-center justify-center size-7 rounded-md transition-all active:scale-95",
+                        copied
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100",
+                      )}
+                    >
+                      {copied ? (
+                        <Check className="size-3.5" strokeWidth={2.5} />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

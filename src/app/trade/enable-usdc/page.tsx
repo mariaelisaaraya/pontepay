@@ -124,8 +124,13 @@ function EnableUsdcContent() {
     // Mock: simulate trustline creation (2s delay)
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Navigate to payment
-    router.push(`/trade/payment?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`);
+    // If we came from a trade flow, continue there; otherwise go home
+    const hasFlow = !!orderId && orderId !== '' && !!flowId && flowId !== '';
+    if (hasFlow) {
+      router.push(`/trade/payment?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`);
+    } else {
+      router.push('/');
+    }
   }, [fillUsdc, flowId, intentUsdc, mode, orderId, router]);
 
   const handleCancel = useCallback(() => {

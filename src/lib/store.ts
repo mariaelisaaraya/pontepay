@@ -104,7 +104,7 @@ interface AppState {
   ) => void;
   setWalletStatus: (walletStatus: string | null) => void;
   disconnectWallet: () => void;
-  setBalance: (usdc: number) => void;
+  setBalance: (usdc: number, hasTrustline?: boolean) => void;
   addBalance: (amount: number) => void;
   subtractBalance: (amount: number) => boolean;
   createOrder: (input: CreateOrderInput) => void;
@@ -174,7 +174,7 @@ export const useStore = create<AppState>((set) => ({
   },
 
   // Balance actions
-  setBalance: (usdc) => {
+  setBalance: (usdc, hasTrustline) => {
     const normalized = Math.max(0, Math.round(usdc * 100) / 100);
 
     set((state) => ({
@@ -184,6 +184,7 @@ export const useStore = create<AppState>((set) => ({
           usd: normalized,
           usdc: normalized,
         },
+        ...(hasTrustline !== undefined ? { hasTrustline } : {}),
       },
     }));
   },
@@ -280,9 +281,9 @@ export const useStore = create<AppState>((set) => ({
   refreshOrdersFromChain: async () => {
     try {
       const chainOrders = await loadOrdersFromContract();
-      // Prefer real on-chain orders; fall back to demo orders when the chain has
-      // none (e.g. an un-seeded contract) so the UI is never empty.
-      set({ orders: chainOrders.length > 0 ? chainOrders : DEMO_ORDERS });
+      // Merge real orders with demo orders so the marketplace is always testable.
+      // Demo orders are appended so real orders take priority in matching.
+      set({ orders: [...chainOrders, ...DEMO_ORDERS] });
     } catch (error) {
       console.error("Failed to refresh orders from contract", error);
       set({ orders: DEMO_ORDERS });

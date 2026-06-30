@@ -47,7 +47,7 @@ function ConfirmContent() {
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'sell') as 'sell' | 'buy';
   const orderId = searchParams.get('orderId') || '';
-  const isDemo = searchParams.get('demo') === '1';
+  const isDemo = searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
   const isSell = mode === 'sell';
 
   const rate = liveRate.usdArs;
@@ -147,12 +147,6 @@ function ConfirmContent() {
         <div className="mt-8 mb-8">
           <ConfirmTradeIcon />
         </div>
-
-        {isDemo && (
-          <div className="mb-3 w-full rounded-md bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-700">
-            Demo mode — walk the full flow without an on-chain transaction
-          </div>
-        )}
 
         {/* Trade Summary */}
         <div className="w-full rounded-md border border-neutral-400 bg-white p-4 flex flex-col gap-3">

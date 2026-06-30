@@ -67,6 +67,7 @@ export interface User {
     usd: number;
     usdc: number;
   };
+  hasTrustline?: boolean;
   /** Mock: completed trades count for reputation (Stellar will provide later) */
   reputation_score?: number;
 }

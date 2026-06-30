@@ -14,7 +14,14 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/privy-wallet";
-import { fetchWalletUsdcBalance } from "@/lib/wallet-balance";
+import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
+
+async function refreshBalanceForAddress(address: string, setBalance: (usdc: number, hasTrustline?: boolean) => void) {
+  try {
+    const { balance, hasTrustline } = await fetchUsdcTrustlineInfo(address);
+    setBalance(balance, hasTrustline);
+  } catch { /* ignore */ }
+}
 
 export default function WalletButton() {
   const { user: storeUser, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
@@ -43,6 +50,7 @@ export default function WalletButton() {
     // Case 1: Privy native Stellar wallet (future-proof)
     if (stellarAddress) {
       connectWallet(stellarAddress, null, 'logged-in');
+      void refreshBalanceForAddress(stellarAddress, setBalance);
       runFaucet(stellarAddress, wallet);
       return;
     }
@@ -51,6 +59,7 @@ export default function WalletButton() {
     if (privyUser?.id) {
       getOrCreateLocalKeypair(privyUser.id).then(({ address }) => {
         connectWallet(address, null, 'logged-in');
+        void refreshBalanceForAddress(address, setBalance);
         runFaucet(address, wallet);
       }).catch(console.error);
     }
@@ -79,7 +88,7 @@ export default function WalletButton() {
         }).then(r => r.json());
         if (result.success) {
           localStorage.setItem(key, '1');
-          toast.success('5 USDC added to your account!');
+          toast.success('1 USDC added to your account!');
         }
       } catch { /* retryable */ }
     })();
@@ -88,8 +97,8 @@ export default function WalletButton() {
   const refreshWalletBalance = useCallback(async () => {
     if (!activeWalletAddress || !authenticated) return;
     try {
-      const usdc = await fetchWalletUsdcBalance(activeWalletAddress);
-      setBalance(usdc);
+      const { balance, hasTrustline } = await fetchUsdcTrustlineInfo(activeWalletAddress);
+      setBalance(balance, hasTrustline);
     } catch (error) {
       console.error("Failed to fetch wallet balance", error);
     }
@@ -103,6 +112,15 @@ export default function WalletButton() {
     if (!isOpen) return;
     void refreshWalletBalance();
   }, [isOpen, refreshWalletBalance]);
+
+  // Poll balance every 15s so demo trades don't leave stale $0.00
+  useEffect(() => {
+    if (!activeWalletAddress || !authenticated) return;
+    const interval = setInterval(() => {
+      void refreshBalanceForAddress(activeWalletAddress, setBalance);
+    }, 15_000);
+    return () => clearInterval(interval);
+  }, [activeWalletAddress, authenticated, setBalance]);
 
   // Close dropdown on outside click
   useEffect(() => {

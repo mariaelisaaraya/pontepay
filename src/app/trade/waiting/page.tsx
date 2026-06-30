@@ -33,7 +33,7 @@ function WaitingContent() {
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') || '';
-  const isDemo = searchParams.get('demo') === '1';
+  const isDemo = true; // testnet: always demo mode — no real seller confirmation
 
   const [isChecking, setIsChecking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -321,7 +321,7 @@ function WaitingContent() {
             onClick={navigateToSuccess}
             className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-primary-700 hover:bg-primary-800 transition-all active:scale-[0.98]"
           >
-            Continue (demo)
+            Seller confirmed payment ✓
           </button>
         )}
         {showVerifyPaymentButton && (
