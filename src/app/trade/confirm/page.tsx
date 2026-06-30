@@ -148,12 +148,6 @@ function ConfirmContent() {
           <ConfirmTradeIcon />
         </div>
 
-        {isDemo && (
-          <div className="mb-3 w-full rounded-md bg-amber-50 px-3 py-2 text-center text-xs font-medium text-amber-700">
-            Demo mode — walk the full flow without an on-chain transaction
-          </div>
-        )}
-
         {/* Trade Summary */}
         <div className="w-full rounded-md border border-neutral-400 bg-white p-4 flex flex-col gap-3">
           {isAdjustedAmount && (

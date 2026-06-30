@@ -274,7 +274,7 @@ function WaitingContent() {
               <circle
                 cx="48" cy="48" r="42"
                 fill="none"
-                stroke="#d946ef"
+                stroke="#014A2D"
                 strokeWidth="3"
                 strokeDasharray="180 264"
                 strokeLinecap="round"

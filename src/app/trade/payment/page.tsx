@@ -13,6 +13,7 @@ import {
   X,
   AlertCircle,
   ShieldCheck,
+  ChevronDown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
@@ -289,6 +290,24 @@ function PaymentContent() {
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
   const [expired, setExpired] = useState(false);
 
+  // Adaptive QR / bank-details disclosure.
+  // Mobile (default): bank details open, QR collapsed.
+  // Desktop (md: ≥768px): QR open, bank details collapsed.
+  const [showQr, setShowQr] = useState(false);
+  const [showBank, setShowBank] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const apply = (isDesktop: boolean) => {
+      setShowQr(isDesktop);
+      setShowBank(!isDesktop);
+    };
+    apply(mq.matches);
+    const handler = (e: MediaQueryListEvent) => apply(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
   // Countdown — runs once on mount
   useEffect(() => {
     const timer = setInterval(() => {
@@ -486,104 +505,136 @@ function PaymentContent() {
           </div>
         )}
 
-        {/* Transferencias 3.0 interoperable QR (off-chain fiat leg) */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-4">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-gray-800">
-              Pay with Transferencias 3.0
-            </span>
-            <span className="ml-auto rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-sky-600">
-              Scan to pay
-            </span>
-          </div>
-          <Transferencias30QR
-            amountArs={totalToPay}
-            alias={payment.alias ?? payment.accountHolder}
-            recipientName={payment.accountHolder}
-          />
-          <p className="mt-2 text-center text-[11px] text-gray-400">
-            Scan with any bank or wallet app · BCRA interoperable QR
-          </p>
-        </div>
+        {/* Adaptive fiat-leg: bank details lead on mobile, QR leads on desktop */}
+        <div className="flex flex-col gap-3">
+          {/* ── Payment instructions (primary on mobile / collapsible on desktop) ── */}
+          <div className="order-1 md:order-2 rounded-2xl border border-indigo-100 bg-indigo-50/50 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowBank((v) => !v)}
+              aria-expanded={showBank}
+              className="w-full flex items-center gap-2 p-4 text-left"
+            >
+              {payment.icon === 'bank' ? (
+                <Building2 className="size-4 text-indigo-500 shrink-0" />
+              ) : (
+                <Smartphone className="size-4 text-indigo-500 shrink-0" />
+              )}
+              <span className="font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-indigo-700">
+                {payment.label}
+              </span>
+              <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-semibold uppercase tracking-wide">
+                Datos bancarios
+              </span>
+              <ChevronDown
+                className={cn(
+                  'size-4 text-indigo-400 shrink-0 transition-transform',
+                  showBank && 'rotate-180',
+                )}
+              />
+            </button>
 
-        {/* Payment instructions card */}
-        <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
-          {/* Method header */}
-          <div className="flex items-center gap-2">
-            {payment.icon === 'bank' ? (
-              <Building2 className="size-4 text-indigo-500 shrink-0" />
-            ) : (
-              <Smartphone className="size-4 text-indigo-500 shrink-0" />
+            {showBank && (
+              <div className="px-4 pb-4 space-y-3">
+                <div className="h-px bg-indigo-100" />
+
+                {/* Account holder — no copy needed */}
+                <div>
+                  <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
+                    Account holder
+                  </p>
+                  <p className="text-[13px] font-semibold text-gray-900">
+                    {payment.accountHolder}
+                  </p>
+                </div>
+
+                {payment.bank && (
+                  <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
+                      Bank
+                    </p>
+                    <p className="text-[13px] font-medium text-gray-900">
+                      {payment.bank}
+                    </p>
+                  </div>
+                )}
+
+                {payment.cbu && (
+                  <CopyRow
+                    label="CBU"
+                    value={payment.cbu}
+                    copyKey="cbu"
+                    activeCopy={activeCopy}
+                    onCopy={handleCopy}
+                  />
+                )}
+
+                {payment.alias && (
+                  <CopyRow
+                    label="Alias / CVU"
+                    value={payment.alias}
+                    copyKey="alias"
+                    activeCopy={activeCopy}
+                    onCopy={handleCopy}
+                    mono={false}
+                  />
+                )}
+
+                {payment.phone && (
+                  <CopyRow
+                    label="Phone number"
+                    value={payment.phone}
+                    copyKey="phone"
+                    activeCopy={activeCopy}
+                    onCopy={handleCopy}
+                  />
+                )}
+
+                {/* Instruction note */}
+                <div className="flex items-center gap-2 mt-1 pt-3 border-t border-indigo-100">
+                  <ShieldCheck className="size-4 text-indigo-400 shrink-0" />
+                  <p className="text-[11px] text-indigo-500 leading-snug">
+                    Complete this transfer in your banking app, then tap the
+                    button below.
+                  </p>
+                </div>
+              </div>
             )}
-            <span className="font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-indigo-700">
-              {payment.label}
-            </span>
-            <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-semibold uppercase tracking-wide">
-              Transfer type
-            </span>
           </div>
 
-          <div className="h-px bg-indigo-100" />
+          {/* ── Transferencias 3.0 QR (collapsible on mobile / primary on desktop) ── */}
+          <div className="order-2 md:order-1 rounded-2xl border border-gray-200 bg-white overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowQr((v) => !v)}
+              aria-expanded={showQr}
+              className="w-full flex items-center gap-2 p-4 text-left"
+            >
+              <span className="flex-1 font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-gray-800">
+                {showQr
+                  ? 'Pay with Transferencias 3.0'
+                  : 'Ver QR para pagar desde otra pantalla'}
+              </span>
+              <ChevronDown
+                className={cn(
+                  'size-4 text-gray-400 shrink-0 transition-transform',
+                  showQr && 'rotate-180',
+                )}
+              />
+            </button>
 
-          {/* Account holder — no copy needed */}
-          <div>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
-              Account holder
-            </p>
-            <p className="text-[13px] font-semibold text-gray-900">
-              {payment.accountHolder}
-            </p>
-          </div>
-
-          {payment.bank && (
-            <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
-                Bank
-              </p>
-              <p className="text-[13px] font-medium text-gray-900">
-                {payment.bank}
-              </p>
-            </div>
-          )}
-
-          {payment.cbu && (
-            <CopyRow
-              label="CBU"
-              value={payment.cbu}
-              copyKey="cbu"
-              activeCopy={activeCopy}
-              onCopy={handleCopy}
-            />
-          )}
-
-          {payment.alias && (
-            <CopyRow
-              label="Alias / CVU"
-              value={payment.alias}
-              copyKey="alias"
-              activeCopy={activeCopy}
-              onCopy={handleCopy}
-              mono={false}
-            />
-          )}
-
-          {payment.phone && (
-            <CopyRow
-              label="Phone number"
-              value={payment.phone}
-              copyKey="phone"
-              activeCopy={activeCopy}
-              onCopy={handleCopy}
-            />
-          )}
-
-          {/* Instruction note */}
-          <div className="flex items-center gap-2 mt-1 pt-3 border-t border-indigo-100">
-            <ShieldCheck className="size-4 text-indigo-400 shrink-0" />
-            <p className="text-[11px] text-indigo-500 leading-snug">
-              Complete this transfer in your banking app, then tap the button
-              below.
-            </p>
+            {showQr && (
+              <div className="px-4 pb-4">
+                <Transferencias30QR
+                  amountArs={totalToPay}
+                  alias={payment.alias ?? payment.accountHolder}
+                  recipientName={payment.accountHolder}
+                />
+                <p className="mt-2 text-center text-[11px] text-gray-400">
+                  Scan with any bank or wallet app · BCRA interoperable QR
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
