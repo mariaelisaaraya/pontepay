@@ -7,6 +7,10 @@ import { Providers } from "./providers";
 export const metadata: Metadata = {
   title: "PontePay",
   description: "P2P Exchange on Stellar",
+  icons: {
+    icon: '/pontepay-logo.svg',
+    apple: '/pontepay-logo.svg',
+  },
 };
 
 export default function RootLayout({

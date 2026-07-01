@@ -114,6 +114,7 @@ export interface UiOrder {
   paymentMethodCodes?: PaymentMethodCodeValue[];
   minTradeAmount?: number;
   maxTradeAmount?: number;
+  username?: string;
   displayName?: string;
   isVerified?: boolean;
   reputation_score?: number;

@@ -30,7 +30,11 @@ export default function OrderCard({ order, allOrders }: OrderCardProps) {
   const availableAmount = order.remainingAmount ?? order.amount;
   const risk = allOrders ? scoreOrder(order, allOrders) : null;
   const currencyLabel = order.fiatCurrencyLabel;
-  const actionLabel = order.type === 'sell' ? 'Buy Now' : 'Sell Now';
+  // From the taker's perspective: a 'sell' order is bought (Buy Now), a 'buy'
+  // order is sold (Sell Now). Buy = green #014A2D, Sell = red #DC2626.
+  const isBuyAction = order.type === 'sell';
+  const actionLabel = isBuyAction ? 'Buy Now' : 'Sell Now';
+  const accentColor = isBuyAction ? '#014A2D' : '#DC2626';
   const tradeCount = order.reputation_score ?? 0;
   const completionRate = order.completionRate ?? 100;
 
@@ -93,7 +97,7 @@ export default function OrderCard({ order, allOrders }: OrderCardProps) {
           {/* Name row */}
           <div className="flex items-center gap-1">
             <span className="font-display text-[18px] font-semibold leading-[1.5] text-black">
-              {order.displayName ?? shortenAddress(order.createdBy)}
+              {order.username ?? order.displayName ?? shortenAddress(order.createdBy)}
             </span>
             {order.isVerified && (
               <BadgeCheck className="size-4 shrink-0 text-primary-500" strokeWidth={2} />
@@ -135,11 +139,8 @@ export default function OrderCard({ order, allOrders }: OrderCardProps) {
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); handleClick(); }}
-          className={
-            order.type === 'sell'
-              ? 'shrink-0 rounded-[8px] bg-green-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-green-700'
-              : 'shrink-0 rounded-[8px] bg-gradient-to-r from-primary-500 to-primary-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90'
-          }
+          style={{ backgroundColor: accentColor }}
+          className="shrink-0 rounded-[8px] px-3 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
         >
           {actionLabel}
         </button>

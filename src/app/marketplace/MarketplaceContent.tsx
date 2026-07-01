@@ -112,7 +112,7 @@ export default function MarketplaceContent() {
             onClick={() => setActiveTab('buy')}
             className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
               activeTab === 'buy'
-                ? 'text-[var(--color-primary-500)] border-[var(--color-primary-500)]'
+                ? 'text-[#014A2D] border-[#014A2D]'
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
           >
@@ -123,7 +123,7 @@ export default function MarketplaceContent() {
             onClick={() => setActiveTab('sell')}
             className={`flex-1 py-3 text-sm font-semibold transition-all border-b-2 -mb-px ${
               activeTab === 'sell'
-                ? 'text-[var(--color-primary-500)] border-[var(--color-primary-500)]'
+                ? 'text-[#DC2626] border-[#DC2626]'
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
           >
