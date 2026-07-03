@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { CircleDollarSign } from 'lucide-react';
+import { CircleDollarSign, Lock } from 'lucide-react';
+import { usePrivy } from '@privy-io/react-auth';
 import { useTradeHistory, CompletedTrade } from '@/contexts/TradeHistoryContext';
 
 type TransactionType = 'sale' | 'purchase' | 'withdrawal';
@@ -37,12 +38,31 @@ function mapTrade(trade: CompletedTrade) {
 }
 
 export default function RecentTransactions() {
+  const { ready, authenticated } = usePrivy();
   const { trades, loading } = useTradeHistory();
 
   const transactions = trades.slice(0, 3).map(mapTrade);
   const isEmpty = transactions.length === 0;
 
-  if (loading) return null;
+  if (!ready || loading) return null;
+
+  // Activity is per-account data — never render it for logged-out visitors.
+  if (!authenticated) {
+    return (
+      <section className="mt-6">
+        <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.5px] text-gray-500">
+          Recent Activity
+        </h3>
+        <div className="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center">
+          <Lock className="mx-auto mb-2 size-5 text-gray-300" aria-hidden />
+          <p className="text-sm font-medium text-gray-700">Sign in to see your activity</p>
+          <p className="mt-1 text-xs text-gray-400">
+            Your trade history is private to your account
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-6">

@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Check, Wallet, CalendarDays, LogOut, ArrowLeftRight, Globe, Shield } from "lucide-react";
+import { Copy, Check, Wallet, CalendarDays, LogOut, ArrowLeftRight, Globe, Shield, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { usePrivy } from "@privy-io/react-auth";
 
 import EditProfileDrawer, {
   type EditableProfile,
 } from "@/components/profile/EditProfileDrawer";
 import ProfileAvatarModal from "@/components/profile/ProfileAvatarModal";
 import ShareProfileDrawer from "@/components/profile/ShareProfileDrawer";
+import { useTradeHistory } from "@/contexts/TradeHistoryContext";
 import { useUser } from "@/contexts/UserContext";
 import { useStore } from "@/lib/store";
 
@@ -25,7 +27,12 @@ type ProfileOverrides = Record<
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
+  const { user: privyUser } = usePrivy();
+  const { trades } = useTradeHistory();
   const connectedWalletAddress = useStore((s) => s.user.walletAddress);
+
+  // Email from the Privy login (email login or Google account)
+  const accountEmail = privyUser?.email?.address ?? privyUser?.google?.email ?? null;
   const [copied, setCopied] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
@@ -189,7 +196,7 @@ export default function ProfilePage() {
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-gray-50 px-3 py-2.5">
               <p className="text-xs text-gray-500">Completed trades</p>
-              <p className="text-sm font-semibold text-gray-900">12</p>
+              <p className="text-sm font-semibold text-gray-900">{trades.length}</p>
             </div>
             <div className="rounded-xl bg-gray-50 px-3 py-2.5">
               <p className="text-xs text-gray-500">Trust score</p>
@@ -200,6 +207,15 @@ export default function ProfilePage() {
           </div>
 
           <div className="mt-6 space-y-3">
+            {accountEmail && (
+              <div className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5">
+                <Mail className="size-4 text-gray-400" />
+                <span className="text-sm text-gray-500">Email</span>
+                <span className="ml-auto truncate text-xs text-gray-900">
+                  {accountEmail}
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5">
               <Wallet className="size-4 text-gray-400" />
               <span className="text-sm text-gray-500">Wallet</span>
