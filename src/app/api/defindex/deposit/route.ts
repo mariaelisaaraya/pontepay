@@ -1,7 +1,6 @@
-const VAULT_ADDRESS = 'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
+import { defindexErrorMessage } from '../error-message';
 
-const MOCK_XDR =
-  'AAAAAgAAAABmb2tfeGRyX3BsYWNlaG9sZGVyX2RlZmluZGV4X2RlcG9zaXQAAAAAAAAAAAAAAAAAAAAAAAAA';
+const VAULT_ADDRESS = 'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +16,10 @@ export async function POST(req: Request) {
     const apiKey = process.env.DEFINDEX_API_KEY;
 
     if (!apiKey) {
-      return Response.json({ xdr: MOCK_XDR, demo: true });
+      return Response.json(
+        { demo: true, error: 'DeFindex is in demo mode: set DEFINDEX_API_KEY to enable deposits' },
+        { status: 503 },
+      );
     }
 
     const { DefindexSDK, SupportedNetworks } = await import('@defindex/sdk');
@@ -32,7 +34,7 @@ export async function POST(req: Request) {
     return Response.json({ xdr: depositResponse.xdr });
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : 'DeFindex deposit failed' },
+      { error: defindexErrorMessage(e, 'DeFindex deposit failed') },
       { status: 502 },
     );
   }

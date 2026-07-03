@@ -143,7 +143,8 @@ export const useStore = create<AppState>((set) => ({
         walletOwner,
         walletStatus,
         isConnected: true,
-        reputation_score: state.user.reputation_score ?? 12,
+        // Placeholder: no on-chain reputation source yet (see types/index.ts).
+        reputation_score: state.user.reputation_score ?? 0,
       },
     }));
   },
@@ -263,7 +264,8 @@ export const useStore = create<AppState>((set) => ({
           status: "AwaitingFiller",
           createdAt: new Date(),
           createdBy: state.user.walletAddress ?? "wallet-not-connected",
-          reputation_score: state.user.reputation_score ?? 12,
+          // Placeholder: no on-chain reputation source yet (see types/index.ts).
+          reputation_score: state.user.reputation_score ?? 0,
         },
       ],
     }));

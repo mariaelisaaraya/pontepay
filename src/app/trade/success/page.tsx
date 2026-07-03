@@ -10,9 +10,15 @@ import {
   clearVendorPaymentRequest,
   loadVendorPaymentRequest,
 } from "@/lib/vendor-payment-request";
+import { useStore } from "@/lib/store";
 
-const MOCK_MAKER = "crypto_trader_ar";
 const FEE_RATE = 0.005;
+
+function shortAddress(address: string): string {
+  return address.length > 12
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : address;
+}
 
 function formatFiat(value: number): string {
   return value.toLocaleString("es-AR", {
@@ -49,6 +55,18 @@ function SuccessContent() {
     if (!raw || raw === 'test' || raw === 'demo') return null;
     return `#${raw.replace(/[^A-Z0-9a-z]/g, '').substring(0, 10).toUpperCase()}`;
   })();
+  // Resolve the real counterparty from the order book (chain orders carry the
+  // creator address; demo orders carry a displayName). Falls back to a neutral
+  // label when the order is no longer in the store.
+  const orders = useStore((state) => state.orders);
+  const makerLabel = (() => {
+    const order = orders.find(
+      (o) => o.id === orderId || o.orderId.toString() === orderId,
+    );
+    if (!order) return "counterparty";
+    return order.displayName ?? shortAddress(order.createdBy);
+  })();
+
   const rate = useLiveRate().usdArs;
   const fiatAmount = fillUsdc * rate;
   const feeArs = fillUsdc * FEE_RATE * rate;
@@ -79,13 +97,13 @@ function SuccessContent() {
       amount: fillUsdc,
       arsReceived: totalPaid,
       rate: Math.round(rate),
-      marketMaker: MOCK_MAKER,
+      marketMaker: makerLabel,
       paymentMethod: "MercadoPago",
       txnId: txnId ?? `#${Date.now().toString(36).toUpperCase()}`,
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, mode, orderId, totalPaid, rate]);
+  }, [addTrade, fillUsdc, flowId, makerLabel, mode, orderId, totalPaid, rate]);
 
   const handleCopy = async () => {
     try {

@@ -1,3 +1,5 @@
+import { defindexErrorMessage } from '../error-message';
+
 const VAULT_ADDRESS = 'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
 
 export async function GET(req: Request) {
@@ -26,7 +28,7 @@ export async function GET(req: Request) {
     });
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : 'DeFindex balance failed' },
+      { error: defindexErrorMessage(e, 'DeFindex balance failed') },
       { status: 502 },
     );
   }

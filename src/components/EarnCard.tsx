@@ -3,13 +3,19 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { useStellarWallet } from '@/lib/privy-wallet';
-import { sorobanSubmit } from '@/lib/soroban-submit';
-import { defindexGetBalance, defindexGetApy } from '@/lib/defindex';
+import {
+  defindexDeposit,
+  defindexWithdraw,
+  defindexGetBalance,
+  defindexGetApy,
+  DefindexDemoModeError,
+} from '@/lib/defindex';
 
 type ActionStep =
   | { status: 'idle' }
   | { status: 'loading'; label: string }
   | { status: 'success'; label: string }
+  | { status: 'demo'; message: string }
   | { status: 'error'; message: string };
 
 export default function EarnCard() {
@@ -43,34 +49,13 @@ export default function EarnCard() {
     return () => { active = false; };
   }, [address]);
 
-  const STROOPS_PER_USDC = 10_000_000;
-
   async function handleDeposit() {
     if (!wallet) return;
     const amount = parseFloat(depositAmount);
     if (!amount || amount <= 0) return;
     try {
-      setStep({ status: 'loading', label: 'Getting deposit details…' });
-      const res = await fetch('/api/defindex/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: Math.round(amount * STROOPS_PER_USDC),
-          userAddress: wallet.address,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? `Request failed (${res.status})`);
-      }
-      const { xdr } = (await res.json()) as { xdr: string };
-
-      setStep({ status: 'loading', label: 'Sign in your wallet…' });
-      await sorobanSubmit({ toXDR: () => xdr }, async (unsigned) => {
-        const signed = await wallet.signEscrowXdr(unsigned);
-        setStep({ status: 'loading', label: 'Submitting…' });
-        return signed;
-      });
+      setStep({ status: 'loading', label: 'Sign the deposit in your wallet…' });
+      await defindexDeposit(wallet, amount);
 
       setStep({ status: 'success', label: 'Deposit confirmed!' });
       setDepositAmount('');
@@ -80,6 +65,10 @@ export default function EarnCard() {
           .catch(() => {});
       }
     } catch (e) {
+      if (e instanceof DefindexDemoModeError) {
+        setStep({ status: 'demo', message: e.message });
+        return;
+      }
       setStep({ status: 'error', message: e instanceof Error ? e.message : 'Deposit failed' });
     }
   }
@@ -89,27 +78,8 @@ export default function EarnCard() {
     const amount = parseFloat(withdrawAmount);
     if (!amount || amount <= 0) return;
     try {
-      setStep({ status: 'loading', label: 'Getting withdraw details…' });
-      const res = await fetch('/api/defindex/withdraw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: Math.round(amount * STROOPS_PER_USDC),
-          userAddress: wallet.address,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? `Request failed (${res.status})`);
-      }
-      const { xdr } = (await res.json()) as { xdr: string };
-
-      setStep({ status: 'loading', label: 'Sign in your wallet…' });
-      await sorobanSubmit({ toXDR: () => xdr }, async (unsigned) => {
-        const signed = await wallet.signEscrowXdr(unsigned);
-        setStep({ status: 'loading', label: 'Submitting…' });
-        return signed;
-      });
+      setStep({ status: 'loading', label: 'Sign the withdrawal in your wallet…' });
+      await defindexWithdraw(wallet, amount);
 
       setStep({ status: 'success', label: 'Withdrawal confirmed!' });
       setWithdrawAmount('');
@@ -119,6 +89,10 @@ export default function EarnCard() {
           .catch(() => {});
       }
     } catch (e) {
+      if (e instanceof DefindexDemoModeError) {
+        setStep({ status: 'demo', message: e.message });
+        return;
+      }
       setStep({ status: 'error', message: e instanceof Error ? e.message : 'Withdraw failed' });
     }
   }
@@ -240,6 +214,20 @@ export default function EarnCard() {
             className="text-[12px] text-gray-400 underline hover:text-gray-600"
           >
             Done
+          </button>
+        </div>
+      )}
+
+      {step.status === 'demo' && (
+        <div className="pt-2 space-y-1">
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-700">
+            {step.message}
+          </p>
+          <button
+            onClick={() => setStep({ status: 'idle' })}
+            className="text-[12px] text-gray-400 underline hover:text-gray-600"
+          >
+            Back
           </button>
         </div>
       )}
