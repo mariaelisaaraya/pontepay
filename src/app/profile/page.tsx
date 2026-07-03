@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Copy, Check, Wallet, CalendarDays, LogOut, ArrowLeftRight, Globe, Shield, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ import {
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
-  const { user: privyUser } = usePrivy();
+  const { user: privyUser, authenticated, getAccessToken } = usePrivy();
   const { trades } = useTradeHistory();
   const connectedWalletAddress = useStore((s) => s.user.walletAddress);
 
@@ -52,6 +52,51 @@ export default function ProfilePage() {
 
   const profileStorageKey = activeWalletAddress ?? privyUser?.id ?? "guest";
   const storedProfile = profileOverrides[profileStorageKey];
+
+  // Pull the server-synced profile (Privy custom metadata) so edits follow the
+  // user across devices; localStorage stays as the offline cache the header reads.
+  useEffect(() => {
+    if (!authenticated) return;
+    let active = true;
+
+    (async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        const res = await fetch("/api/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) return;
+        const { profile } = (await res.json()) as {
+          profile: { displayName: string | null; handle: string | null; bio: string | null } | null;
+        };
+        if (!active || !profile?.displayName || !profile.handle) return;
+
+        setProfileOverrides((current) => {
+          const next = {
+            ...current,
+            [profileStorageKey]: {
+              displayName: profile.displayName as string,
+              handle: profile.handle as string,
+              bio: profile.bio ?? undefined,
+            },
+          };
+          try {
+            saveProfileOverrides(next);
+          } catch {
+            // keep in-memory copy even if localStorage write fails
+          }
+          return next;
+        });
+      } catch {
+        // offline / server unavailable — local profile still works
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [authenticated, getAccessToken, profileStorageKey]);
 
   // Defaults come from the Privy login identity (Google name / email user),
   // not from a made-up wallet-derived name.
@@ -120,6 +165,30 @@ export default function ProfilePage() {
     } catch {
       toast.error("Failed to persist profile changes");
     }
+
+    // Sync to Privy custom metadata so the profile follows the user across devices.
+    void (async () => {
+      try {
+        const token = await getAccessToken();
+        if (!token) return;
+        const res = await fetch("/api/profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(nextProfile),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { demo?: boolean };
+          if (!data.demo) {
+            toast.error("Saved locally, but cloud sync failed");
+          }
+        }
+      } catch {
+        toast.error("Saved locally, but cloud sync failed");
+      }
+    })();
 
     toast.success("Profile updated");
   };
