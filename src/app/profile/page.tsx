@@ -14,16 +14,12 @@ import ShareProfileDrawer from "@/components/profile/ShareProfileDrawer";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
 import { useUser } from "@/contexts/UserContext";
 import { useStore } from "@/lib/store";
-
-const PROFILE_OVERRIDES_STORAGE_KEY = "pontepay_profile_overrides";
-
-type ProfileOverrides = Record<
-  string,
-  {
-    displayName: string;
-    handle: string;
-  }
->;
+import {
+  loadProfileOverrides,
+  saveProfileOverrides,
+  resolveDisplayName,
+  type ProfileOverrides,
+} from "@/lib/profile-overrides";
 
 export default function ProfilePage() {
   const { user, loading } = useUser();
@@ -38,25 +34,8 @@ export default function ProfilePage() {
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [isShareDrawerOpen, setIsShareDrawerOpen] = useState(false);
   const [profileOverrides, setProfileOverrides] = useState<ProfileOverrides>(
-    () => {
-      if (typeof window === "undefined") {
-        return {};
-      }
-
-      try {
-        const stored = localStorage.getItem(PROFILE_OVERRIDES_STORAGE_KEY);
-        if (!stored) {
-          return {};
-        }
-
-        const parsed = JSON.parse(stored);
-        return typeof parsed === "object" && parsed !== null ? parsed : {};
-      } catch {
-        return {};
-      }
-    },
+    () => loadProfileOverrides(),
   );
-  const [profileBios, setProfileBios] = useState<Record<string, string>>({});
   const activeWalletAddress = connectedWalletAddress;
 
   const createdDate = user?.createdAt
@@ -71,25 +50,32 @@ export default function ProfilePage() {
     ? `${activeWalletAddress.slice(0, 6)}...${activeWalletAddress.slice(-4)}`
     : "Not connected";
 
-  const defaultDisplayName = activeWalletAddress
-    ? `Ponte ${activeWalletAddress.slice(2, 6).toLowerCase()}`
-    : "Guest user";
+  const profileStorageKey = activeWalletAddress ?? privyUser?.id ?? "guest";
+  const storedProfile = profileOverrides[profileStorageKey];
 
-  const defaultHandle = activeWalletAddress
-    ? `@${activeWalletAddress.slice(4, 10).toLowerCase()}`
-    : "@guest";
+  // Defaults come from the Privy login identity (Google name / email user),
+  // not from a made-up wallet-derived name.
+  const emailUser = accountEmail?.split("@")[0] ?? null;
+  const defaultDisplayName =
+    resolveDisplayName(undefined, privyUser) ??
+    (activeWalletAddress
+      ? `Ponte ${activeWalletAddress.slice(2, 6).toLowerCase()}`
+      : "Guest user");
+
+  const defaultHandle = emailUser
+    ? `@${emailUser.toLowerCase()}`
+    : activeWalletAddress
+      ? `@${activeWalletAddress.slice(4, 10).toLowerCase()}`
+      : "@guest";
 
   const defaultBio = user
     ? "Fast, secure P2P trading on PontePay."
     : "Create your profile to start trading on PontePay.";
 
-  const profileStorageKey = activeWalletAddress ?? "guest";
-  const storedProfile = profileOverrides[profileStorageKey];
-
   const currentProfile = {
     displayName: storedProfile?.displayName ?? defaultDisplayName,
     handle: storedProfile?.handle ?? defaultHandle,
-    bio: profileBios[profileStorageKey] ?? defaultBio,
+    bio: storedProfile?.bio ?? defaultBio,
   };
 
   const trustScore = activeWalletAddress
@@ -123,20 +109,14 @@ export default function ProfilePage() {
       [profileStorageKey]: {
         displayName: nextProfile.displayName,
         handle: nextProfile.handle,
+        bio: nextProfile.bio,
       },
     };
 
     setProfileOverrides(nextProfileOverrides);
-    setProfileBios((current) => ({
-      ...current,
-      [profileStorageKey]: nextProfile.bio,
-    }));
 
     try {
-      localStorage.setItem(
-        PROFILE_OVERRIDES_STORAGE_KEY,
-        JSON.stringify(nextProfileOverrides),
-      );
+      saveProfileOverrides(nextProfileOverrides);
     } catch {
       toast.error("Failed to persist profile changes");
     }

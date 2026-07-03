@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { toast } from "sonner";
 import {
@@ -15,6 +15,11 @@ import {
 import { useStore } from "@/lib/store";
 import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/privy-wallet";
 import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
+import {
+  loadProfileOverrides,
+  resolveDisplayName,
+  PROFILE_UPDATED_EVENT,
+} from "@/lib/profile-overrides";
 
 async function refreshBalanceForAddress(address: string, setBalance: (usdc: number, hasTrustline?: boolean) => void) {
   try {
@@ -34,6 +39,30 @@ export default function WalletButton() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeWalletAddress = walletAddress ?? stellarAddress ?? null;
+
+  // Re-read the saved profile when it changes (same tab via custom event,
+  // other tabs via the native storage event).
+  const [profileVersion, setProfileVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setProfileVersion((v) => v + 1);
+    window.addEventListener(PROFILE_UPDATED_EVENT, bump);
+    window.addEventListener("storage", bump);
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, bump);
+      window.removeEventListener("storage", bump);
+    };
+  }, []);
+
+  const displayName = useMemo(() => {
+    // profileVersion invalidates this memo when the profile is edited
+    void profileVersion;
+    const overrides = loadProfileOverrides();
+    const key = activeWalletAddress ?? privyUser?.id ?? "guest";
+    return resolveDisplayName(overrides[key], privyUser) ?? "Account";
+  }, [activeWalletAddress, privyUser, profileVersion]);
+
+  const accountEmail =
+    privyUser?.email?.address ?? privyUser?.google?.email ?? null;
 
   // Sync Privy auth state into the store
   useEffect(() => {
@@ -228,7 +257,7 @@ export default function WalletButton() {
         <span className="inline-flex size-7 items-center justify-center rounded-full bg-primary-700 text-white ring-1 ring-primary-200">
           <User className="size-3.5" strokeWidth={2.25} aria-hidden />
         </span>
-        <span className="font-medium text-gray-700">Account</span>
+        <span className="max-w-32 truncate font-medium text-gray-700">{displayName}</span>
         <ChevronDown
           className={`size-3.5 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
         />
@@ -236,11 +265,18 @@ export default function WalletButton() {
 
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 w-64 origin-top-right animate-in fade-in slide-in-from-top-2 duration-200 rounded-xl border border-gray-100 bg-white shadow-lg">
-          <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-3">
-            <span className="inline-flex size-2 rounded-full bg-emerald-400" />
-            <span className="font-sans text-sm font-medium text-gray-700">
-              Active
-            </span>
+          <div className="border-b border-gray-100 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex size-2 rounded-full bg-emerald-400" />
+              <span className="truncate font-sans text-sm font-medium text-gray-700">
+                {displayName}
+              </span>
+            </div>
+            {accountEmail && (
+              <p className="mt-0.5 truncate pl-4 font-sans text-xs text-gray-400">
+                {accountEmail}
+              </p>
+            )}
           </div>
 
           <div className="border-b border-gray-100 px-4 py-4">
