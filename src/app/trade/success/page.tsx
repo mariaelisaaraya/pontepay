@@ -59,13 +59,13 @@ function SuccessContent() {
   // creator address; demo orders carry a displayName). Falls back to a neutral
   // label when the order is no longer in the store.
   const orders = useStore((state) => state.orders);
-  const makerLabel = (() => {
-    const order = orders.find(
-      (o) => o.id === orderId || o.orderId.toString() === orderId,
-    );
-    if (!order) return "counterparty";
-    return order.displayName ?? shortAddress(order.createdBy);
-  })();
+  const matchedOrder = orders.find(
+    (o) => o.id === orderId || o.orderId.toString() === orderId,
+  );
+  const makerLabel = matchedOrder
+    ? matchedOrder.displayName ?? shortAddress(matchedOrder.createdBy)
+    : "counterparty";
+  const paymentMethodUsed = matchedOrder?.paymentMethodLabel ?? "Bank Transfer";
 
   const rate = useLiveRate().usdArs;
   const fiatAmount = fillUsdc * rate;
@@ -98,12 +98,12 @@ function SuccessContent() {
       arsReceived: totalPaid,
       rate: Math.round(rate),
       marketMaker: makerLabel,
-      paymentMethod: "MercadoPago",
+      paymentMethod: paymentMethodUsed,
       txnId: txnId ?? `#${Date.now().toString(36).toUpperCase()}`,
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, makerLabel, mode, orderId, totalPaid, rate]);
+  }, [addTrade, fillUsdc, flowId, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate]);
 
   const handleCopy = async () => {
     try {
