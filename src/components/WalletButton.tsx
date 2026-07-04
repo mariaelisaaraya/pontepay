@@ -37,6 +37,7 @@ export default function WalletButton() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const faucetInFlightRef = useRef(false);
 
   const activeWalletAddress = walletAddress ?? stellarAddress ?? null;
 
@@ -97,6 +98,8 @@ export default function WalletButton() {
   function runFaucet(address: string, w: typeof wallet) {
     const key = `pontepay_faucet_${address}`;
     if (localStorage.getItem(key) || !w) return;
+    if (faucetInFlightRef.current) return;
+    faucetInFlightRef.current = true;
     (async () => {
       try {
         const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
@@ -121,11 +124,17 @@ export default function WalletButton() {
         if (result.success) {
           localStorage.setItem(key, '1');
           toast.success(`${result.amount ?? '0.9'} USDC added to your account!`);
+        } else if (result.error === 'Already funded') {
+          // Server already paid this address (e.g. a parallel run won the race)
+          // — mark it locally so we stop retrying on every page load.
+          localStorage.setItem(key, '1');
         } else {
           console.warn('[faucet] send failed:', result.error ?? result);
         }
       } catch (err) {
         console.warn('[faucet] failed (will retry on next login):', err);
+      } finally {
+        faucetInFlightRef.current = false;
       }
     })();
   }
