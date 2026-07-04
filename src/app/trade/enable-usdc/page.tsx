@@ -9,6 +9,7 @@ import {
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ============================================
 // CANCEL MODAL
@@ -65,6 +66,7 @@ function CancelModal({
 // ============================================
 
 function TrustlineInfo() {
+  const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -76,7 +78,7 @@ function TrustlineInfo() {
       >
         <Info className="size-4 text-gray-400 shrink-0" />
         <span className="text-body-sm font-medium text-gray-600 flex-1">
-          Why is this needed?
+          {t('enable.why')}
         </span>
         <ChevronDown
           className={cn(
@@ -94,7 +96,7 @@ function TrustlineInfo() {
       >
         <div className="px-4 pb-4">
           <p className="text-body-sm text-gray-500">
-            Stellar wallets need permission to hold each token type. This is a one-time setup for USDC.
+            {t('enable.whyBody')}
           </p>
         </div>
       </div>
@@ -107,6 +109,7 @@ function TrustlineInfo() {
 // ============================================
 
 function EnableUsdcContent() {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -166,10 +169,10 @@ function EnableUsdcContent() {
 
         {/* Text */}
         <h1 className="font-[family-name:var(--font-space-grotesk)] text-2xl font-bold text-gray-900 mb-3 text-center">
-          One-time setup
+          {t('enable.oneTime')}
         </h1>
         <p className="text-body text-gray-500 text-center max-w-[300px]">
-          Allow your wallet to receive USDC tokens.
+          {t('enable.allow')}
         </p>
       </div>
 
@@ -193,10 +196,10 @@ function EnableUsdcContent() {
           {isEnabling ? (
             <span className="flex items-center justify-center gap-2">
               <Loader2 className="size-5 animate-spin" />
-              Enabling USDC...
+              {t('enable.enabling')}
             </span>
           ) : (
-            'Enable USDC'
+            t('enable.cta')
           )}
         </button>
 
@@ -211,7 +214,7 @@ function EnableUsdcContent() {
           )}
         >
           <ArrowLeft className="size-3.5" />
-          Cancel trade
+          {t('enable.cancel')}
         </button>
       </div>
 

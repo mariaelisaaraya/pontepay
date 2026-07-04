@@ -166,6 +166,22 @@ const en = {
   'send.invalidAddress': 'Must be a valid Stellar public key.',
   'send.exceedsBalance': 'Amount exceeds your available USDC balance.',
 
+  // Enable USDC
+  'enable.title': 'Enable USDC',
+  'enable.oneTime': 'One-time setup',
+  'enable.allow': 'Allow your wallet to receive USDC tokens.',
+  'enable.why': 'Why is this needed?',
+  'enable.whyBody': 'Stellar wallets need permission to hold each token type. This is a one-time setup for USDC.',
+  'enable.enabling': 'Enabling USDC...',
+  'enable.cta': 'Enable USDC',
+  'enable.cancel': 'Cancel trade',
+
+  // Send errors
+  'send.errNoTrust': 'Recipient has not enabled USDC yet (missing trustline)',
+  'send.errNoDestination': 'Recipient account does not exist on the network',
+  'send.errUnderfunded': 'Insufficient USDC balance for this transfer',
+  'send.errGeneric': 'Send failed. Please try again',
+
   // Anchor
   'anchor.title': 'Fiat ramp',
   'anchor.explainer': 'Prefer a company instead of P2P? An anchor is a regulated business that connects your bank to Stellar: you send them local currency and they credit USDC to your wallet (deposit), or the reverse (withdraw).',
@@ -336,6 +352,22 @@ const es: Record<TranslationKey, string> = {
   'send.submitting': 'Enviando...',
   'send.invalidAddress': 'Tiene que ser una clave pública de Stellar válida.',
   'send.exceedsBalance': 'El monto supera tu saldo disponible de USDC.',
+
+  // Activar USDC
+  'enable.title': 'Activar USDC',
+  'enable.oneTime': 'Configuración por única vez',
+  'enable.allow': 'Permitile a tu wallet recibir USDC.',
+  'enable.why': '¿Por qué hace falta esto?',
+  'enable.whyBody': 'En Stellar, cada wallet habilita una vez cada moneda que quiere recibir. Es una configuración única para USDC.',
+  'enable.enabling': 'Activando USDC...',
+  'enable.cta': 'Activar USDC',
+  'enable.cancel': 'Cancelar operación',
+
+  // Errores de envío
+  'send.errNoTrust': 'El destinatario todavía no activó USDC (le falta la trustline)',
+  'send.errNoDestination': 'La cuenta destinataria no existe en la red',
+  'send.errUnderfunded': 'No te alcanza el saldo de USDC para esta transferencia',
+  'send.errGeneric': 'El envío falló. Probá de nuevo',
 
   // Anchor
   'anchor.title': 'Rampa fiat',

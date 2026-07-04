@@ -119,7 +119,7 @@ export default function EarnCard() {
         )}
         {apyLoading && (
           <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400">
-            <Loader2 className="size-3 animate-spin" /> Loading…
+            <Loader2 className="size-3 animate-spin" /> {t('earn.loading')}
           </span>
         )}
       </div>
@@ -138,7 +138,7 @@ export default function EarnCard() {
             <span className="text-[13px] text-gray-400">{t('earn.connectWallet')}</span>
           ) : balanceLoading ? (
             <span className="flex items-center gap-1 text-[13px] text-gray-400">
-              <Loader2 className="size-3 animate-spin" /> Loading…
+              <Loader2 className="size-3 animate-spin" /> {t('earn.loading')}
             </span>
           ) : (
             <span className="text-[13px] font-semibold text-gray-900">

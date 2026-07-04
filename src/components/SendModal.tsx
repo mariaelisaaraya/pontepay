@@ -135,7 +135,15 @@ export default function SendModal({
         handleClose();
       } catch (error) {
         console.error('[send] transfer failed:', error);
-        toast.error(error instanceof Error ? error.message : 'Send failed. Please try again');
+        const raw = error instanceof Error ? error.message : '';
+        const friendly = raw.includes('missing trustline')
+          ? t('send.errNoTrust')
+          : raw.includes('does not exist')
+            ? t('send.errNoDestination')
+            : raw.includes('Insufficient')
+              ? t('send.errUnderfunded')
+              : raw || t('send.errGeneric');
+        toast.error(friendly);
         setIsSending(false);
       }
       return;
