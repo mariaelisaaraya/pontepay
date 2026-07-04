@@ -219,6 +219,23 @@ export default function OrdersPage() {
     });
   }, [myOrders, filters, nowTimestamp]);
 
+  // The sheet filters apply to the quick-trade history too, not just
+  // marketplace orders — otherwise Filters looks dead on the Completed tab.
+  const filteredTrades = useMemo(() => {
+    return completedTrades.filter((trade) => {
+      if (filters.type.length > 0 && !filters.type.includes(trade.type)) {
+        return false;
+      }
+      if (filters.dateRange !== 'all') {
+        const days = filters.dateRange === 'last7' ? 7 : 30;
+        if (nowTimestamp - new Date(trade.date).getTime() > days * 24 * 60 * 60 * 1000) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [completedTrades, filters, nowTimestamp]);
+
   const activeOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'active'), [filteredBySheet]);
   const completedOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'completed'), [filteredBySheet]);
   const disputedOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'disputed'), [filteredBySheet]);
@@ -307,7 +324,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Completed ({completedOrders.length + completedTrades.length})
+          Completed ({completedOrders.length + filteredTrades.length})
         </button>
         <button
           type="button"
@@ -323,10 +340,10 @@ export default function OrdersPage() {
         </button>
       </div>
 
-      {visibleOrders.length > 0 || (activeTab === 'completed' && completedTrades.length > 0) ? (
+      {visibleOrders.length > 0 || (activeTab === 'completed' && filteredTrades.length > 0) ? (
         <div className="space-y-3">
           {activeTab === 'completed' &&
-            completedTrades.map((trade) => (
+            filteredTrades.map((trade) => (
               <div
                 key={trade.id}
                 className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left"
