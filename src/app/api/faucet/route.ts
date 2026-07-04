@@ -1,7 +1,27 @@
 import { NextRequest } from 'next/server';
+import { PrivyClient } from '@privy-io/server-auth';
 
 const USDC_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 const FAUCET_AMOUNT = '0.9';
+
+const PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? '';
+const PRIVY_APP_SECRET = process.env.PRIVY_APP_SECRET ?? '';
+
+// Only logged-in users may drain the faucet. When Privy server creds are not
+// configured (local dev without secrets) the check is skipped so the faucet
+// keeps working — same convention as /api/profile.
+async function isAuthorized(req: NextRequest): Promise<boolean> {
+  if (!PRIVY_APP_ID || !PRIVY_APP_SECRET) return true;
+  const auth = req.headers.get('authorization');
+  const token = auth?.startsWith('Bearer ') ? auth.slice('Bearer '.length) : null;
+  if (!token) return false;
+  try {
+    await new PrivyClient(PRIVY_APP_ID, PRIVY_APP_SECRET).verifyAuthToken(token);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // Module-level set — persists across invocations in the same process instance.
 // Guards against rapid abuse within a single Vercel function container.
@@ -16,6 +36,10 @@ export async function POST(req: NextRequest) {
 
     if (!address || !/^G[A-Z0-9]{55}$/.test(address)) {
       return Response.json({ error: 'Invalid Stellar address' }, { status: 400 });
+    }
+
+    if (!(await isAuthorized(req))) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Server-side guard: reject if already funded in this process instance

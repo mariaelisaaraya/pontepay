@@ -15,11 +15,7 @@ import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { getFeeTier } from '@/lib/pricing';
-
-async function checkUSDCTrustline(): Promise<boolean> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return true;
-}
+import { fetchUsdcTrustlineInfo } from '@/lib/wallet-balance';
 
 function formatUsdc(value: number): string {
   return value.toLocaleString('en-US', {
@@ -97,7 +93,7 @@ function ConfirmContent() {
     setIsChecking(true);
 
     try {
-      const hasTrustline = await checkUSDCTrustline();
+      const { hasTrustline } = await fetchUsdcTrustlineInfo(walletAddress);
       if (!hasTrustline) {
         router.push(`/trade/enable-usdc?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`);
         return;

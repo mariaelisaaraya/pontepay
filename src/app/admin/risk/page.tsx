@@ -1,6 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { usePrivy } from '@privy-io/react-auth';
 import { Shield, ShieldAlert, ShieldCheck, ExternalLink } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { scoreAllOrders, type RiskLevel } from '@/lib/risk-score';
@@ -13,9 +15,33 @@ function shortenAddress(a: string) {
   return `${a.slice(0, 6)}…${a.slice(-4)}`;
 }
 
+// ─── Auth gate ────────────────────────────────────────────────────────────────
+
+// Internal dashboard: only logged-in users. Falls open when Privy is not
+// configured (local dev without NEXT_PUBLIC_PRIVY_APP_ID — the provider is
+// absent then, so usePrivy would crash anyway).
+const PRIVY_ENABLED = Boolean(process.env.NEXT_PUBLIC_PRIVY_APP_ID);
+
+function LoggedInGate({ children }: { children: React.ReactNode }) {
+  const { ready, authenticated } = usePrivy();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (ready && !authenticated) router.replace('/');
+  }, [ready, authenticated, router]);
+
+  if (!ready || !authenticated) return null;
+  return <>{children}</>;
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function AmlMonitorPage() {
+  const content = <AmlMonitorContent />;
+  return PRIVY_ENABLED ? <LoggedInGate>{content}</LoggedInGate> : content;
+}
+
+function AmlMonitorContent() {
   const orders = useStore((s) => s.orders);
   const [filter, setFilter] = useState<RiskLevel | 'ALL'>('ALL');
 

@@ -32,7 +32,7 @@ async function refreshBalanceForAddress(address: string, setBalance: (usdc: numb
 export default function WalletButton() {
   const { t } = useLanguage();
   const { user: storeUser, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
-  const { login, logout, ready, authenticated, user: privyUser } = usePrivy();
+  const { login, logout, ready, authenticated, user: privyUser, getAccessToken } = usePrivy();
   const { address: stellarAddress, wallet } = useStellarWallet();
   const { isConnected, walletAddress, balance } = storeUser;
 
@@ -122,9 +122,13 @@ export default function WalletButton() {
       try {
         const { Horizon, Networks, Transaction } = await import('@stellar/stellar-sdk');
         const server = new Horizon.Server('https://horizon-testnet.stellar.org');
+        const accessToken = await getAccessToken().catch(() => null);
+        const authHeaders: Record<string, string> = accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {};
         const prep = await fetch('/api/faucet', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({ address, step: 'prepare' }),
         }).then(r => r.json());
         if (!prep.xdr) {
@@ -136,7 +140,7 @@ export default function WalletButton() {
         await server.submitTransaction(signedTx);
         const result = await fetch('/api/faucet', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders },
           body: JSON.stringify({ address, step: 'send' }),
         }).then(r => r.json());
         if (result.success) {
