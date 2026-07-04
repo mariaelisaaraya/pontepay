@@ -27,11 +27,15 @@ function extractSignableXdr(data: { xdr?: string; demo?: boolean; error?: string
   return data.xdr;
 }
 
-export async function defindexDeposit(wallet: PrivyStellarWallet, amountUsdc: number): Promise<void> {
+export async function defindexDeposit(
+  wallet: PrivyStellarWallet,
+  amountUsdc: number,
+  userAddress: string = wallet.address,
+): Promise<void> {
   const res = await fetch('/api/defindex/deposit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress: wallet.address }),
+    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress }),
   });
 
   const data = (await res.json().catch(() => ({}))) as { xdr?: string; demo?: boolean; error?: string };
@@ -51,11 +55,15 @@ export async function defindexDeposit(wallet: PrivyStellarWallet, amountUsdc: nu
   );
 }
 
-export async function defindexWithdraw(wallet: PrivyStellarWallet, amountUsdc: number): Promise<void> {
+export async function defindexWithdraw(
+  wallet: PrivyStellarWallet,
+  amountUsdc: number,
+  userAddress: string = wallet.address,
+): Promise<void> {
   const res = await fetch('/api/defindex/withdraw', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress: wallet.address }),
+    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress }),
   });
 
   const data = (await res.json().catch(() => ({}))) as { xdr?: string; demo?: boolean; error?: string };

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStore } from '@/lib/store';
 import {
   defindexDeposit,
   defindexWithdraw,
@@ -19,7 +20,12 @@ type ActionStep =
   | { status: 'error'; message: string };
 
 export default function EarnCard() {
-  const { wallet, address, isReady } = useStellarWallet();
+  const { wallet, address } = useStellarWallet();
+  // Local-keypair wallets resolve their address asynchronously into the store
+  // (see WalletButton) — the hook returns address:null for them, so fall back.
+  const storeAddress = useStore((s) => s.user.walletAddress);
+  const effectiveAddress = address ?? storeAddress ?? null;
+  const walletReady = Boolean(wallet && effectiveAddress);
 
   const [apy, setApy] = useState<number | null>(null);
   const [balance, setBalance] = useState<{ dfTokens: string; usdcValue: string } | null>(null);
@@ -39,15 +45,15 @@ export default function EarnCard() {
   }, []);
 
   useEffect(() => {
-    if (!address) return;
+    if (!effectiveAddress) return;
     let active = true;
     setBalanceLoading(true);
-    defindexGetBalance(address)
+    defindexGetBalance(effectiveAddress)
       .then((val) => { if (active) setBalance(val); })
       .catch(() => { if (active) setBalance({ dfTokens: '0', usdcValue: '0' }); })
       .finally(() => { if (active) setBalanceLoading(false); });
     return () => { active = false; };
-  }, [address]);
+  }, [effectiveAddress]);
 
   async function handleDeposit() {
     if (!wallet) return;
@@ -55,12 +61,12 @@ export default function EarnCard() {
     if (!amount || amount <= 0) return;
     try {
       setStep({ status: 'loading', label: 'Sign the deposit in your wallet…' });
-      await defindexDeposit(wallet, amount);
+      await defindexDeposit(wallet, amount, effectiveAddress ?? undefined);
 
       setStep({ status: 'success', label: 'Deposit confirmed!' });
       setDepositAmount('');
-      if (address) {
-        defindexGetBalance(address)
+      if (effectiveAddress) {
+        defindexGetBalance(effectiveAddress)
           .then(setBalance)
           .catch(() => {});
       }
@@ -79,12 +85,12 @@ export default function EarnCard() {
     if (!amount || amount <= 0) return;
     try {
       setStep({ status: 'loading', label: 'Sign the withdrawal in your wallet…' });
-      await defindexWithdraw(wallet, amount);
+      await defindexWithdraw(wallet, amount, effectiveAddress ?? undefined);
 
       setStep({ status: 'success', label: 'Withdrawal confirmed!' });
       setWithdrawAmount('');
-      if (address) {
-        defindexGetBalance(address)
+      if (effectiveAddress) {
+        defindexGetBalance(effectiveAddress)
           .then(setBalance)
           .catch(() => {});
       }
@@ -126,7 +132,7 @@ export default function EarnCard() {
 
         <div className="flex items-center justify-between">
           <span className="text-[11px] uppercase tracking-wide text-gray-400">Your balance</span>
-          {!isReady ? (
+          {!walletReady ? (
             <span className="text-[13px] text-gray-400">Connect wallet</span>
           ) : balanceLoading ? (
             <span className="flex items-center gap-1 text-[13px] text-gray-400">
@@ -151,7 +157,7 @@ export default function EarnCard() {
 
       {step.status === 'idle' && (
         <>
-          {isReady ? (
+          {walletReady ? (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <input
