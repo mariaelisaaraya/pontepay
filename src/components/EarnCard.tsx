@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { TrendingUp, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import { useStore } from '@/lib/store';
@@ -36,6 +37,7 @@ export default function EarnCard() {
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [step, setStep] = useState<ActionStep>({ status: 'idle' });
+  const [showWhere, setShowWhere] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -153,6 +155,31 @@ export default function EarnCard() {
             <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-600">
               {parseFloat(balance.dfTokens).toFixed(6)}
             </span>
+          </div>
+        )}
+      </div>
+
+      {/* Plain-language explainer: where the deposited money actually lives */}
+      <div className="mb-4 rounded-xl border border-gray-100 bg-gray-50">
+        <button
+          type="button"
+          onClick={() => setShowWhere((v) => !v)}
+          className="flex w-full items-center justify-between px-3 py-2.5 text-left text-[13px] font-medium text-gray-600 hover:text-gray-800"
+        >
+          {t('earn.whereTitle')}
+          <ChevronDown className={`size-4 text-gray-400 transition-transform ${showWhere ? 'rotate-180' : ''}`} />
+        </button>
+        {showWhere && (
+          <div className="px-3 pb-3 text-[12px] leading-relaxed text-gray-500">
+            {t('earn.whereBody')}{' '}
+            <a
+              href="https://stellar.expert/explorer/testnet/contract/CD3XC44CDLM6L6H4TIB5FIXP262P3O26433ACYZ7N2T2Z65IFMEWQADP"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-primary-600 underline"
+            >
+              {t('earn.viewVault')}
+            </a>
           </div>
         )}
       </div>

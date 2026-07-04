@@ -46,14 +46,34 @@ export async function POST(req: Request) {
       );
     }
 
+    // The bot signs everything with ONE account, so simultaneous trades race
+    // on its sequence number. Rebuild + retry with jitter on tx_bad_seq.
+    const sendWithRetry = async (
+      build: () => Promise<{ signAndSend: () => Promise<{ sendTransactionResponse?: { hash?: string } }> }>,
+    ) => {
+      let lastError: unknown = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) {
+          await new Promise((r) => setTimeout(r, 400 + Math.floor(Math.random() * 900)));
+        }
+        try {
+          const tx = await build();
+          return await tx.signAndSend();
+        } catch (err) {
+          lastError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          if (!msg.includes('tx_bad_seq') && !msg.includes('TRY_AGAIN_LATER')) throw err;
+        }
+      }
+      throw lastError;
+    };
+
     // Bot as SELLER (sell order, from_crypto=true): the taker paid fiat and
     // the seller must confirm receipt, releasing escrow to the taker.
     if (order.status.tag === 'AwaitingConfirmation' && order.from_crypto) {
-      const tx = await client.confirm_fiat_payment({
-        caller: kp.publicKey(),
-        order_id: BigInt(orderId),
-      });
-      const sent = await tx.signAndSend();
+      const sent = await sendWithRetry(() =>
+        client.confirm_fiat_payment({ caller: kp.publicKey(), order_id: BigInt(orderId) }),
+      );
       return Response.json({
         action: 'confirm_fiat_payment',
         hash: sent.sendTransactionResponse?.hash ?? null,
@@ -64,11 +84,9 @@ export async function POST(req: Request) {
     // their USDC, the bot is the fiat payer and marks the ARS as sent. The
     // taker then confirms receipt to complete the trade.
     if (order.status.tag === 'AwaitingPayment' && !order.from_crypto) {
-      const tx = await client.submit_fiat_payment({
-        caller: kp.publicKey(),
-        order_id: BigInt(orderId),
-      });
-      const sent = await tx.signAndSend();
+      const sent = await sendWithRetry(() =>
+        client.submit_fiat_payment({ caller: kp.publicKey(), order_id: BigInt(orderId) }),
+      );
       return Response.json({
         action: 'submit_fiat_payment',
         hash: sent.sendTransactionResponse?.hash ?? null,

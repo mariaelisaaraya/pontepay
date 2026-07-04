@@ -121,6 +121,9 @@ const en = {
   'earn.tryAgain': 'Try again',
   'earn.back': 'Back',
   'earn.loading': 'Loading…',
+  'earn.whereTitle': 'Where is my money?',
+  'earn.whereBody': 'Your USDC is held by a public smart contract on Stellar (the vault) — not by PontePay. Your dfTokens are your ownership receipt: redeem them anytime with Withdraw. On testnet the yield is not accruing yet; in production the vault lends the funds through Blend and the interest grows your balance.',
+  'earn.viewVault': 'View the vault on Stellar Expert →',
 
   // Orders
   'orders.title': 'My Orders',
@@ -312,6 +315,9 @@ const es: Record<TranslationKey, string> = {
   'earn.tryAgain': 'Reintentar',
   'earn.back': 'Volver',
   'earn.loading': 'Cargando…',
+  'earn.whereTitle': '¿Dónde está mi plata?',
+  'earn.whereBody': 'Tus USDC quedan guardados en un contrato público de Stellar (el vault) — no los tiene PontePay. Los dfTokens son tu recibo de propiedad: los canjeás cuando quieras con Retirar. En testnet el rendimiento todavía no se acumula; en producción el vault presta los fondos vía Blend y el interés hace crecer tu saldo.',
+  'earn.viewVault': 'Ver el vault en Stellar Expert →',
 
   // Órdenes
   'orders.title': 'Mis órdenes',
