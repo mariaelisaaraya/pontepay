@@ -25,7 +25,8 @@ interface SendModalProps {
   isOpen: boolean;
   onClose: () => void;
   availableUsdc: number;
-  onSend: (amount: number) => boolean;
+  /** Performs the real on-chain transfer; resolves with the tx hash. */
+  onSend: (amount: number, recipient: string, memo: string) => Promise<string>;
 }
 
 type SendMode = 'wallet' | 'vendor';
@@ -99,7 +100,7 @@ export default function SendModal({
     ? isRecipientValid && hasEnoughBalance && !isSending
     : isVendorFormValid && hasEnoughBalance && !isSending;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!hasAmount) {
@@ -124,20 +125,17 @@ export default function SendModal({
       }
 
       setIsSending(true);
-      const didSend = onSend(parsedAmount);
-
-      if (!didSend) {
-        toast.error('Send failed. Please try again');
+      try {
+        const hash = await onSend(parsedAmount, recipientTrimmed, memoTrimmed);
+        toast.success(
+          `Sent ${parsedAmount.toFixed(2)} USDC to ${shortenAddress(recipientTrimmed)} · tx ${hash.slice(0, 8)}…`,
+        );
+        handleClose();
+      } catch (error) {
+        console.error('[send] transfer failed:', error);
+        toast.error(error instanceof Error ? error.message : 'Send failed. Please try again');
         setIsSending(false);
-        return;
       }
-
-      toast.success(
-        memoTrimmed
-          ? `Sent ${parsedAmount.toFixed(2)} USDC to ${shortenAddress(recipientTrimmed)} with memo`
-          : `Sent ${parsedAmount.toFixed(2)} USDC to ${shortenAddress(recipientTrimmed)}`,
-      );
-      handleClose();
       return;
     }
 

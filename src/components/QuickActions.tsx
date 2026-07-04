@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { useStellarWallet } from "@/lib/privy-wallet";
+import { sendUsdc } from "@/lib/send-usdc";
+import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
 import DepositModal from "@/components/DepositModal";
 import TradeDrawer from "@/components/TradeDrawer";
 import SendModal from "@/components/SendModal";
@@ -26,7 +29,8 @@ const actions = [
 
 export default function QuickActions() {
   const router = useRouter();
-  const { user, subtractBalance } = useStore();
+  const { user, setBalance } = useStore();
+  const { wallet } = useStellarWallet();
   const [depositOpen, setDepositOpen] = useState(false);
   const [tradeOpen, setTradeOpen] = useState(false);
   const [tradeMode, setTradeMode] = useState<"buy" | "sell">("buy");
@@ -78,7 +82,16 @@ export default function QuickActions() {
         isOpen={sendOpen}
         onClose={() => setSendOpen(false)}
         availableUsdc={user.balance.usdc}
-        onSend={(amount) => subtractBalance(amount)}
+        onSend={async (amount, recipient, memo) => {
+          if (!wallet || !walletAddress) {
+            throw new Error("Wallet not ready — sign in first");
+          }
+          const hash = await sendUsdc(wallet, walletAddress, recipient, amount, memo);
+          // Refresh the real on-chain balance after the transfer confirms.
+          const { balance, hasTrustline } = await fetchUsdcTrustlineInfo(walletAddress);
+          setBalance(balance, hasTrustline);
+          return hash;
+        }}
       />
 
       <DepositModal
