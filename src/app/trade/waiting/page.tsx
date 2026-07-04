@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useState, useEffect, Suspense, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import {
@@ -33,7 +33,9 @@ function WaitingContent() {
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') || '';
-  const isDemo = true; // testnet: always demo mode — no real seller confirmation
+  // Demo orders walk the screens without on-chain reads; real orders poll the
+  // contract until the seller confirms and USDC is released.
+  const isDemo = searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
 
   const [isChecking, setIsChecking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -41,6 +43,7 @@ function WaitingContent() {
   const [order, setOrder] = useState<ChainOrder | null>(null);
   const [makerLabel, setMakerLabel] = useState('counterparty');
   const [initialFilledAmount, setInitialFilledAmount] = useState<bigint | null>(null);
+  const makerBotCalledRef = useRef(false);
 
   const navigateToSuccess = useCallback(() => {
     router.push(
@@ -60,6 +63,20 @@ function WaitingContent() {
       setOrder(nextOrder);
       setOrderStatus(nextOrder.status);
       setMakerLabel(`${nextOrder.creator.slice(0, 6)}...${nextOrder.creator.slice(-4)}`);
+
+      // Bot-maker orders: nudge the demo market-maker to confirm the fiat leg
+      // and release escrow. Server-side it only acts on its own orders.
+      if (
+        nextOrder.status === 'AwaitingConfirmation' &&
+        !makerBotCalledRef.current
+      ) {
+        makerBotCalledRef.current = true;
+        void fetch('/api/maker-bot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        }).catch(() => { /* human sellers confirm manually */ });
+      }
 
       if (initialFilledAmount === null) {
         setInitialFilledAmount(nextOrder.filled_amount);
