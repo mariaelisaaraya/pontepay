@@ -12,7 +12,9 @@ pub fn validate_initialize_inputs(
         return Err(ContractError::InvalidTimeout);
     }
 
-    if platform_fee_bps > 10_000 {
+    // v2: same 10% ceiling as fee tiers — the previous 100% cap let a
+    // misconfigured init confiscate entire fills as "fees".
+    if platform_fee_bps > 1_000 {
         return Err(ContractError::InvalidAmount);
     }
 

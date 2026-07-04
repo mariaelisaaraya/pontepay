@@ -245,8 +245,10 @@ impl OrderManager {
 
         let token_client = TokenClient::new(e, &config.token);
 
+        // v2: tiered fee schedule (falls back to the flat config fee).
+        let fee_bps = AdminManager::effective_fee_bps(e, &config, active_fill_amount);
         let fee_amount = active_fill_amount
-            .checked_mul(config.platform_fee_bps as i128)
+            .checked_mul(fee_bps as i128)
             .ok_or(ContractError::Overflow)?
             .checked_div(10_000)
             .ok_or(ContractError::DivisionError)?;

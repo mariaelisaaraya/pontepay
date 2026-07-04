@@ -1,16 +1,35 @@
-use soroban_sdk::{contract, contractimpl, Address, Env};
+use soroban_sdk::{contract, contractimpl, panic_with_error, Address, Env, Vec};
+use stellar_contract_utils::upgradeable::UpgradeableInternal;
+use stellar_macros::Upgradeable;
 
 use crate::core::{AdminManager, DisputeManager, OracleManager, OrderManager};
 use crate::error::ContractError;
 use crate::events::handler::{
-    DisputeResolved, FiatPaymentConfirmed, FiatPaymentDisputed, FiatPaymentSubmitted,
+    DisputeResolved, FeeTiersSet, FiatPaymentConfirmed, FiatPaymentDisputed, FiatPaymentSubmitted,
     FiatTransferTimeout, Initialized, OracleSet, OrderCancelled, OrderCreated, OrderTaken,
     PausedEvt, UnpausedEvt,
 };
-use crate::storage::types::{Config, FiatCurrency, Order, PaymentMethod};
+use crate::storage::types::{Config, FeeTier, FiatCurrency, Order, PaymentMethod};
 
+#[derive(Upgradeable)]
 #[contract]
 pub struct P2PContract;
+
+// Only the configured admin may replace the contract WASM. The operator is the
+// invoker of `upgrade(new_wasm_hash, operator)`; OpenZeppelin's derive handles
+// the actual `update_current_contract_wasm` call and SEP-49 version metadata.
+impl UpgradeableInternal for P2PContract {
+    fn _require_auth(e: &Env, operator: &Address) {
+        operator.require_auth();
+        let config = match AdminManager::get_config(e) {
+            Ok(config) => config,
+            Err(err) => panic_with_error!(e, err),
+        };
+        if *operator != config.admin {
+            panic_with_error!(e, ContractError::Unauthorized);
+        }
+    }
+}
 
 #[contractimpl]
 impl P2PContract {
@@ -61,6 +80,31 @@ impl P2PContract {
         AdminManager::unpause(&e, caller.clone())?;
         UnpausedEvt { by: caller }.publish(&e);
         Ok(())
+    }
+
+    /// Admin-only: set the tiered platform-fee schedule (empty = flat fee).
+    pub fn set_fee_tiers(
+        e: Env,
+        caller: Address,
+        tiers: Vec<FeeTier>,
+    ) -> Result<(), ContractError> {
+        AdminManager::set_fee_tiers(&e, caller.clone(), tiers.clone())?;
+        FeeTiersSet {
+            by: caller,
+            tier_count: tiers.len(),
+        }
+        .publish(&e);
+        Ok(())
+    }
+
+    pub fn get_fee_tiers(e: Env) -> Vec<FeeTier> {
+        AdminManager::get_fee_tiers(&e)
+    }
+
+    /// Fee in bps that a fill of `amount` would pay right now.
+    pub fn quote_fee_bps(e: Env, amount: i128) -> Result<u32, ContractError> {
+        let config = AdminManager::get_config(&e)?;
+        Ok(AdminManager::effective_fee_bps(&e, &config, amount))
     }
 
     pub fn create_order(

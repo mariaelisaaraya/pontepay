@@ -4,7 +4,7 @@ extern crate std;
 
 use crate::contract::P2PContract;
 use crate::contract::P2PContractClient;
-use crate::storage::types::{FiatCurrency, OrderStatus, PaymentMethod};
+use crate::storage::types::{FeeTier, FiatCurrency, OrderStatus, PaymentMethod};
 
 use soroban_sdk::testutils::{Address as _, Ledger};
 use soroban_sdk::{token, Address, Env};
@@ -28,6 +28,7 @@ fn set_timestamp(e: &Env, timestamp: u64) {
 struct Setup<'a> {
     env: Env,
     client: P2PContractClient<'a>,
+    admin: Address,
     pauser: Address,
     dispute_resolver: Address,
     creator: Address,
@@ -70,6 +71,7 @@ fn setup<'a>() -> Setup<'a> {
     Setup {
         env,
         client,
+        admin,
         pauser,
         dispute_resolver,
         creator,
@@ -279,7 +281,11 @@ fn test_dispute_and_resolve_confirmed_completes() {
     assert_eq!(order.status, OrderStatus::Completed);
     assert_eq!(order.filled_amount, 250);
     assert_eq!(order.remaining_amount, 0);
-    assert_eq!(s.token.balance(&s.filler), filler_before + 250);
+    // v2: a dispute resolved as "fiat was paid" completes the trade and pays
+    // the platform fee, same as the normal confirm path.
+    let fee = expected_fee(250);
+    assert_eq!(s.token.balance(&s.filler), filler_before + 250 - fee);
+    assert_eq!(s.token.balance(&s.platform), fee);
 }
 
 #[test]
@@ -749,5 +755,181 @@ fn test_reference_rate_requires_oracle_configured() {
     let s = setup();
     // No oracle set -> reference_rate must fail rather than panic.
     let result = s.client.try_reference_rate(&2u32);
+    assert!(result.is_err());
+}
+
+
+// ───────────────────── v2: tiered fees + upgrade authorization ─────────────────────
+
+fn pontepay_tiers(e: &Env) -> soroban_sdk::Vec<FeeTier> {
+    soroban_sdk::vec![
+        e,
+        FeeTier { min_amount: 0, fee_bps: 250 },
+        FeeTier { min_amount: 100_000_000, fee_bps: 150 },
+        FeeTier { min_amount: 500_000_000, fee_bps: 100 },
+        FeeTier { min_amount: 2_000_000_000, fee_bps: 80 },
+    ]
+}
+
+#[test]
+fn test_set_fee_tiers_and_quote_boundaries() {
+    let s = setup();
+
+    // Without a schedule the flat config fee applies.
+    assert_eq!(s.client.quote_fee_bps(&1), TEST_FEE_BPS);
+
+    s.client.set_fee_tiers(&s.admin, &pontepay_tiers(&s.env));
+
+    assert_eq!(s.client.get_fee_tiers().len(), 4);
+    assert_eq!(s.client.quote_fee_bps(&1), 250);
+    assert_eq!(s.client.quote_fee_bps(&99_999_999), 250);
+    assert_eq!(s.client.quote_fee_bps(&100_000_000), 150);
+    assert_eq!(s.client.quote_fee_bps(&499_999_999), 150);
+    assert_eq!(s.client.quote_fee_bps(&500_000_000), 100);
+    assert_eq!(s.client.quote_fee_bps(&1_999_999_999), 100);
+    assert_eq!(s.client.quote_fee_bps(&2_000_000_000), 80);
+    assert_eq!(s.client.quote_fee_bps(&1_000_000_000_000), 80);
+
+    // Clearing the schedule falls back to the flat fee.
+    s.client.set_fee_tiers(&s.admin, &soroban_sdk::vec![&s.env]);
+    assert_eq!(s.client.quote_fee_bps(&1), TEST_FEE_BPS);
+}
+
+#[test]
+fn test_set_fee_tiers_rejects_non_admin() {
+    let s = setup();
+    let result = s.client.try_set_fee_tiers(&s.creator, &pontepay_tiers(&s.env));
+    assert!(result.is_err());
+}
+
+#[test]
+fn test_set_fee_tiers_rejects_invalid_schedules() {
+    let s = setup();
+
+    // First tier must start at 0.
+    let bad_start = soroban_sdk::vec![
+        &s.env,
+        FeeTier { min_amount: 10, fee_bps: 100 },
+    ];
+    assert!(s.client.try_set_fee_tiers(&s.admin, &bad_start).is_err());
+
+    // min_amount must ascend strictly.
+    let not_ascending = soroban_sdk::vec![
+        &s.env,
+        FeeTier { min_amount: 0, fee_bps: 250 },
+        FeeTier { min_amount: 0, fee_bps: 150 },
+    ];
+    assert!(s.client.try_set_fee_tiers(&s.admin, &not_ascending).is_err());
+
+    // Fee above the 10% ceiling is rejected.
+    let too_expensive = soroban_sdk::vec![
+        &s.env,
+        FeeTier { min_amount: 0, fee_bps: 1_001 },
+    ];
+    assert!(s.client.try_set_fee_tiers(&s.admin, &too_expensive).is_err());
+}
+
+#[test]
+fn test_confirm_charges_tiered_fee() {
+    let s = setup();
+    s.client.set_fee_tiers(&s.admin, &pontepay_tiers(&s.env));
+
+    let filler_before = s.token.balance(&s.filler);
+    let fill_amount: i128 = 400; // < first boundary → 250 bps
+    let order_id = s.client.create_order(
+        &s.creator,
+        &FiatCurrency::Usd,
+        &PaymentMethod::BankTransfer,
+        &true,
+        &fill_amount,
+        &1000,
+        &600,
+    );
+
+    s.client.take_order(&s.filler, &order_id);
+    s.client.submit_fiat_payment(&s.filler, &order_id);
+    s.client.confirm_fiat_payment(&s.creator, &order_id);
+
+    let fee = fill_amount * 250 / 10_000; // 10
+    assert_eq!(s.token.balance(&s.platform), fee);
+    assert_eq!(s.token.balance(&s.filler), filler_before + fill_amount - fee);
+    assert_eq!(s.token.balance(&s.client.address), 0);
+}
+
+#[test]
+fn test_resolve_dispute_confirmed_charges_fee() {
+    let s = setup();
+
+    let filler_before = s.token.balance(&s.filler);
+    let fill_amount: i128 = 400;
+    let order_id = s.client.create_order(
+        &s.creator,
+        &FiatCurrency::Usd,
+        &PaymentMethod::BankTransfer,
+        &true,
+        &fill_amount,
+        &1000,
+        &600,
+    );
+
+    s.client.take_order(&s.filler, &order_id);
+    s.client.submit_fiat_payment(&s.filler, &order_id);
+    s.client.dispute_fiat_payment(&s.filler, &order_id);
+    s.client.resolve_dispute(&s.dispute_resolver, &order_id, &true);
+
+    // Fee-consistency fix: a dispute resolved as "fiat was paid" is a
+    // completed trade and pays the same platform fee as the normal path.
+    let fee = expected_fee(fill_amount);
+    assert_eq!(s.token.balance(&s.platform), fee);
+    assert_eq!(s.token.balance(&s.filler), filler_before + fill_amount - fee);
+    assert_eq!(s.token.balance(&s.client.address), 0);
+}
+
+#[test]
+fn test_resolve_dispute_rejected_refunds_without_fee() {
+    let s = setup();
+
+    let creator_before = s.token.balance(&s.creator);
+    let fill_amount: i128 = 400;
+    let order_id = s.client.create_order(
+        &s.creator,
+        &FiatCurrency::Usd,
+        &PaymentMethod::BankTransfer,
+        &true,
+        &fill_amount,
+        &1000,
+        &600,
+    );
+
+    s.client.take_order(&s.filler, &order_id);
+    s.client.submit_fiat_payment(&s.filler, &order_id);
+    s.client.dispute_fiat_payment(&s.filler, &order_id);
+    s.client.resolve_dispute(&s.dispute_resolver, &order_id, &false);
+
+    // Refund path: escrow returns to the creator in full, no fee taken.
+    assert_eq!(s.token.balance(&s.platform), 0);
+    assert_eq!(s.token.balance(&s.creator), creator_before);
+    let order = s.client.get_order(&order_id);
+    assert_eq!(order.status, OrderStatus::AwaitingFiller);
+}
+
+#[test]
+fn test_initialize_rejects_fee_above_ceiling() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let admin = Address::generate(&env);
+    let (token, _) = create_token(&env, &admin);
+    let client = P2PContractClient::new(&env, &env.register(P2PContract {}, ()));
+
+    let result = client.try_initialize(
+        &admin,
+        &admin,
+        &admin,
+        &token.address,
+        &admin,
+        &1_001, // > 10% ceiling
+        &2_592_000,
+        &1_800,
+    );
     assert!(result.is_err());
 }

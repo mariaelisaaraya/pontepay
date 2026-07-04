@@ -92,6 +92,16 @@ pub struct Order {
     pub fiat_transfer_deadline: Option<u64>,
 }
 
+/// One step of the tiered platform-fee schedule. `min_amount` is the smallest
+/// fill (in token stroops) this tier applies to; the schedule is stored sorted
+/// ascending and the highest matching tier wins.
+#[contracttype]
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FeeTier {
+    pub min_amount: i128,
+    pub fee_bps: u32,
+}
+
 #[contracttype]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DataKey {
@@ -99,4 +109,8 @@ pub enum DataKey {
     OrderCount,
     Order(u64),
     Oracle,
+    /// Vec<FeeTier> — optional tiered fee schedule. When absent or empty the
+    /// flat `Config.platform_fee_bps` applies, so pre-existing behavior is
+    /// preserved across upgrades.
+    FeeTiers,
 }

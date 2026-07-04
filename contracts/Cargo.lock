@@ -871,10 +871,12 @@ dependencies = [
 
 [[package]]
 name = "p2p"
-version = "0.0.0"
+version = "0.2.0"
 dependencies = [
  "soroban-sdk",
  "soroban-token-sdk",
+ "stellar-contract-utils",
+ "stellar-macros",
 ]
 
 [[package]]
@@ -1402,6 +1404,26 @@ name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+
+[[package]]
+name = "stellar-contract-utils"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fc596a92adf2bbfbc6022c5d218c9bace96554de95e350e38e9da4a5a5ea77d"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
+name = "stellar-macros"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bcc533c344e11f77f34f03e7cdc8d70da83784c746953bfd4b2d62f5423130ac"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.106",
+]
 
 [[package]]
 name = "stellar-strkey"

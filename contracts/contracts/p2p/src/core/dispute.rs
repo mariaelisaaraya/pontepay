@@ -60,6 +60,10 @@ impl DisputeManager {
         let active_fill_amount = ensure_active_fill_amount(&order)?;
 
         let token_client = TokenClient::new(e, &config.token);
+        // Platform fee applies only when the trade completes successfully
+        // (confirmed branch) — refunds are always fee-free. v2 consistency fix:
+        // previously a dispute-confirmed release skipped the fee entirely.
+        let mut payout = active_fill_amount;
         let recipient = if fiat_transfer_confirmed {
             order.filled_amount = order
                 .filled_amount
@@ -75,6 +79,24 @@ impl DisputeManager {
             } else {
                 OrderStatus::AwaitingFiller
             };
+
+            let fee_bps = AdminManager::effective_fee_bps(e, &config, active_fill_amount);
+            let fee_amount = active_fill_amount
+                .checked_mul(fee_bps as i128)
+                .ok_or(ContractError::Overflow)?
+                .checked_div(10_000)
+                .ok_or(ContractError::DivisionError)?;
+            if fee_amount > 0 {
+                token_client.transfer(
+                    &e.current_contract_address(),
+                    &config.platform_address,
+                    &fee_amount,
+                );
+            }
+            payout = active_fill_amount
+                .checked_sub(fee_amount)
+                .ok_or(ContractError::Underflow)?;
+
             if order.from_crypto {
                 order.filler.clone().ok_or(ContractError::MissingFiller)?
             } else {
@@ -89,11 +111,7 @@ impl DisputeManager {
             }
         };
 
-        token_client.transfer(
-            &e.current_contract_address(),
-            &recipient,
-            &active_fill_amount,
-        );
+        token_client.transfer(&e.current_contract_address(), &recipient, &payout);
         order.filler = None;
         order.active_fill_amount = None;
         order.fiat_transfer_deadline = None;
