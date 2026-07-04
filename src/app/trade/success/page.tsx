@@ -11,6 +11,7 @@ import {
   loadVendorPaymentRequest,
 } from "@/lib/vendor-payment-request";
 import { useStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const FEE_RATE = 0.005;
 
@@ -38,6 +39,7 @@ function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addTrade } = useTradeHistory();
+  const { t } = useLanguage();
 
   const amount = parseFloat(searchParams.get("amount") || "0.11");
   const fillUsdc = parseFloat(searchParams.get("fillUsdc") || String(amount));
@@ -138,10 +140,10 @@ function SuccessContent() {
           </div>
 
           <h2 className="mb-2 font-[family-name:var(--font-space-grotesk)] text-2xl font-bold text-gray-900">
-            You&apos;re all set
+            {t('trade.allSet')}
           </h2>
           <p className="text-body-sm text-gray-500">
-            Your trade is complete and your USDC is ready to use.
+            {t('trade.tradeComplete')}
           </p>
           {vendorAlias && (
             <p className="mt-2 text-caption text-gray-500">
@@ -159,13 +161,13 @@ function SuccessContent() {
         <div className="flex flex-col items-center space-y-4">
           <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 space-y-3 text-center">
             <div className="flex flex-col items-center gap-1">
-              <span className="text-body-sm text-gray-500">You received</span>
+              <span className="text-body-sm text-gray-500">{t('trade.youReceived')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-xl font-bold text-emerald-600 tabular-nums">
                 {formatUsdc(fillUsdc)} USDC
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <span className="text-body-sm text-gray-500">You paid</span>
+              <span className="text-body-sm text-gray-500">{t('trade.youPaid')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-sm font-semibold text-gray-900 tabular-nums">
                 ${formatFiat(totalPaid)} ARS
               </span>
@@ -174,7 +176,7 @@ function SuccessContent() {
             <div className="border-t border-gray-200 pt-3">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-body-sm text-gray-500">
-                  Transaction ID
+                  {t('trade.transactionId')}
                 </span>
                 <div className="flex items-center justify-center gap-2">
                   <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-gray-400 tabular-nums">
@@ -208,7 +210,7 @@ function SuccessContent() {
             onClick={() => router.push("/orders")}
             className="w-full max-w-sm h-11 rounded-xl font-[family-name:var(--font-space-grotesk)] text-sm font-semibold text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
           >
-            Leave feedback later
+            {t('trade.leaveFeedback')}
           </button>
         </div>
       </div>
@@ -219,14 +221,14 @@ function SuccessContent() {
           onClick={() => router.push("/trade")}
           className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-primary-700 shadow-lg shadow-primary-700/25 hover:bg-primary-800 transition-all active:scale-[0.98]"
         >
-          Start new trade
+          {t('trade.startNewTrade')}
         </button>
         <button
           type="button"
           onClick={() => router.push("/orders")}
           className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-gray-500 border border-gray-200 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
         >
-          View my orders
+          {t('trade.viewMyOrders')}
         </button>
       </div>
     </div>

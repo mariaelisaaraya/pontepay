@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import type { VendorPaymentRail } from '@/types';
 import { findBestMatch } from '@/lib/match-order';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { saveVendorPaymentRequest } from '@/lib/vendor-payment-request';
 import {
   Drawer,
@@ -43,6 +44,7 @@ export default function SendModal({
   onSend,
 }: SendModalProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const walletAddress = useStore((state) => state.user.walletAddress);
   const orders = useStore((state) => state.orders);
   const [mode, setMode] = useState<SendMode>('wallet');
@@ -201,7 +203,7 @@ export default function SendModal({
         <DrawerHeader className="border-b border-gray-100 px-4 pb-3 pt-4 text-left">
           <div className="flex items-center justify-between">
             <DrawerTitle className="font-[family-name:var(--font-space-grotesk)] text-lg font-bold text-gray-900">
-              Send
+              {t('send.title')}
             </DrawerTitle>
             <button
               type="button"
@@ -213,7 +215,7 @@ export default function SendModal({
             </button>
           </div>
           <DrawerDescription className="text-xs text-gray-500">
-            Use wallet transfer or route through escrow with a buyer order.
+            {t('send.subtitle')}
           </DrawerDescription>
         </DrawerHeader>
 
@@ -227,7 +229,7 @@ export default function SendModal({
                 mode === 'wallet' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
               }`}
             >
-              Wallet transfer
+              {t('send.walletTransfer')}
             </button>
             <button
               type="button"
@@ -236,12 +238,12 @@ export default function SendModal({
                 mode === 'vendor' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
               }`}
             >
-              Vendor payout
+              {t('send.vendorPayout')}
             </button>
             </div>
 
             <div className="rounded-xl bg-gray-50 p-4">
-              <p className="text-xs uppercase tracking-wide text-gray-500">Available balance</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500">{t('send.availableBalance')}</p>
               <p className="mt-1 font-[family-name:var(--font-jetbrains-mono)] text-xl font-semibold text-gray-900">
                 {availableUsdc.toLocaleString(undefined, {
                   minimumFractionDigits: 2,
@@ -255,7 +257,7 @@ export default function SendModal({
               <>
                 <div className="space-y-2">
                   <label htmlFor="send-recipient" className="text-sm font-medium text-gray-800">
-                    Recipient address
+                    {t('send.recipientAddress')}
                   </label>
                   <Input
                     id="send-recipient"
@@ -266,19 +268,19 @@ export default function SendModal({
                     autoComplete="off"
                   />
                   {recipientTrimmed && !isRecipientValid ? (
-                    <p className="text-xs text-red-600">Must be a valid Stellar public key.</p>
+                    <p className="text-xs text-red-600">{t('send.invalidAddress')}</p>
                   ) : null}
                 </div>
 
                 <div className="space-y-2">
                   <label htmlFor="send-memo" className="text-sm font-medium text-gray-800">
-                    Memo (optional)
+                    {t('send.memo')}
                   </label>
                   <textarea
                     id="send-memo"
                     value={memo}
                     onChange={(event) => setMemo(event.target.value)}
-                    placeholder="Add a note for this transfer"
+                    placeholder={t('send.memoPlaceholder')}
                     rows={3}
                     maxLength={120}
                     className="w-full resize-none rounded-xl border border-gray-200 bg-transparent px-3 py-2 text-sm outline-none transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -334,7 +336,7 @@ export default function SendModal({
 
             <div className="space-y-2 pb-2">
               <label htmlFor="send-amount" className="text-sm font-medium text-gray-800">
-                Amount (USDC)
+                {t('send.amount')}
               </label>
               <Input
                 id="send-amount"
@@ -348,7 +350,7 @@ export default function SendModal({
                 className="h-11 rounded-xl border-gray-200 text-sm"
               />
               {hasAmount && !hasEnoughBalance ? (
-                <p className="text-xs text-red-600">Amount exceeds your available USDC balance.</p>
+                <p className="text-xs text-red-600">{t('send.exceedsBalance')}</p>
               ) : null}
             </div>
 
@@ -365,7 +367,7 @@ export default function SendModal({
               disabled={!canSubmit}
               className="h-12 w-full rounded-xl bg-gray-900 font-semibold text-white transition-colors hover:bg-gray-800 disabled:opacity-50"
             >
-              {isSending ? 'Submitting...' : mode === 'wallet' ? 'Send USDC' : 'Continue to escrow'}
+              {isSending ? t('send.submitting') : mode === 'wallet' ? t('send.sendUsdc') : t('send.continueEscrow')}
             </Button>
           </DrawerFooter>
         </form>

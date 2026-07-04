@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
 import Transferencias30QR from '@/components/trade/Transferencias30QR';
 import { submitFiatPayment } from '@/lib/trade-actions';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -112,6 +113,7 @@ function shortAddress(addr: string): string {
 // ─── Countdown ring ───────────────────────────────────────────────────────────
 
 function CountdownRing({ seconds, total }: { seconds: number; total: number }) {
+  const { t } = useLanguage();
   const radius = 27;
   const circumference = 2 * Math.PI * radius;
   const progress = Math.max(0, seconds / total);
@@ -161,7 +163,7 @@ function CountdownRing({ seconds, total }: { seconds: number; total: number }) {
           {formatTime(seconds)}
         </span>
       </div>
-      <span className="text-[10px] text-gray-400 font-medium">Time left</span>
+      <span className="text-[10px] text-gray-400 font-medium">{t('trade.timeLeft')}</span>
     </div>
   );
 }
@@ -246,6 +248,7 @@ function PaymentContent() {
   const mode = (searchParams.get('mode') ?? 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') ?? '';
   const isDemo = searchParams.get('demo') === '1';
+  const { t } = useLanguage();
 
   // Resolve maker info and payment method from order store
   const order = orders.find((o) => o.id === orderId);
@@ -400,7 +403,7 @@ function PaymentContent() {
           </button>
           <div>
             <h2 className="font-[family-name:var(--font-space-grotesk)] text-[17px] font-bold text-gray-900 leading-tight">
-              Send Payment
+              {t('trade.sendPayment')}
             </h2>
             <p className="text-[11px] text-gray-400 leading-none mt-0.5">
               Complete your fiat transfer
@@ -455,20 +458,20 @@ function PaymentContent() {
           {/* Trade breakdown */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-gray-500">You receive</span>
+              <span className="text-[13px] text-gray-500">{t('trade.youReceive')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] font-semibold text-gray-900 tabular-nums">
                 {fillUsdc.toFixed(2)} USDC
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[13px] text-gray-500">Exchange rate</span>
+              <span className="text-[13px] text-gray-500">{t('trade.exchangeRate')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-700 tabular-nums">
                 1 USDC = {Math.round(rate).toLocaleString('es-AR')} ARS
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-[13px] text-gray-500">
-                Platform fee (0.5%)
+                {t('trade.platformFee')}
               </span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-400 tabular-nums">
                 −{formatFiat(feeArs)} ARS
@@ -481,7 +484,7 @@ function PaymentContent() {
           {/* Total */}
           <div className="flex items-center justify-between">
             <span className="font-[family-name:var(--font-space-grotesk)] text-sm font-semibold text-gray-700">
-              Total to send
+              {t('trade.totalToSend')}
             </span>
             <div className="text-right">
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-2xl font-bold text-primary-800 tabular-nums">
@@ -673,7 +676,7 @@ function PaymentContent() {
               Submitting...
             </span>
           ) : (
-            "I've sent the payment"
+            t('trade.sentPayment')
           )}
         </button>
 
@@ -683,7 +686,7 @@ function PaymentContent() {
           className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all active:scale-[0.98]"
         >
           <X className="size-4" />
-          Cancel trade
+          {t('trade.cancelTrade')}
         </button>
         <TradeChatDrawer
           triggerLabel="Message seller"

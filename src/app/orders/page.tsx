@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useTradeHistory } from '@/contexts/TradeHistoryContext';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
@@ -87,6 +88,7 @@ function FilterSheet({
   filters: OrderFilters;
   onApply: (filters: OrderFilters) => void;
 }) {
+  const { t } = useLanguage();
   const [draft, setDraft] = useState<OrderFilters>(filters);
 
   const toggleType = (type: OrderType) => {
@@ -104,7 +106,7 @@ function FilterSheet({
         <div className="space-y-6 px-5 pb-8 pt-4">
           <DrawerHeader className="space-y-0 px-0 pt-0">
             <div className="flex items-center justify-between">
-              <DrawerTitle className="font-[family-name:var(--font-space-grotesk)] text-lg">Filters</DrawerTitle>
+              <DrawerTitle className="font-[family-name:var(--font-space-grotesk)] text-lg">{t('orders.filters')}</DrawerTitle>
               <button
                 type="button"
                 onClick={onClose}
@@ -117,33 +119,33 @@ function FilterSheet({
           </DrawerHeader>
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Side</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">{t('orders.side')}</h3>
             <div className="space-y-0.5">
               <FilterCheckbox
                 checked={draft.type.includes('buy')}
                 onChange={() => toggleType('buy')}
-                label="Buy orders"
+                label={t('orders.buyOrders')}
               />
               <FilterCheckbox
                 checked={draft.type.includes('sell')}
                 onChange={() => toggleType('sell')}
-                label="Sell orders"
+                label={t('orders.sellOrders')}
               />
             </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Date range</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">{t('orders.dateRange')}</h3>
             <div className="space-y-0.5">
               <FilterCheckbox
                 checked={draft.dateRange === 'last7'}
                 onChange={() => setDraft((prev) => ({ ...prev, dateRange: prev.dateRange === 'last7' ? 'all' : 'last7' }))}
-                label="Last 7 days"
+                label={t('orders.last7')}
               />
               <FilterCheckbox
                 checked={draft.dateRange === 'last30'}
                 onChange={() => setDraft((prev) => ({ ...prev, dateRange: prev.dateRange === 'last30' ? 'all' : 'last30' }))}
-                label="Last 30 days"
+                label={t('orders.last30')}
               />
             </div>
           </div>
@@ -156,7 +158,7 @@ function FilterSheet({
             }}
             className="h-12 w-full rounded-xl bg-primary-500 text-sm font-semibold text-white hover:bg-primary-600"
           >
-            Apply filters
+            {t('orders.applyFilters')}
           </button>
         </div>
       </DrawerContent>
@@ -178,6 +180,7 @@ function toDate(value: Date | string): Date {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const orders = useStore((state) => state.orders);
   const walletAddress = useStore((state) => state.user.walletAddress);
@@ -257,7 +260,7 @@ export default function OrdersPage() {
   return (
     <>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-h3 text-black">My Orders</h1>
+        <h1 className="text-h3 text-black">{t('orders.title')}</h1>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -270,7 +273,7 @@ export default function OrdersPage() {
             )}
           >
             <SlidersHorizontal className="size-4" />
-            <span className="font-medium">Filters</span>
+            <span className="font-medium">{t('orders.filters')}</span>
             {activeFilterCount > 0 && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-500 px-1 text-[10px] font-bold text-white">
                 {activeFilterCount}
@@ -312,7 +315,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Active ({activeOrders.length})
+          {t('orders.active')} ({activeOrders.length})
         </button>
         <button
           type="button"
@@ -324,7 +327,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Completed ({completedOrders.length + filteredTrades.length})
+          {t('orders.completed')} ({completedOrders.length + filteredTrades.length})
         </button>
         <button
           type="button"
@@ -336,7 +339,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Disputed ({disputedOrders.length})
+          {t('orders.disputed')} ({disputedOrders.length})
         </button>
       </div>
 
@@ -429,10 +432,10 @@ export default function OrdersPage() {
           icon={<Package className="h-16 w-16 text-gray-300" />}
           title={
             activeTab === 'active'
-              ? 'No active orders yet.'
+              ? t('orders.noActive')
               : activeTab === 'completed'
-                ? 'No completed orders yet.'
-                : 'No disputed orders.'
+                ? t('orders.noCompleted')
+                : t('orders.noDisputed')
           }
         />
       )}

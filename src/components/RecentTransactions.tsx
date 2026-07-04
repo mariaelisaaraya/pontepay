@@ -6,6 +6,7 @@ import { CircleDollarSign, Lock } from 'lucide-react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTradeHistory, CompletedTrade } from '@/contexts/TradeHistoryContext';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const USDC_TESTNET_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 const HORIZON_TESTNET = 'https://horizon-testnet.stellar.org';
@@ -44,11 +45,11 @@ function formatAmount(amount: number, currency: string): string {
   }) + ' ' + currency;
 }
 
-function mapTrade(trade: CompletedTrade): ActivityItem {
+function mapTrade(trade: CompletedTrade, t: (k: 'home.usdcPurchase' | 'home.usdcSale') => string): ActivityItem {
   const isPositive = trade.type === 'buy';
   return {
     id: trade.id,
-    title: isPositive ? 'USDC Purchase' : 'USDC Sale',
+    title: isPositive ? t('home.usdcPurchase') : t('home.usdcSale'),
     displayAmount: `${isPositive ? '+' : '-'}${formatAmount(trade.amount, 'USDC')}`,
     isPositive,
     dateIso: trade.date,
@@ -57,7 +58,7 @@ function mapTrade(trade: CompletedTrade): ActivityItem {
 
 // On-chain USDC transfers (Send/Receive) read straight from Horizon, so
 // activity reflects reality even for payments made outside this app.
-async function fetchUsdcTransfers(address: string): Promise<ActivityItem[]> {
+async function fetchUsdcTransfers(address: string, t: (k: 'home.usdcReceived' | 'home.usdcSent') => string): Promise<ActivityItem[]> {
   const res = await fetch(
     `${HORIZON_TESTNET}/accounts/${address}/payments?order=desc&limit=20`,
   );
@@ -78,7 +79,7 @@ async function fetchUsdcTransfers(address: string): Promise<ActivityItem[]> {
       const isPositive = r.to === address;
       return {
         id: `pay-${r.id}`,
-        title: isPositive ? 'USDC Received' : 'USDC Sent',
+        title: isPositive ? t('home.usdcReceived') : t('home.usdcSent'),
         displayAmount: `${isPositive ? '+' : '-'}${formatAmount(parseFloat(r.amount ?? '0'), 'USDC')}`,
         isPositive,
         dateIso: r.created_at,
@@ -87,6 +88,7 @@ async function fetchUsdcTransfers(address: string): Promise<ActivityItem[]> {
 }
 
 export default function RecentTransactions() {
+  const { t } = useLanguage();
   const { ready, authenticated } = usePrivy();
   const { trades, loading } = useTradeHistory();
   const walletAddress = useStore((state) => state.user.walletAddress);
@@ -96,16 +98,16 @@ export default function RecentTransactions() {
   useEffect(() => {
     if (!authenticated || !walletAddress) return;
     let active = true;
-    fetchUsdcTransfers(walletAddress)
+    fetchUsdcTransfers(walletAddress, t)
       .then((items) => { if (active) setTransfers({ address: walletAddress, items }); })
       .catch(() => { /* Horizon unavailable — trades still render */ });
     return () => { active = false; };
-  }, [authenticated, walletAddress]);
+  }, [authenticated, walletAddress, t]);
 
   const transferItems =
     transfers && transfers.address === walletAddress ? transfers.items : [];
 
-  const transactions = [...trades.map(mapTrade), ...transferItems]
+  const transactions = [...trades.map((tr) => mapTrade(tr, t)), ...transferItems]
     .sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime())
     .slice(0, 5);
   const isEmpty = transactions.length === 0;
@@ -117,13 +119,13 @@ export default function RecentTransactions() {
     return (
       <section className="mt-6">
         <h3 className="mb-3 text-[10px] font-semibold uppercase tracking-[0.5px] text-gray-500">
-          Recent Activity
+          {t('home.recentActivity')}
         </h3>
         <div className="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center">
           <Lock className="mx-auto mb-2 size-5 text-gray-300" aria-hidden />
-          <p className="text-sm font-medium text-gray-700">Sign in to see your activity</p>
+          <p className="text-sm font-medium text-gray-700">{t('home.signInToSee')}</p>
           <p className="mt-1 text-xs text-gray-400">
-            Your trade history is private to your account
+            {t('home.activityPrivate')}
           </p>
         </div>
       </section>
@@ -134,23 +136,23 @@ export default function RecentTransactions() {
     <section className="mt-6">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.5px] text-gray-500">
-          Recent Activity
+          {t('home.recentActivity')}
         </h3>
         {!isEmpty && (
           <Link
             href="/orders"
             className="text-xs font-medium text-primary-700 hover:text-primary-800 transition-colors"
           >
-            View all →
+            {t('home.viewAll')}
           </Link>
         )}
       </div>
 
       {isEmpty ? (
         <div className="rounded-xl border border-gray-200 bg-white px-5 py-8 text-center">
-          <p className="text-sm font-medium text-gray-700">No recent activity</p>
+          <p className="text-sm font-medium text-gray-700">{t('home.noActivity')}</p>
           <p className="mt-1 text-xs text-gray-400">
-            Make your first trade to see it here
+            {t('home.makeFirstTrade')}
           </p>
         </div>
       ) : (

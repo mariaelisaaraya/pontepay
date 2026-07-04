@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { UserProvider } from "@/contexts/UserContext";
 import { TradeHistoryProvider } from "@/contexts/TradeHistoryContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useStore } from '@/lib/store';
 
 // PrivyProvider only runs client-side (ssr: false) to avoid build failures
@@ -24,12 +25,14 @@ function ChainOrdersBootstrap() {
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <PrivyClientProvider>
-      <UserProvider>
-        <TradeHistoryProvider>
-          <ChainOrdersBootstrap />
-          {children}
-        </TradeHistoryProvider>
-      </UserProvider>
+      <LanguageProvider>
+        <UserProvider>
+          <TradeHistoryProvider>
+            <ChainOrdersBootstrap />
+            {children}
+          </TradeHistoryProvider>
+        </UserProvider>
+      </LanguageProvider>
     </PrivyClientProvider>
   );
 }

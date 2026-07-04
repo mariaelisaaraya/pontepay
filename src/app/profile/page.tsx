@@ -14,6 +14,7 @@ import ShareProfileDrawer from "@/components/profile/ShareProfileDrawer";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
 import { useUser } from "@/contexts/UserContext";
 import { useStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   loadProfileOverrides,
   saveProfileOverrides,
@@ -22,6 +23,7 @@ import {
 } from "@/lib/profile-overrides";
 
 export default function ProfilePage() {
+  const { t } = useLanguage();
   const { user, loading } = useUser();
   const { user: privyUser, authenticated, getAccessToken } = usePrivy();
   const { trades } = useTradeHistory();
@@ -48,7 +50,7 @@ export default function ProfilePage() {
 
   const shortWallet = activeWalletAddress
     ? `${activeWalletAddress.slice(0, 6)}...${activeWalletAddress.slice(-4)}`
-    : "Not connected";
+    : t('profile.notConnected');
 
   const profileStorageKey = activeWalletAddress ?? privyUser?.id ?? "guest";
   const storedProfile = profileOverrides[profileStorageKey];
@@ -244,11 +246,11 @@ export default function ProfilePage() {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-              <p className="text-xs text-gray-500">Completed trades</p>
+              <p className="text-xs text-gray-500">{t('profile.completedTrades')}</p>
               <p className="text-sm font-semibold text-gray-900">{trades.length}</p>
             </div>
             <div className="rounded-xl bg-gray-50 px-3 py-2.5">
-              <p className="text-xs text-gray-500">Trust score</p>
+              <p className="text-xs text-gray-500">{t('profile.trustScore')}</p>
               <p className="text-sm font-semibold text-gray-900">
                 {trustScore}/100
               </p>
@@ -259,7 +261,7 @@ export default function ProfilePage() {
             {accountEmail && (
               <div className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5">
                 <Mail className="size-4 text-gray-400" />
-                <span className="text-sm text-gray-500">Email</span>
+                <span className="text-sm text-gray-500">{t('profile.email')}</span>
                 <span className="ml-auto truncate text-xs text-gray-900">
                   {accountEmail}
                 </span>
@@ -267,7 +269,7 @@ export default function ProfilePage() {
             )}
             <div className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5">
               <Wallet className="size-4 text-gray-400" />
-              <span className="text-sm text-gray-500">Wallet</span>
+              <span className="text-sm text-gray-500">{t('profile.wallet')}</span>
               <span className="ml-auto font-mono text-xs text-gray-900">
                 {shortWallet}
               </span>
@@ -291,7 +293,7 @@ export default function ProfilePage() {
 
             <div className="flex items-center gap-3 rounded-xl border border-gray-100 px-3 py-2.5">
               <CalendarDays className="size-4 text-gray-400" />
-              <span className="text-sm text-gray-500">Joined</span>
+              <span className="text-sm text-gray-500">{t('profile.joined')}</span>
               <span className="ml-auto text-sm font-medium text-gray-900">
                 {createdDate}
               </span>

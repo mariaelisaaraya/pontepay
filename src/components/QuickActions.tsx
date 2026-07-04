@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { TranslationKey } from "@/i18n/translations";
 import { useStellarWallet } from "@/lib/privy-wallet";
 import { sendUsdc } from "@/lib/send-usdc";
 import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
@@ -19,16 +21,17 @@ import TradeDrawer from "@/components/TradeDrawer";
 import SendModal from "@/components/SendModal";
 
 
-const actions = [
-  { icon: ArrowUpFromLine, label: "Send", id: "send" },
-  { icon: ArrowDownToLine, label: "Receive", id: "receive" },
-  { icon: TrendingUp, label: "Buy", id: "buy" },
-  { icon: TrendingDown, label: "Sell", id: "sell" },
-  { icon: Landmark, label: "Anchor", id: "anchor" },
-] as const;
+const actions: { icon: typeof ArrowUpFromLine; labelKey: TranslationKey; id: string }[] = [
+  { icon: ArrowUpFromLine, labelKey: "home.send", id: "send" },
+  { icon: ArrowDownToLine, labelKey: "home.receive", id: "receive" },
+  { icon: TrendingUp, labelKey: "home.buy", id: "buy" },
+  { icon: TrendingDown, labelKey: "home.sell", id: "sell" },
+  { icon: Landmark, labelKey: "home.anchor", id: "anchor" },
+];
 
 export default function QuickActions() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { user, setBalance } = useStore();
   const { wallet } = useStellarWallet();
   const [depositOpen, setDepositOpen] = useState(false);
@@ -64,7 +67,7 @@ export default function QuickActions() {
   return (
     <>
       <div className="mt-6 flex gap-2">
-        {actions.map(({ icon: Icon, label, id }) => (
+        {actions.map(({ icon: Icon, labelKey, id }) => (
           <button
             key={id}
             onClick={() => handleAction(id)}
@@ -72,7 +75,7 @@ export default function QuickActions() {
           >
             <Icon className="size-6 text-primary-500" strokeWidth={1.5} />
             <span className="text-[12px] font-medium leading-5 text-[#4a5464]">
-              {label}
+              {t(labelKey)}
             </span>
           </button>
         ))}

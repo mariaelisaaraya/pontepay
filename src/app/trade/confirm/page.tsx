@@ -11,6 +11,7 @@ import { takeOrder } from '@/lib/trade-actions';
 import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { getFeeTier } from '@/lib/pricing';
 
@@ -42,6 +43,7 @@ function ConfirmContent() {
   const balanceUsdc = useStore((state) => state.user.balance.usdc);
   const [isChecking, setIsChecking] = useState(false);
   const liveRate = useLiveRate();
+  const { t } = useLanguage();
 
   const flowId = searchParams.get('flowId') || '';
   const fillUsdc = parseFloat(searchParams.get('fillUsdc') || searchParams.get('amount') || '100');
@@ -107,7 +109,7 @@ function ConfirmContent() {
       if (!orderId.startsWith('demo-') && /^\d+$/.test(orderId)) {
         const liveOrder = await loadChainOrderByIdFromContract(orderId);
         if (liveOrder.status !== 'AwaitingFiller') {
-          toast.error('Esta orden ya fue tomada por otro usuario.');
+          toast.error(t('trade.orderTaken'));
           router.back();
           return;
         }
@@ -132,14 +134,14 @@ function ConfirmContent() {
       console.error('Failed to take order', error);
       const msg = error instanceof Error ? error.message : '';
       if (msg.includes('balance') || msg.includes('underflow') || msg.includes('Underfunded')) {
-        toast.error('Insufficient USDC balance for this trade');
+        toast.error(t('trade.insufficientBalance'));
       } else {
-        toast.error('Failed to take order');
+        toast.error(t('trade.failedTake'));
       }
     } finally {
       setIsChecking(false);
     }
-  }, [balanceUsdc, fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress, stellarAddress]);
+  }, [balanceUsdc, fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, t, wallet, walletAddress, stellarAddress]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
@@ -153,7 +155,7 @@ function ConfirmContent() {
           <ArrowLeft className="size-5 text-gray-900" />
         </button>
         <h2 className="font-[family-name:var(--font-space-grotesk)] text-lg font-bold text-gray-900">
-          {isSell ? 'Confirm Sale' : 'Confirm Purchase'}
+          {isSell ? t('trade.confirmSale') : t('trade.confirmPurchase')}
         </h2>
       </div>
 
@@ -172,7 +174,7 @@ function ConfirmContent() {
           )}
           {/* You send */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">You send</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.youSend')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <ArrowUpCircle className="size-4 text-gray-900" />
               {sendLabel}
@@ -181,7 +183,7 @@ function ConfirmContent() {
 
           {/* You receive */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">You receive</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.youReceive')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <ArrowDownCircle className="size-4 text-gray-900" />
               {receiveLabel}
@@ -190,7 +192,7 @@ function ConfirmContent() {
 
           {/* Exchange rate (live: Reflector oracle / BCRA) */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Rate</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.rate')}</span>
             <span className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               1 USD ≈ {formatFiatCompact(rate)} ARS
               <span className="rounded bg-gray-100 px-1 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
@@ -203,7 +205,7 @@ function ConfirmContent() {
 
           {/* Platform fee */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Comisión</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.fee')}</span>
             <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] tabular-nums">
               {tier.spreadBps === 0 ? (
                 <span className="text-green-600">0% {tier.label}</span>
@@ -215,13 +217,13 @@ function ConfirmContent() {
 
           {/* Network */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Network</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.network')}</span>
             <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900">Stellar</span>
           </div>
 
           {/* Estimated time */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Estimated time</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.estimatedTime')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <Clock className="size-4 text-gray-900" />
               2-10 mins
@@ -249,7 +251,7 @@ function ConfirmContent() {
               Checking wallet...
             </span>
           ) : (
-            'Confirm Trade'
+            t('trade.confirmTrade')
           )}
         </button>
       </div>

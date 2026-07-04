@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function BalanceCard() {
+  const { t } = useLanguage();
   const { isConnected, balance, hasTrustline } = useStore((state) => state.user);
   const usd = balance.usd;
   const usdc = balance.usdc;
@@ -27,14 +29,14 @@ export default function BalanceCard() {
           href="/trade/enable-usdc"
           className="mb-4 w-full flex items-center justify-between gap-2 rounded-xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800 hover:bg-amber-100 transition-colors"
         >
-          <span>⚠️ Enable USDC to start trading</span>
-          <span className="font-semibold underline">Set up →</span>
+          <span>{t('home.enableUsdc')}</span>
+          <span className="font-semibold underline">{t('home.setUp')}</span>
         </Link>
       )}
       <div className="flex w-full flex-col items-center justify-center gap-0 p-2.5">
         <div className="flex flex-col items-center">
           <p className="font-sans text-[10px] font-semibold uppercase leading-[1.5] tracking-[0.5px] text-[#585d69]">
-            TOTAL BALANCE
+            {t('home.totalBalance')}
           </p>
           <div className="flex items-center gap-1 text-[#191919]">
             <span className="font-display text-[30px] font-semibold tracking-[-1.2px]">

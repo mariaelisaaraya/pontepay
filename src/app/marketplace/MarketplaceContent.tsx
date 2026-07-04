@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import OrderCard from '@/components/OrderCard';
 import OrderCardSkeleton from '@/components/OrderCardSkeleton';
 import EmptyState from '@/components/EmptyState';
@@ -25,13 +26,14 @@ type SortType = 'best_rate' | 'newest' | 'volume';
 const SKELETON_COUNT = 4;
 
 // Sort options configuration
-const sortOptions: { value: SortType; label: string; icon: typeof TrendingUp }[] = [
-  { value: 'best_rate', label: 'Best Rate', icon: TrendingUp },
-  { value: 'newest', label: 'Newest', icon: Clock },
-  { value: 'volume', label: 'Volume', icon: BarChart3 },
-];
+const sortOptions = [
+  { value: 'best_rate', labelKey: 'market.bestRate', icon: TrendingUp },
+  { value: 'newest', labelKey: 'market.newest', icon: Clock },
+  { value: 'volume', labelKey: 'market.volume', icon: BarChart3 },
+] as const;
 
 export default function MarketplaceContent() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('type') as TabType) || 'buy';
 
@@ -108,7 +110,7 @@ export default function MarketplaceContent() {
     <>
       {/* Page title */}
       <h1 className="text-2xl font-bold text-gray-900 font-[family-name:var(--font-space-grotesk)] mb-6">
-          Marketplace
+          {t('market.title')}
         </h1>
 
         {/* Tabs - underline style */}
@@ -122,7 +124,7 @@ export default function MarketplaceContent() {
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
           >
-            Buy USDC
+            {t('market.buyUsdc')}
           </button>
           <button
             type="button"
@@ -133,7 +135,7 @@ export default function MarketplaceContent() {
                 : 'text-gray-500 border-transparent hover:text-gray-700'
             }`}
           >
-            Sell USDC
+            {t('market.sellUsdc')}
           </button>
         </div>
 
@@ -147,7 +149,7 @@ export default function MarketplaceContent() {
               className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
             >
               <ArrowUpDown className="w-4 h-4" />
-              {currentSortOption?.label}
+              {currentSortOption ? t(currentSortOption.labelKey) : ''}
               <ChevronDown className={`w-4 h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
             </button>
 
@@ -173,7 +175,7 @@ export default function MarketplaceContent() {
                       }`}
                     >
                       <option.icon className="w-4 h-4" />
-                      {option.label}
+                      {t(option.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -192,7 +194,7 @@ export default function MarketplaceContent() {
             }`}
           >
             <Filter className="w-4 h-4" />
-            Filters
+            {t('market.filters')}
             {hasActiveFilters && (
               <span className="w-5 h-5 flex items-center justify-center bg-[var(--color-primary-500)] text-white text-xs rounded-full">
                 {(minAmount !== null ? 1 : 0) + (minReputation !== null ? 1 : 0)}
@@ -214,7 +216,7 @@ export default function MarketplaceContent() {
 
           {/* Results count */}
           <span className="ml-auto text-sm text-gray-500">
-            {filteredOrders.length} offers
+            {filteredOrders.length} {t('market.offers')}
           </span>
         </div>
 
@@ -296,10 +298,10 @@ export default function MarketplaceContent() {
         ) : (
           <FadeIn>
             <EmptyState
-              title="No offers match your filters"
+              title={t('market.noOffers')}
               description={
                 hasActiveFilters
-                  ? 'Try adjusting your filters to see more offers'
+                  ? t('market.tryAdjusting')
                   : 'Check back later or create your own order'
               }
             />

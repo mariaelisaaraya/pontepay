@@ -14,6 +14,7 @@ import { confirmFiatPayment } from '@/lib/trade-actions';
 import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import type { ChainOrder, P2POrderStatus } from '@/types';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 const POLL_INTERVAL_MS = 5000;
@@ -27,6 +28,7 @@ function WaitingContent() {
   const { wallet, address: stellarAddress } = useStellarWallet();
   const walletAddress = useStore((state) => state.user.walletAddress) ?? stellarAddress;
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+  const { t } = useLanguage();
 
   const flowId = searchParams.get('flowId') || '';
   const fillUsdc = parseFloat(searchParams.get('fillUsdc') || searchParams.get('amount') || '0.11');
@@ -244,10 +246,10 @@ function WaitingContent() {
       }
 
       return {
-        header: 'Waiting for Seller Confirmation',
-        title: 'Waiting for seller confirmation',
-        body: 'Seller is verifying your payment.',
-        note: 'Once confirmed, your USDC will be released.',
+        header: t('trade.waitingSeller'),
+        title: t('trade.waitingSeller'),
+        body: t('trade.sellerVerifying'),
+        note: t('trade.onceConfirmed'),
       };
     }
 
@@ -266,7 +268,7 @@ function WaitingContent() {
       body: 'Fetching current contract state for this order.',
       note: 'Please keep this screen open.',
     };
-  }, [mode, orderStatus, userIsCryptoSeller]);
+  }, [mode, orderStatus, t, userIsCryptoSeller]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
@@ -327,7 +329,7 @@ function WaitingContent() {
               isChecking ? 'animate-spin' : ''
             )} />
             <span className="text-caption font-medium">
-              {isChecking ? 'Checking...' : 'Live updates'}
+              {isChecking ? t('trade.checking') : t('trade.liveUpdates')}
             </span>
           </div>
         </div>
@@ -356,7 +358,7 @@ function WaitingContent() {
         )}
         <TradeChatDrawer
           key={counterpartyLabel}
-          triggerLabel="Message counterparty"
+          triggerLabel={t('trade.messageCounterparty')}
           sellerLabel={counterpartyLabel}
           flowId={flowId}
           enableVendorRequest={mode === 'sell'}
@@ -366,7 +368,7 @@ function WaitingContent() {
           type="button"
           className="w-full h-10 font-[family-name:var(--font-space-grotesk)] text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
         >
-          Report issue
+          {t('trade.reportIssue')}
         </button>
       </div>
     </div>

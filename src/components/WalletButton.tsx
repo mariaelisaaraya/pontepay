@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/privy-wallet";
 import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
 import {
@@ -29,6 +30,7 @@ async function refreshBalanceForAddress(address: string, setBalance: (usdc: numb
 }
 
 export default function WalletButton() {
+  const { t } = useLanguage();
   const { user: storeUser, connectWallet, disconnectWallet, setWalletStatus, setBalance } = useStore();
   const { login, logout, ready, authenticated, user: privyUser } = usePrivy();
   const { address: stellarAddress, wallet } = useStellarWallet();
@@ -75,8 +77,8 @@ export default function WalletButton() {
     void profileVersion;
     const overrides = loadProfileOverrides();
     const key = activeWalletAddress ?? privyUser?.id ?? "guest";
-    return resolveDisplayName(overrides[key], privyUser) ?? "Account";
-  }, [activeWalletAddress, privyUser, profileVersion]);
+    return resolveDisplayName(overrides[key], privyUser) ?? t("header.account");
+  }, [activeWalletAddress, privyUser, profileVersion, t]);
 
   const accountEmail =
     privyUser?.email?.address ?? privyUser?.google?.email ?? null;
@@ -268,12 +270,12 @@ export default function WalletButton() {
         {isAuthLoading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            <span>Signing in...</span>
+            <span>{t('header.signingIn')}</span>
           </>
         ) : (
           <>
             <User className="size-4" />
-            <span>Sign in</span>
+            <span>{t('header.signIn')}</span>
           </>
         )}
       </button>
@@ -314,7 +316,7 @@ export default function WalletButton() {
 
           <div className="border-b border-gray-100 px-4 py-4">
             <p className="font-sans text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Available balance
+              {t('header.availableBalance')}
             </p>
             <p className="mt-1 font-display text-2xl font-bold tracking-tight text-gray-900">
               ${formattedBalance}
@@ -325,7 +327,7 @@ export default function WalletButton() {
             {xlmBalance !== null && (
               <p className="mt-1.5 font-mono text-[11px] text-gray-400">
                 {xlmBalance.toLocaleString("en-US", { maximumFractionDigits: 0 })} XLM
-                <span className="ml-1 font-sans">· covers network fees (testnet)</span>
+                <span className="ml-1 font-sans">{t('header.coversFees')}</span>
               </p>
             )}
           </div>
@@ -336,7 +338,7 @@ export default function WalletButton() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
               <Copy className="size-4 text-gray-400" />
-              Copy account ID
+              {t('header.copyAccountId')}
             </button>
 
             <button
@@ -344,7 +346,7 @@ export default function WalletButton() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-sm text-gray-700 transition-colors hover:bg-gray-50"
             >
               <ExternalLink className="size-4 text-gray-400" />
-              View transactions
+              {t('header.viewTransactions')}
             </button>
 
             <div className="my-1 border-t border-gray-100" />
@@ -354,7 +356,7 @@ export default function WalletButton() {
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left font-sans text-sm text-red-500 transition-colors hover:bg-red-50"
             >
               <Power className="size-4" />
-              Sign out
+              {t('header.signOut')}
             </button>
           </div>
         </div>

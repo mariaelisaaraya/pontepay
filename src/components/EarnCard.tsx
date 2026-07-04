@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { TrendingUp, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   defindexDeposit,
   defindexWithdraw,
@@ -20,6 +21,7 @@ type ActionStep =
   | { status: 'error'; message: string };
 
 export default function EarnCard() {
+  const { t } = useLanguage();
   const { wallet, address } = useStellarWallet();
   // Local-keypair wallets resolve their address asynchronously into the store
   // (see WalletButton) — the hook returns address:null for them, so fall back.
@@ -60,10 +62,10 @@ export default function EarnCard() {
     const amount = parseFloat(depositAmount);
     if (!amount || amount <= 0) return;
     try {
-      setStep({ status: 'loading', label: 'Sign the deposit in your wallet…' });
+      setStep({ status: 'loading', label: t('earn.signDeposit') });
       await defindexDeposit(wallet, amount, effectiveAddress ?? undefined);
 
-      setStep({ status: 'success', label: 'Deposit confirmed!' });
+      setStep({ status: 'success', label: t('earn.depositConfirmed') });
       setDepositAmount('');
       if (effectiveAddress) {
         defindexGetBalance(effectiveAddress)
@@ -84,10 +86,10 @@ export default function EarnCard() {
     const amount = parseFloat(withdrawAmount);
     if (!amount || amount <= 0) return;
     try {
-      setStep({ status: 'loading', label: 'Sign the withdrawal in your wallet…' });
+      setStep({ status: 'loading', label: t('earn.signWithdraw') });
       await defindexWithdraw(wallet, amount, effectiveAddress ?? undefined);
 
-      setStep({ status: 'success', label: 'Withdrawal confirmed!' });
+      setStep({ status: 'success', label: t('earn.withdrawConfirmed') });
       setWithdrawAmount('');
       if (effectiveAddress) {
         defindexGetBalance(effectiveAddress)
@@ -108,7 +110,7 @@ export default function EarnCard() {
       <div className="mb-4 flex items-center gap-2">
         <TrendingUp className="size-5 text-primary-500" />
         <h3 className="font-[family-name:var(--font-space-grotesk)] text-base font-bold text-gray-900">
-          Earn with DeFindex
+          {t('earn.cardTitle')}
         </h3>
         {!apyLoading && apy !== null && (
           <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-semibold text-lime-700">
@@ -124,16 +126,16 @@ export default function EarnCard() {
 
       <div className="mb-4 space-y-2 text-sm">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-wide text-gray-400">Vault</span>
+          <span className="text-[11px] uppercase tracking-wide text-gray-400">{t('earn.vault')}</span>
           <span className="font-[family-name:var(--font-jetbrains-mono)] text-[11px] text-gray-500">
             USDC · Stellar testnet
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-wide text-gray-400">Your balance</span>
+          <span className="text-[11px] uppercase tracking-wide text-gray-400">{t('earn.yourBalance')}</span>
           {!walletReady ? (
-            <span className="text-[13px] text-gray-400">Connect wallet</span>
+            <span className="text-[13px] text-gray-400">{t('earn.connectWallet')}</span>
           ) : balanceLoading ? (
             <span className="flex items-center gap-1 text-[13px] text-gray-400">
               <Loader2 className="size-3 animate-spin" /> Loading…
@@ -164,7 +166,7 @@ export default function EarnCard() {
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="USDC amount"
+                  placeholder={t('earn.usdcAmount')}
                   value={depositAmount}
                   onChange={(e) => setDepositAmount(e.target.value)}
                   className="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -174,7 +176,7 @@ export default function EarnCard() {
                   disabled={!depositAmount || parseFloat(depositAmount) <= 0}
                   className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-500 px-3 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <ArrowDownToLine className="size-3.5" /> Deposit
+                  <ArrowDownToLine className="size-3.5" /> {t('earn.deposit')}
                 </button>
               </div>
 
@@ -183,7 +185,7 @@ export default function EarnCard() {
                   type="number"
                   min="0"
                   step="0.01"
-                  placeholder="USDC amount"
+                  placeholder={t('earn.usdcAmount')}
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                   className="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-[color,box-shadow] placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -193,12 +195,12 @@ export default function EarnCard() {
                   disabled={!withdrawAmount || parseFloat(withdrawAmount) <= 0}
                   className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-[13px] font-semibold text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <ArrowUpFromLine className="size-3.5" /> Withdraw
+                  <ArrowUpFromLine className="size-3.5" /> {t('earn.withdraw')}
                 </button>
               </div>
             </div>
           ) : (
-            <p className="text-[12px] text-gray-400">Connect your wallet to deposit or withdraw.</p>
+            <p className="text-[12px] text-gray-400">{t('earn.connectToDeposit')}</p>
           )}
         </>
       )}
@@ -219,7 +221,7 @@ export default function EarnCard() {
             onClick={() => setStep({ status: 'idle' })}
             className="text-[12px] text-gray-400 underline hover:text-gray-600"
           >
-            Done
+            {t('earn.done')}
           </button>
         </div>
       )}
@@ -233,7 +235,7 @@ export default function EarnCard() {
             onClick={() => setStep({ status: 'idle' })}
             className="text-[12px] text-gray-400 underline hover:text-gray-600"
           >
-            Back
+            {t('earn.back')}
           </button>
         </div>
       )}
@@ -245,7 +247,7 @@ export default function EarnCard() {
             onClick={() => setStep({ status: 'idle' })}
             className="text-[12px] text-gray-400 underline hover:text-gray-600"
           >
-            Try again
+            {t('earn.tryAgain')}
           </button>
         </div>
       )}
