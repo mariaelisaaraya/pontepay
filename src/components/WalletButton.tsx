@@ -38,22 +38,22 @@ export default function WalletButton() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const faucetInFlightRef = useRef(false);
-  const prevBalanceRef = useRef<number | null>(null);
+  const lastFetchedBalanceRef = useRef<number | null>(null);
   const [xlmBalance, setXlmBalance] = useState<number | null>(null);
 
-  // Incoming-funds notification: the 15s balance poll picks up received
-  // payments; any increase after the initial load gets a toast.
-  useEffect(() => {
-    const current = balance.usdc;
-    if (
-      prevBalanceRef.current !== null &&
-      current > prevBalanceRef.current + 1e-7
-    ) {
-      const diff = current - prevBalanceRef.current;
-      toast.success(`Received ${diff.toFixed(2)} USDC`);
-    }
-    prevBalanceRef.current = current;
-  }, [balance.usdc]);
+  // Incoming-funds notification: compares consecutive FETCHED balances (never
+  // the store's initial 0), so a page reload doesn't fake a "Received" toast.
+  const applyBalance = useCallback(
+    (usdc: number, hasTrustline?: boolean) => {
+      const prev = lastFetchedBalanceRef.current;
+      lastFetchedBalanceRef.current = usdc;
+      if (prev !== null && usdc > prev + 1e-7) {
+        toast.success(`Received ${(usdc - prev).toFixed(2)} USDC`);
+      }
+      setBalance(usdc, hasTrustline);
+    },
+    [setBalance],
+  );
 
   const activeWalletAddress = walletAddress ?? stellarAddress ?? null;
 
@@ -96,7 +96,7 @@ export default function WalletButton() {
     // Case 1: Privy native Stellar wallet (future-proof)
     if (stellarAddress) {
       connectWallet(stellarAddress, null, 'logged-in');
-      void refreshBalanceForAddress(stellarAddress, setBalance);
+      void refreshBalanceForAddress(stellarAddress, applyBalance);
       runFaucet(stellarAddress, wallet);
       return;
     }
@@ -105,7 +105,7 @@ export default function WalletButton() {
     if (privyUser?.id) {
       getOrCreateLocalKeypair(privyUser.id).then(({ address }) => {
         connectWallet(address, null, 'logged-in');
-        void refreshBalanceForAddress(address, setBalance);
+        void refreshBalanceForAddress(address, applyBalance);
         runFaucet(address, wallet);
       }).catch(console.error);
     }
@@ -159,12 +159,12 @@ export default function WalletButton() {
     if (!activeWalletAddress || !authenticated) return;
     try {
       const { balance, hasTrustline, xlmBalance: xlm } = await fetchUsdcTrustlineInfo(activeWalletAddress);
-      setBalance(balance, hasTrustline);
+      applyBalance(balance, hasTrustline);
       setXlmBalance(xlm);
     } catch (error) {
       console.error("Failed to fetch wallet balance", error);
     }
-  }, [activeWalletAddress, authenticated, setBalance]);
+  }, [activeWalletAddress, authenticated, applyBalance]);
 
   useEffect(() => {
     void refreshWalletBalance();
@@ -179,7 +179,7 @@ export default function WalletButton() {
   useEffect(() => {
     if (!activeWalletAddress || !authenticated) return;
     const interval = setInterval(() => {
-      void refreshBalanceForAddress(activeWalletAddress, setBalance);
+      void refreshBalanceForAddress(activeWalletAddress, applyBalance);
     }, 15_000);
     return () => clearInterval(interval);
   }, [activeWalletAddress, authenticated, setBalance]);

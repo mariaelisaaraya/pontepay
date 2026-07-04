@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Package, RefreshCw, SlidersHorizontal, X } from 'lucide-react';
 
@@ -182,6 +182,11 @@ export default function OrdersPage() {
   const orders = useStore((state) => state.orders);
   const walletAddress = useStore((state) => state.user.walletAddress);
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+
+  // Fresh read from the contract on every visit (same as the marketplace).
+  useEffect(() => {
+    void refreshOrdersFromChain();
+  }, [refreshOrdersFromChain]);
   // Completed quick-trades (buy/sell flow) — separate source from marketplace orders.
   const { trades: completedTrades } = useTradeHistory();
 

@@ -44,11 +44,17 @@ export default function MarketplaceContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   const orders = useStore((s) => s.orders);
+  const refreshOrdersFromChain = useStore((s) => s.refreshOrdersFromChain);
 
+  // Fresh read from the contract on every visit so taken/completed orders
+  // disappear without a manual reload.
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 800);
-    return () => clearTimeout(timer);
-  }, []);
+    let active = true;
+    refreshOrdersFromChain().finally(() => {
+      if (active) setIsLoading(false);
+    });
+    return () => { active = false; };
+  }, [refreshOrdersFromChain]);
 
   // Filter and sort orders
   const filteredOrders = useMemo(() => {
