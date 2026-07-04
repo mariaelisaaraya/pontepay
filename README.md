@@ -270,7 +270,7 @@ sequenceDiagram
 
 # 🚀 For Judges — Start Here
 
-**🌐 Live app:** https://Pontepay-main.vercel.app
+**🌐 Live app:** https://pontepay.vercel.app
 
 **Try it in 2 minutes:**
 

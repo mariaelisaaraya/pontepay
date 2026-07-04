@@ -2,7 +2,7 @@
 
 Hola Eli 👋 — tu lote de tareas de **backend + Soroban smart contracts** para PontePay (PULSO). Priorizado por impacto en la demo real y los criterios del jurado (#1 profundidad de integración, #4 calidad de deploy).
 
-- **App en vivo:** https://peerlypay-two.vercel.app · **Repo:** `mariaelisaaraya/pontepay` (`main`)
+- **App en vivo:** https://pontepay.vercel.app · **Repo:** `mariaelisaaraya/pontepay` (`main`)
 - **Fuente de verdad:** [`docs/hackathon/CONTEXT.md`](../hackathon/CONTEXT.md) · **Deploy de contrato:** [`docs/hackathon/MAINNET_DEPLOY.md`](../hackathon/MAINNET_DEPLOY.md)
 - **Contrato p2p (testnet):** `CCCIAD3CI5I6MRQ6TDGKN7G3EMIH5OZS2EVAVJXO2U4NASPQL7Z7VS5R` · **Oráculo Reflector (testnet):** `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W`
 
