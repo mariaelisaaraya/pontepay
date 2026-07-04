@@ -39,6 +39,7 @@ function ConfirmContent() {
   const { wallet, address: stellarAddress } = useStellarWallet();
   const walletAddress = useStore((state) => state.user.walletAddress) ?? stellarAddress;
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+  const balanceUsdc = useStore((state) => state.user.balance.usdc);
   const [isChecking, setIsChecking] = useState(false);
   const liveRate = useLiveRate();
 
@@ -81,6 +82,15 @@ function ConfirmContent() {
       return;
     }
 
+    // Selling escrows the user's own USDC — block fills beyond their balance
+    // before asking for a signature the contract would reject anyway.
+    if (mode === 'sell' && fillUsdc > balanceUsdc + 1e-7) {
+      toast.error(
+        `Insufficient balance: you have ${balanceUsdc.toFixed(2)} USDC but this trade needs ${fillUsdc.toFixed(2)} USDC`,
+      );
+      return;
+    }
+
     setIsChecking(true);
 
     try {
@@ -120,11 +130,16 @@ function ConfirmContent() {
       }
     } catch (error) {
       console.error('Failed to take order', error);
-      toast.error('Failed to take order');
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('balance') || msg.includes('underflow') || msg.includes('Underfunded')) {
+        toast.error('Insufficient USDC balance for this trade');
+      } else {
+        toast.error('Failed to take order');
+      }
     } finally {
       setIsChecking(false);
     }
-  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress, stellarAddress]);
+  }, [balanceUsdc, fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress, stellarAddress]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
