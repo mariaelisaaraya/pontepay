@@ -85,7 +85,16 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ error: 'Unknown step' }, { status: 400 });
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : 'Faucet failed';
+    // Surface Horizon result codes (e.g. op_underfunded when the faucet is
+    // out of USDC) instead of a generic axios message.
+    const horizonCodes = (e as {
+      response?: { data?: { extras?: { result_codes?: unknown } } };
+    })?.response?.data?.extras?.result_codes;
+    const msg = horizonCodes
+      ? `Horizon: ${JSON.stringify(horizonCodes)}`
+      : e instanceof Error
+        ? e.message
+        : 'Faucet failed';
     return Response.json({ error: msg }, { status: 500 });
   }
 }
