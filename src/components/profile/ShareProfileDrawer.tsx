@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Copy, Share2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ export default function ShareProfileDrawer({
   displayName,
   handle,
 }: ShareProfileDrawerProps) {
+  const { t } = useLanguage();
   const [shareCopied, setShareCopied] = useState(false);
 
   const getProfileShareUrl = () => {
@@ -90,7 +92,7 @@ export default function ShareProfileDrawer({
           className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           <Share2 className="size-3.5" />
-          Share
+          {t('profile.share')}
         </button>
       </DrawerTrigger>
       <DrawerContent className="inset-x-0 mx-auto w-[calc(100%-2rem)] max-w-120 rounded-t-2xl border-gray-200 bg-white">

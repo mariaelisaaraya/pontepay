@@ -149,6 +149,10 @@ const en = {
   'profile.edit': 'Edit',
   'profile.share': 'Share',
   'profile.notConnected': 'Not connected',
+  'profile.moveFunds': 'Move funds from another app',
+  'profile.sendBrazil': 'Send money to Brazil',
+  'profile.becomeSeller': 'Become a seller',
+  'profile.signOut': 'Sign out',
 
   // Send modal
   'send.title': 'Send',
@@ -336,6 +340,10 @@ const es: Record<TranslationKey, string> = {
   'profile.edit': 'Editar',
   'profile.share': 'Compartir',
   'profile.notConnected': 'Sin conectar',
+  'profile.moveFunds': 'Traer fondos de otra app',
+  'profile.sendBrazil': 'Enviar dinero a Brasil',
+  'profile.becomeSeller': 'Convertite en vendedor',
+  'profile.signOut': 'Cerrar sesión',
 
   // Modal de envío
   'send.title': 'Enviar',

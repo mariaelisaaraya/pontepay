@@ -25,9 +25,10 @@ import {
 export default function ProfilePage() {
   const { t } = useLanguage();
   const { user, loading } = useUser();
-  const { user: privyUser, authenticated, getAccessToken } = usePrivy();
+  const { user: privyUser, authenticated, getAccessToken, logout } = usePrivy();
   const { trades } = useTradeHistory();
   const connectedWalletAddress = useStore((s) => s.user.walletAddress);
+  const disconnectWallet = useStore((s) => s.disconnectWallet);
 
   // Email from the Privy login (email login or Google account)
   const accountEmail = privyUser?.email?.address ?? privyUser?.google?.email ?? null;
@@ -148,6 +149,15 @@ export default function ProfilePage() {
 
   const handleComingSoon = (label: string) => {
     toast.info(`${label} coming soon`);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logout();
+      disconnectWallet();
+    } catch {
+      toast.error('No se pudo cerrar sesión');
+    }
   };
 
   const handleSaveProfile = (nextProfile: EditableProfile) => {
@@ -308,7 +318,7 @@ export default function ProfilePage() {
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
         >
           <ArrowLeftRight className="size-4" />
-          Move funds from another app
+          {t('profile.moveFunds')}
         </Link>
 
         <Link
@@ -316,23 +326,23 @@ export default function ProfilePage() {
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100"
         >
           <Globe className="size-4" />
-          Send money to Brazil
+          {t('profile.sendBrazil')}
         </Link>
 
         <Link
           href="/profile/liquidity-provider"
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
-          Become a seller
+          {t('profile.becomeSeller')}
         </Link>
 
         <button
           type="button"
-          onClick={() => handleComingSoon("Sign out")}
+          onClick={handleSignOut}
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           <LogOut className="size-4" />
-          Sign out
+          {t('profile.signOut')}
         </button>
       </div>
     </div>

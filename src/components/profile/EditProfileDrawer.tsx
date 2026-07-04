@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { PencilLine } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,7 @@ export default function EditProfileDrawer({
   initialProfile,
   onSave,
 }: EditProfileDrawerProps) {
+  const { t } = useLanguage();
   const [profileForm, setProfileForm] = useState<EditableProfile>({
     displayName: "",
     handle: "",
@@ -88,7 +90,7 @@ export default function EditProfileDrawer({
           className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           <PencilLine className="size-3.5" />
-          Edit
+          {t('profile.edit')}
         </button>
       </DrawerTrigger>
       <DrawerContent className="inset-x-0 mx-auto w-[calc(100%-2rem)] max-w-120 rounded-t-2xl border-gray-200 bg-white">
