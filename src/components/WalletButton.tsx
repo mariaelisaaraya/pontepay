@@ -106,7 +106,10 @@ export default function WalletButton() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ address, step: 'prepare' }),
         }).then(r => r.json());
-        if (!prep.xdr) return;
+        if (!prep.xdr) {
+          console.warn('[faucet] prepare failed:', prep.error ?? prep);
+          return;
+        }
         const signedXdr = await w.signEscrowXdr(prep.xdr);
         const signedTx = new Transaction(signedXdr, Networks.TESTNET);
         await server.submitTransaction(signedTx);
@@ -117,9 +120,13 @@ export default function WalletButton() {
         }).then(r => r.json());
         if (result.success) {
           localStorage.setItem(key, '1');
-          toast.success('1 USDC added to your account!');
+          toast.success(`${result.amount ?? '0.9'} USDC added to your account!`);
+        } else {
+          console.warn('[faucet] send failed:', result.error ?? result);
         }
-      } catch { /* retryable */ }
+      } catch (err) {
+        console.warn('[faucet] failed (will retry on next login):', err);
+      }
     })();
   }
 

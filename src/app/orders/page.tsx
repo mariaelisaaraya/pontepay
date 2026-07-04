@@ -6,6 +6,7 @@ import { LayoutDashboard, Package, RefreshCw, SlidersHorizontal, X } from 'lucid
 
 import EmptyState from '@/components/EmptyState';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useTradeHistory } from '@/contexts/TradeHistoryContext';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
@@ -181,6 +182,8 @@ export default function OrdersPage() {
   const orders = useStore((state) => state.orders);
   const walletAddress = useStore((state) => state.user.walletAddress);
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+  // Completed quick-trades (buy/sell flow) — separate source from marketplace orders.
+  const { trades: completedTrades } = useTradeHistory();
 
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -299,7 +302,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Completed ({completedOrders.length})
+          Completed ({completedOrders.length + completedTrades.length})
         </button>
         <button
           type="button"
@@ -315,8 +318,48 @@ export default function OrdersPage() {
         </button>
       </div>
 
-      {visibleOrders.length > 0 ? (
+      {visibleOrders.length > 0 || (activeTab === 'completed' && completedTrades.length > 0) ? (
         <div className="space-y-3">
+          {activeTab === 'completed' &&
+            completedTrades.map((trade) => (
+              <div
+                key={trade.id}
+                className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                    {trade.type.toUpperCase()}
+                  </span>
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                    Completed
+                  </span>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-xl font-display font-semibold text-dark-500">
+                    {trade.amount.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    USDC
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    1 USDC = {trade.rate.toLocaleString('en-US')} ARS · {trade.marketMaker}
+                  </p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                  <span>{trade.paymentMethod}</span>
+                  <span>
+                    {new Date(trade.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}{' '}
+                    · {trade.txnId}
+                  </span>
+                </div>
+              </div>
+            ))}
           {visibleOrders.map((order) => {
             const createdAt = toDate(order.createdAt);
             return (
