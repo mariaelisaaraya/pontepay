@@ -43,7 +43,7 @@ function WaitingContent() {
   const [order, setOrder] = useState<ChainOrder | null>(null);
   const [makerLabel, setMakerLabel] = useState('counterparty');
   const [initialFilledAmount, setInitialFilledAmount] = useState<bigint | null>(null);
-  const makerBotCalledRef = useRef(false);
+  const makerBotNudgedStatusRef = useRef<string | null>(null);
 
   const navigateToSuccess = useCallback(() => {
     router.push(
@@ -64,18 +64,21 @@ function WaitingContent() {
       setOrderStatus(nextOrder.status);
       setMakerLabel(`${nextOrder.creator.slice(0, 6)}...${nextOrder.creator.slice(-4)}`);
 
-      // Bot-maker orders: nudge the demo market-maker to confirm the fiat leg
-      // and release escrow. Server-side it only acts on its own orders.
+      // Bot-maker orders: nudge the demo market-maker to play its side of the
+      // fiat leg (pay as buyer, or confirm as seller). Server-side it only
+      // ever acts on its own orders — human makers are untouched. One nudge
+      // per status so a slow bot isn't spammed on every poll.
       if (
-        nextOrder.status === 'AwaitingConfirmation' &&
-        !makerBotCalledRef.current
+        (nextOrder.status === 'AwaitingPayment' ||
+          nextOrder.status === 'AwaitingConfirmation') &&
+        makerBotNudgedStatusRef.current !== nextOrder.status
       ) {
-        makerBotCalledRef.current = true;
+        makerBotNudgedStatusRef.current = nextOrder.status;
         void fetch('/api/maker-bot', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId }),
-        }).catch(() => { /* human sellers confirm manually */ });
+        }).catch(() => { /* human makers act manually */ });
       }
 
       if (initialFilledAmount === null) {

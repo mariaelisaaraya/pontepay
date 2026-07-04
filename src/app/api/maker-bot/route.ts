@@ -46,22 +46,36 @@ export async function POST(req: Request) {
       );
     }
 
-    if (order.status.tag !== 'AwaitingConfirmation') {
-      return Response.json(
-        { skipped: true, status: order.status.tag },
-      );
+    // Bot as SELLER (sell order, from_crypto=true): the taker paid fiat and
+    // the seller must confirm receipt, releasing escrow to the taker.
+    if (order.status.tag === 'AwaitingConfirmation' && order.from_crypto) {
+      const tx = await client.confirm_fiat_payment({
+        caller: kp.publicKey(),
+        order_id: BigInt(orderId),
+      });
+      const sent = await tx.signAndSend();
+      return Response.json({
+        action: 'confirm_fiat_payment',
+        hash: sent.sendTransactionResponse?.hash ?? null,
+      });
     }
 
-    const confirmTx = await client.confirm_fiat_payment({
-      caller: kp.publicKey(),
-      order_id: BigInt(orderId),
-    });
-    const sent = await confirmTx.signAndSend();
+    // Bot as BUYER (buy order, from_crypto=false): after a taker escrows
+    // their USDC, the bot is the fiat payer and marks the ARS as sent. The
+    // taker then confirms receipt to complete the trade.
+    if (order.status.tag === 'AwaitingPayment' && !order.from_crypto) {
+      const tx = await client.submit_fiat_payment({
+        caller: kp.publicKey(),
+        order_id: BigInt(orderId),
+      });
+      const sent = await tx.signAndSend();
+      return Response.json({
+        action: 'submit_fiat_payment',
+        hash: sent.sendTransactionResponse?.hash ?? null,
+      });
+    }
 
-    return Response.json({
-      confirmed: true,
-      hash: sent.sendTransactionResponse?.hash ?? null,
-    });
+    return Response.json({ skipped: true, status: order.status.tag });
   } catch (e) {
     console.error('[maker-bot] failed:', e);
     return Response.json(
