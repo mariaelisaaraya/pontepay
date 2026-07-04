@@ -19,11 +19,11 @@ export async function fetchWalletUsdcBalance(address: string | null | undefined)
   return (await fetchUsdcTrustlineInfo(address)).balance;
 }
 
-export async function fetchUsdcTrustlineInfo(address: string | null | undefined): Promise<{ hasTrustline: boolean; balance: number }> {
-  if (!address) return { hasTrustline: false, balance: 0 };
+export async function fetchUsdcTrustlineInfo(address: string | null | undefined): Promise<{ hasTrustline: boolean; balance: number; xlmBalance: number }> {
+  if (!address) return { hasTrustline: false, balance: 0, xlmBalance: 0 };
   try {
     const res = await fetch(`${HORIZON_TESTNET}/accounts/${address}`);
-    if (!res.ok) return { hasTrustline: false, balance: 0 };
+    if (!res.ok) return { hasTrustline: false, balance: 0, xlmBalance: 0 };
     const account = (await res.json()) as HorizonAccount;
     const usdc = account.balances?.find(
       (b) =>
@@ -31,8 +31,13 @@ export async function fetchUsdcTrustlineInfo(address: string | null | undefined)
         b.asset_code === 'USDC' &&
         b.asset_issuer === USDC_TESTNET_ISSUER,
     );
-    return { hasTrustline: !!usdc, balance: usdc ? parseFloat(usdc.balance) : 0 };
+    const native = account.balances?.find((b) => b.asset_type === 'native');
+    return {
+      hasTrustline: !!usdc,
+      balance: usdc ? parseFloat(usdc.balance) : 0,
+      xlmBalance: native ? parseFloat(native.balance) : 0,
+    };
   } catch {
-    return { hasTrustline: false, balance: 0 };
+    return { hasTrustline: false, balance: 0, xlmBalance: 0 };
   }
 }

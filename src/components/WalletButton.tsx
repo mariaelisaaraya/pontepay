@@ -39,6 +39,7 @@ export default function WalletButton() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const faucetInFlightRef = useRef(false);
   const prevBalanceRef = useRef<number | null>(null);
+  const [xlmBalance, setXlmBalance] = useState<number | null>(null);
 
   // Incoming-funds notification: the 15s balance poll picks up received
   // payments; any increase after the initial load gets a toast.
@@ -157,8 +158,9 @@ export default function WalletButton() {
   const refreshWalletBalance = useCallback(async () => {
     if (!activeWalletAddress || !authenticated) return;
     try {
-      const { balance, hasTrustline } = await fetchUsdcTrustlineInfo(activeWalletAddress);
+      const { balance, hasTrustline, xlmBalance: xlm } = await fetchUsdcTrustlineInfo(activeWalletAddress);
       setBalance(balance, hasTrustline);
+      setXlmBalance(xlm);
     } catch (error) {
       console.error("Failed to fetch wallet balance", error);
     }
@@ -320,6 +322,12 @@ export default function WalletButton() {
             <p className="font-mono text-xs text-gray-500">
               ≈ {formattedBalance} USDC
             </p>
+            {xlmBalance !== null && (
+              <p className="mt-1.5 font-mono text-[11px] text-gray-400">
+                {xlmBalance.toLocaleString("en-US", { maximumFractionDigits: 0 })} XLM
+                <span className="ml-1 font-sans">· covers network fees (testnet)</span>
+              </p>
+            )}
           </div>
 
           <div className="p-1.5">
