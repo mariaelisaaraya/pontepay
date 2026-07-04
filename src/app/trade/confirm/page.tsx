@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import { ArrowLeft, ArrowUpCircle, ArrowDownCircle, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmTradeIcon from '@/components/icons/ConfirmTradeIcon';
+import DemoBanner from '@/components/DemoBanner';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import { takeOrder } from '@/lib/trade-actions';
 import { loadChainOrderByIdFromContract } from '@/lib/p2p';
@@ -145,6 +146,7 @@ function ConfirmContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
         <button

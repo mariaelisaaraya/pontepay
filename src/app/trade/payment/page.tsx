@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
 import Transferencias30QR from '@/components/trade/Transferencias30QR';
+import DemoBanner from '@/components/DemoBanner';
 import { submitFiatPayment } from '@/lib/trade-actions';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLiveRate } from '@/lib/useLiveRate';
@@ -390,6 +391,7 @@ function PaymentContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       {/* ── Header ── */}
       <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-gray-100">
         <div className="flex items-center gap-3">

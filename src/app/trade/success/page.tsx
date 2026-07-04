@@ -6,6 +6,7 @@ import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveRate } from "@/lib/useLiveRate";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
+import DemoBanner from "@/components/DemoBanner";
 import {
   clearVendorPaymentRequest,
   loadVendorPaymentRequest,
@@ -51,6 +52,8 @@ function SuccessContent() {
   const flowId = searchParams.get("flowId") || "";
   const mode = (searchParams.get("mode") || "buy") as "buy" | "sell";
   const orderId = searchParams.get("orderId") || "";
+  const isDemo =
+    searchParams.get("demo") === "1" || orderId.startsWith("demo-") || !orderId;
 
   const txnId = (() => {
     const raw = orderId || flowId;
@@ -90,6 +93,9 @@ function SuccessContent() {
   }, [flowId]);
 
   useEffect(() => {
+    // Demo trades are simulated — keep them out of the real trade history.
+    if (isDemo) return;
+
     const processedKey = `trade_processed_${flowId || orderId || fillUsdc}`;
     const processed = sessionStorage.getItem(processedKey);
     if (processed) return;
@@ -105,7 +111,7 @@ function SuccessContent() {
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate]);
+  }, [addTrade, fillUsdc, flowId, isDemo, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate]);
 
   const handleCopy = async () => {
     try {
@@ -120,6 +126,7 @@ function SuccessContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       <div className="flex-1 px-4 pb-4 overflow-y-auto">
         <div className="flex flex-col items-center text-center pt-8 pb-6">
           <div className="mb-5 flex size-24 items-center justify-center rounded-full bg-emerald-50">

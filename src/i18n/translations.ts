@@ -101,6 +101,7 @@ const en = {
   'trade.insufficientBalance': 'Insufficient USDC balance for this trade',
   'trade.orderTaken': 'This order was already taken by another user.',
   'trade.failedTake': 'Failed to take order',
+  'trade.demoBanner': 'Demo mode — this trade is simulated, no real money moves',
 
   // Earn
   'earn.title': 'Earn',
@@ -295,6 +296,7 @@ const es: Record<TranslationKey, string> = {
   'trade.insufficientBalance': 'No te alcanza el saldo de USDC para esta operación',
   'trade.orderTaken': 'Esta orden ya fue tomada por otro usuario.',
   'trade.failedTake': 'No se pudo tomar la orden',
+  'trade.demoBanner': 'Modo demo — esta operación es simulada, no se mueve dinero real',
 
   // Invertir
   'earn.title': 'Invertir',
