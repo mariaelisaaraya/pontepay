@@ -38,6 +38,21 @@ export default function WalletButton() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const faucetInFlightRef = useRef(false);
+  const prevBalanceRef = useRef<number | null>(null);
+
+  // Incoming-funds notification: the 15s balance poll picks up received
+  // payments; any increase after the initial load gets a toast.
+  useEffect(() => {
+    const current = balance.usdc;
+    if (
+      prevBalanceRef.current !== null &&
+      current > prevBalanceRef.current + 1e-7
+    ) {
+      const diff = current - prevBalanceRef.current;
+      toast.success(`Received ${diff.toFixed(2)} USDC`);
+    }
+    prevBalanceRef.current = current;
+  }, [balance.usdc]);
 
   const activeWalletAddress = walletAddress ?? stellarAddress ?? null;
 
