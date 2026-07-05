@@ -10,10 +10,10 @@
 // Eli can swap in the WASM binary later without touching any call-sites:
 //
 //   // Current (TS):
-//   import { verifyOrderPayload } from '@/lib/verifier';
+//   import { verifyOrderPayload } from '@/lib/stellar/verifier';
 //
 //   // Future (WASM, same call-site):
-//   import init, { verifyOrderPayload } from '@/lib/verifier-wasm/pkg';
+//   import init, { verifyOrderPayload } from '@/lib/stellar/verifier-wasm/pkg';
 //   await init();
 //
 // Verification logic:

@@ -2,7 +2,7 @@
 
 import { Shield, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { riskLevelColor, riskLevelDot, type RiskLevel } from '@/lib/risk-score';
+import { riskLevelColor, riskLevelDot, type RiskLevel } from '@/lib/trade/risk-score';
 
 interface RiskBadgeProps {
   level: RiskLevel;

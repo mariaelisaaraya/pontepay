@@ -11,8 +11,8 @@ import {
   durationLabel,
   fiatCurrencyLabel,
   paymentMethodLabel,
-} from "@/lib/order-mapper";
-import { loadOrdersFromContract } from "@/lib/p2p";
+} from "@/lib/trade/order-mapper";
+import { loadOrdersFromContract } from "@/lib/trade/p2p";
 
 // Demo orders shown alongside real chain orders so the marketplace/flow is
 // always testable. Their ids start with "demo-" and the trade flow runs in demo

@@ -68,7 +68,7 @@ export default function BridgePage() {
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [stage, setStage] = useState<Stage>('select');
-  const [simulatedTxId] = useState(`0x${Math.random().toString(16).slice(2, 18)}`);
+  const [simulatedTxId, setSimulatedTxId] = useState('');
 
   const chain = CHAINS.find((c) => c.id === selectedChain);
   const parsedAmount = parseFloat(amount) || 0;
@@ -81,6 +81,7 @@ export default function BridgePage() {
   }
 
   function handleBridge() {
+    setSimulatedTxId(`0x${Math.random().toString(16).slice(2, 18)}`);
     setStage('bridging');
     // Simulate 4-second bridge
     setTimeout(() => setStage('done'), 4000);

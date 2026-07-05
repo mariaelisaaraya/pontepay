@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
 import {
   Copy,
   Check,
@@ -19,13 +19,13 @@ import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
 import Transferencias30QR from '@/components/trade/Transferencias30QR';
 import DemoBanner from '@/components/DemoBanner';
-import { submitFiatPayment } from '@/lib/trade-actions';
+import { submitFiatPayment } from '@/lib/trade/trade-actions';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useLiveRate } from '@/lib/useLiveRate';
+import { useLiveRate } from '@/lib/rates/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { PaymentMethodCode } from '@/types';
-import { getMakerPaymentDetails } from '@/lib/payment-details-registry';
+import { getMakerPaymentDetails } from '@/lib/trade/payment-details-registry';
 
 // ─── Static mock payment details by payment method ────────────────────────────
 

@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { Landmark, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine, ExternalLink } from 'lucide-react';
-import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
 import {
   sep10GetChallenge,
   sep10SubmitChallenge,
   sep24StartDeposit,
   sep24StartWithdraw,
-} from '@/lib/sep24';
+} from '@/lib/anchor/sep24';
 
 interface AnchorInfo {
   domain: string;

@@ -11,7 +11,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import type { VendorPaymentRail, VendorPaymentRequest } from '@/types';
-import { loadVendorPaymentRequest, saveVendorPaymentRequest } from '@/lib/vendor-payment-request';
+import { loadVendorPaymentRequest, saveVendorPaymentRequest } from '@/lib/trade/vendor-payment-request';
 import { cn } from '@/lib/utils';
 
 type ChatSender = 'me' | 'seller';
@@ -80,6 +80,9 @@ export default function TradeChatDrawer({
       return;
     }
 
+    // Hydrating form state from localStorage when the flow id becomes known —
+    // a one-shot sync write, not a render-cascading loop.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVendorRequest(saved);
     setVendorAlias(saved.alias);
     setVendorRail(saved.rail);

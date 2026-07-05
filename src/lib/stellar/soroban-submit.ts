@@ -8,7 +8,7 @@
 //
 // Usage (Eli wires this into takeOrder / createOrder):
 //
-//   import { sorobanSubmit } from '@/lib/soroban-submit';
+//   import { sorobanSubmit } from '@/lib/stellar/soroban-submit';
 //
 //   const tx = await client.take_order_with_amount({ caller, order_id, fill_amount });
 //   const hash = await sorobanSubmit(tx, (xdr) => wallet.signEscrowXdr(xdr));

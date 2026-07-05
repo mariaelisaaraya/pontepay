@@ -1,7 +1,7 @@
 'use client';
 
-import type { PrivyStellarWallet } from '@/lib/privy-wallet';
-import { sorobanSubmit } from '@/lib/soroban-submit';
+import type { PrivyStellarWallet } from '@/lib/stellar/privy-wallet';
+import { sorobanSubmit } from '@/lib/stellar/soroban-submit';
 
 const STROOPS_PER_USDC = 10_000_000;
 

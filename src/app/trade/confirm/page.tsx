@@ -7,15 +7,15 @@ import { ArrowLeft, ArrowUpCircle, ArrowDownCircle, Clock, Loader2 } from 'lucid
 import { toast } from 'sonner';
 import ConfirmTradeIcon from '@/components/icons/ConfirmTradeIcon';
 import DemoBanner from '@/components/DemoBanner';
-import { useStellarWallet } from '@/lib/privy-wallet';
-import { takeOrder } from '@/lib/trade-actions';
-import { loadChainOrderByIdFromContract } from '@/lib/p2p';
-import { useLiveRate } from '@/lib/useLiveRate';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
+import { takeOrder } from '@/lib/trade/trade-actions';
+import { loadChainOrderByIdFromContract } from '@/lib/trade/p2p';
+import { useLiveRate } from '@/lib/rates/useLiveRate';
 import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
-import { getFeeTier } from '@/lib/pricing';
-import { fetchUsdcTrustlineInfo } from '@/lib/wallet-balance';
+import { getFeeTier } from '@/lib/rates/pricing';
+import { fetchUsdcTrustlineInfo } from '@/lib/stellar/wallet-balance';
 
 function formatUsdc(value: number): string {
   return value.toLocaleString('en-US', {

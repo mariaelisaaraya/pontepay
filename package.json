@@ -16,7 +16,6 @@
     "deploy": "vercel --prod"
   },
   "dependencies": {
-    "@crossmint/client-sdk-react-ui": "^2.6.18",
     "@defindex/sdk": "^0.3.0",
     "@privy-io/react-auth": "^2.0.0",
     "@privy-io/server-auth": "^1.32.5",

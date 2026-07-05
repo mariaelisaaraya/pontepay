@@ -3,7 +3,7 @@
 // Real on-chain USDC transfer via Horizon. Replaces the previous fake send
 // that only decremented the local store balance.
 
-import type { PrivyStellarWallet } from '@/lib/privy-wallet';
+import type { PrivyStellarWallet } from '@/lib/stellar/privy-wallet';
 
 const USDC_TESTNET_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 const HORIZON_TESTNET = 'https://horizon-testnet.stellar.org';

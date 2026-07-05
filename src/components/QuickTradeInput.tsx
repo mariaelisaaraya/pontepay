@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStore } from '@/lib/store';
-import { estimateQuickTrade, findBestMatch } from '@/lib/match-order';
-import { fetchRateSnapshot } from '@/lib/rates';
+import { estimateQuickTrade, findBestMatch } from '@/lib/trade/match-order';
+import { fetchRateSnapshot } from '@/lib/rates/rates';
 import type { QuickTradeEstimate } from '@/types';
 
 /** Transaction limit in USDC */

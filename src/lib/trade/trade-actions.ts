@@ -2,9 +2,9 @@
 'use client';
 
 import { Client, networks } from '@/contracts/p2p/src';
-import { resolveP2PContractId } from '@/lib/contract-config';
-import { sorobanSubmit } from '@/lib/soroban-submit';
-import type { PrivyStellarWallet } from './privy-wallet';
+import { resolveP2PContractId } from '@/lib/stellar/contract-config';
+import { sorobanSubmit } from '@/lib/stellar/soroban-submit';
+import type { PrivyStellarWallet } from '@/lib/stellar/privy-wallet';
 import type { CreateOrderInput } from '@/types';
 
 const RPC_URL =

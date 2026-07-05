@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { fallbackSnapshot, fetchRateSnapshot, type RateSnapshot } from '@/lib/rates';
+import { fallbackSnapshot, fetchRateSnapshot, type RateSnapshot } from '@/lib/rates/rates';
 
 /**
  * Live USD/ARS rate hook. Starts from the constant fallback and updates once the

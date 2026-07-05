@@ -3,12 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useStellarWallet } from "@/lib/privy-wallet";
+import { useStellarWallet } from "@/lib/stellar/privy-wallet";
 import { ArrowLeft, Loader2, Store } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { confirmFiatPayment, submitFiatPayment } from "@/lib/trade-actions";
+import { confirmFiatPayment, submitFiatPayment } from "@/lib/trade/trade-actions";
 import { useStore } from "@/lib/store";
 import type { Order } from "@/types";
 

@@ -13,7 +13,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useLiveRate } from '@/lib/useLiveRate';
+import { useLiveRate } from '@/lib/rates/useLiveRate';
 import {
   fetchSep31Info,
   initiateSep31Payment,
@@ -21,7 +21,7 @@ import {
   DEFAULT_SEP31_DOMAIN,
   type Sep31Transaction,
   type Sep31Info,
-} from '@/lib/sep31';
+} from '@/lib/anchor/sep31';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

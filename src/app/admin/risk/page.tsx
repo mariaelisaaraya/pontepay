@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePrivy } from '@privy-io/react-auth';
 import { Shield, ShieldAlert, ShieldCheck, ExternalLink } from 'lucide-react';
 import { useStore } from '@/lib/store';
-import { scoreAllOrders, type RiskLevel } from '@/lib/risk-score';
+import { scoreAllOrders, type RiskLevel } from '@/lib/trade/risk-score';
 import RiskBadge from '@/components/RiskBadge';
 import { cn } from '@/lib/utils';
 

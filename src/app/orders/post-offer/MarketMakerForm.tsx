@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useStellarWallet } from "@/lib/privy-wallet";
+import { useStellarWallet } from "@/lib/stellar/privy-wallet";
 import { toast } from "sonner";
 import { ArrowLeft, Info, Loader2, CheckCircle2, XCircle, BadgeCheck } from "lucide-react";
 
@@ -17,9 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useStore } from "@/lib/store";
-import { createOrder } from "@/lib/trade-actions";
+import { createOrder } from "@/lib/trade/trade-actions";
 import { FiatCurrencyCode, PaymentMethodCode } from "@/types";
-import { saveMakerPaymentDetails } from "@/lib/payment-details-registry";
+import { saveMakerPaymentDetails } from "@/lib/trade/payment-details-registry";
 
 const LATAM_CURRENCIES = [
   { code: FiatCurrencyCode.Ars, label: "ARS", marketRate: 1400 },

@@ -1,4 +1,4 @@
-import { fetchAnchorInfo } from '@/lib/sep24';
+import { fetchAnchorInfo } from '@/lib/anchor/sep24';
 
 export async function POST(req: Request) {
   try {

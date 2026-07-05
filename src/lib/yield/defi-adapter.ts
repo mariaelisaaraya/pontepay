@@ -13,7 +13,7 @@
 //   - MockAdapter      — deterministic stub for tests and demo mode
 //
 // Usage:
-//   import { getBestRate, type LiquidityAdapter } from '@/lib/defi-adapter';
+//   import { getBestRate, type LiquidityAdapter } from '@/lib/yield/defi-adapter';
 //   const rate = await getBestRate('USDC', 'XLM', 100);
 //
 // Extending:

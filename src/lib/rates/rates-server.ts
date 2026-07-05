@@ -14,9 +14,9 @@ import {
   xdr,
 } from '@stellar/stellar-sdk';
 
-import { FALLBACK_USD_ARS, type RateSnapshot, type RateSource } from '@/lib/rates';
-import { loadReferenceRateFromContract } from '@/lib/p2p';
-import { applyBuySpread, applySellSpread } from '@/lib/pricing';
+import { FALLBACK_USD_ARS, type RateSnapshot, type RateSource } from '@/lib/rates/rates';
+import { loadReferenceRateFromContract } from '@/lib/trade/p2p';
+import { applyBuySpread, applySellSpread } from '@/lib/rates/pricing';
 
 // FiatCurrency::from_code in the p2p contract: 2 = ARS.
 const ARS_CURRENCY_CODE = 2;

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Clock, BadgeCheck } from 'lucide-react';
 import type { Order } from '@/types';
-import { scoreOrder } from '@/lib/risk-score';
+import { scoreOrder } from '@/lib/trade/risk-score';
 import RiskBadge from '@/components/RiskBadge';
 
 export interface OrderCardProps {

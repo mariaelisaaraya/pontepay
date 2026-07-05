@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local tool state (gitignored) and generated contract bindings:
+    ".stellar/**",
+    "src/contracts/**",
+    "pitch/**",
+    "scripts/**",
   ]),
 ]);
 

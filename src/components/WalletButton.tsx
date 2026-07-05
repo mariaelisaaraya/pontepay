@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useStore } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/privy-wallet";
-import { fetchUsdcTrustlineInfo } from "@/lib/wallet-balance";
+import { useStellarWallet, getOrCreateLocalKeypair } from "@/lib/stellar/privy-wallet";
+import { fetchUsdcTrustlineInfo } from "@/lib/stellar/wallet-balance";
 import {
   loadProfileOverrides,
   resolveDisplayName,

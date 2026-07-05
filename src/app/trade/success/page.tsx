@@ -4,13 +4,13 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useLiveRate } from "@/lib/useLiveRate";
+import { useLiveRate } from "@/lib/rates/useLiveRate";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
 import DemoBanner from "@/components/DemoBanner";
 import {
   clearVendorPaymentRequest,
   loadVendorPaymentRequest,
-} from "@/lib/vendor-payment-request";
+} from "@/lib/trade/vendor-payment-request";
 import { useStore } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
 

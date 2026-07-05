@@ -16,7 +16,7 @@ import type {
   ResolveDisputePayload,
   UnsignedTxResponse,
 } from './types';
-import type { PrivyStellarWallet } from '../privy-wallet';
+import type { PrivyStellarWallet } from '@/lib/stellar/privy-wallet';
 
 async function proxyPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`/api/tw/${path}`, {

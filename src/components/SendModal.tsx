@@ -7,10 +7,10 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { VendorPaymentRail } from '@/types';
-import { findBestMatch } from '@/lib/match-order';
+import { findBestMatch } from '@/lib/trade/match-order';
 import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { saveVendorPaymentRequest } from '@/lib/vendor-payment-request';
+import { saveVendorPaymentRequest } from '@/lib/trade/vendor-payment-request';
 import {
   Drawer,
   DrawerContent,

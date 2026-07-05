@@ -6,8 +6,8 @@ import {
   type OrderStatus,
   type PaymentMethod,
 } from '@/contracts/p2p/src';
-import { chainToUiOrder } from '@/lib/order-mapper';
-import { resolveP2PContractId } from '@/lib/contract-config';
+import { chainToUiOrder } from '@/lib/trade/order-mapper';
+import { resolveP2PContractId } from '@/lib/stellar/contract-config';
 import type { ChainOrder, P2POrderStatus, UiOrder } from '@/types';
 
 // Network configuration and client bootstrap

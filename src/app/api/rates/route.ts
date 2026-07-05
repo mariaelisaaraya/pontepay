@@ -1,4 +1,4 @@
-import { getRateSnapshot } from '@/lib/rates-server';
+import { getRateSnapshot } from '@/lib/rates/rates-server';
 
 // Combined live USD/ARS rate: Reflector on-chain oracle + BCRA official rate.
 // Cached briefly so the trade screens can poll cheaply.

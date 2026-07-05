@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
 import {
   ArrowLeft,
   Loader2,
@@ -11,8 +11,8 @@ import {
 import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
 import DemoBanner from '@/components/DemoBanner';
-import { confirmFiatPayment } from '@/lib/trade-actions';
-import { loadChainOrderByIdFromContract } from '@/lib/p2p';
+import { confirmFiatPayment } from '@/lib/trade/trade-actions';
+import { loadChainOrderByIdFromContract } from '@/lib/trade/p2p';
 import type { ChainOrder, P2POrderStatus } from '@/types';
 import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';

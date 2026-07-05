@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { TrendingUp, Loader2, CheckCircle2, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
-import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
 import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
@@ -12,7 +12,7 @@ import {
   defindexGetBalance,
   defindexGetApy,
   DefindexDemoModeError,
-} from '@/lib/defindex';
+} from '@/lib/yield/defindex';
 
 type ActionStep =
   | { status: 'idle' }
@@ -33,7 +33,6 @@ export default function EarnCard() {
   const [apy, setApy] = useState<number | null>(null);
   const [balance, setBalance] = useState<{ dfTokens: string; usdcValue: string } | null>(null);
   const [apyLoading, setApyLoading] = useState(true);
-  const [balanceLoading, setBalanceLoading] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [step, setStep] = useState<ActionStep>({ status: 'idle' });
@@ -51,13 +50,15 @@ export default function EarnCard() {
   useEffect(() => {
     if (!effectiveAddress) return;
     let active = true;
-    setBalanceLoading(true);
     defindexGetBalance(effectiveAddress)
       .then((val) => { if (active) setBalance(val); })
       .catch(() => { if (active) setBalance({ dfTokens: '0', usdcValue: '0' }); })
-      .finally(() => { if (active) setBalanceLoading(false); });
     return () => { active = false; };
   }, [effectiveAddress]);
+
+  // Loading = wallet connected but the first balance fetch hasn't resolved yet
+  // (both .then and .catch above set a non-null balance).
+  const balanceLoading = !!effectiveAddress && balance === null;
 
   async function handleDeposit() {
     if (!wallet) return;

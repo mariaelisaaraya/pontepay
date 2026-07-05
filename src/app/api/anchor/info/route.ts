@@ -1,4 +1,4 @@
-import { fetchAnchorInfo } from '@/lib/sep24';
+import { fetchAnchorInfo } from '@/lib/anchor/sep24';
 
 // Discovers the configured Stellar anchor's SEP-24 capabilities (server-side to
 // avoid browser CORS against the anchor).

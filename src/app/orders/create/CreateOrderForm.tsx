@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStellarWallet } from '@/lib/privy-wallet';
+import { useStellarWallet } from '@/lib/stellar/privy-wallet';
 import { toast } from 'sonner';
 import { Minus, Plus, Loader2 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { FiatCurrencyCode, PaymentMethodCode } from '@/types';
 import type { CreateOrderInput } from '@/types';
-import { durationLabel } from '@/lib/order-mapper';
+import { durationLabel } from '@/lib/trade/order-mapper';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { createOrder } from '@/lib/trade-actions';
+import { createOrder } from '@/lib/trade/trade-actions';
 
 export interface FormData {
   amount: number;

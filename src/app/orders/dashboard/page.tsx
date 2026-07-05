@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import type { ChainOrder } from "@/types";
-import { fiatCurrencyLabel, paymentMethodLabel } from "@/lib/order-mapper";
-import { loadChainOrdersFromContract } from "@/lib/p2p";
+import { fiatCurrencyLabel, paymentMethodLabel } from "@/lib/trade/order-mapper";
+import { loadChainOrdersFromContract } from "@/lib/trade/p2p";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 
 function formatTimestamp(timestamp?: number): string {

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { loadChainOrderByIdFromContract } from '@/lib/p2p';
-import { chainToUiOrder } from '@/lib/order-mapper';
+import { loadChainOrderByIdFromContract } from '@/lib/trade/p2p';
+import { chainToUiOrder } from '@/lib/trade/order-mapper';
 import { useStore } from '@/lib/store';
 import EscrowStepper from './EscrowStepper';
 import type { P2POrderStatus, UiOrder } from '@/types';
@@ -50,7 +50,6 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     loadChainOrderByIdFromContract(orderId)
       .then((chain) => {
         if (active) {
