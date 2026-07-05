@@ -10,7 +10,6 @@ import {
   defindexDeposit,
   defindexWithdraw,
   defindexGetBalance,
-  defindexGetApy,
   DefindexDemoModeError,
 } from '@/lib/defindex';
 
@@ -41,9 +40,16 @@ export default function EarnCard() {
 
   useEffect(() => {
     let active = true;
-    defindexGetApy()
-      .then((val) => { if (active) setApy(val); })
-      .catch(() => { if (active) setApy(4.2); })
+    fetch('/api/defindex/apy')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active) return;
+        // Endpoint returns a flat { apy: number }; guard for a nested shape too.
+        const value =
+          typeof data?.apy === 'number' ? data.apy : (data?.apy?.apy ?? null);
+        setApy(value);
+      })
+      .catch(() => { if (active) setApy(null); })
       .finally(() => { if (active) setApyLoading(false); });
     return () => { active = false; };
   }, []);
@@ -116,12 +122,17 @@ export default function EarnCard() {
         </h3>
         {!apyLoading && apy !== null && (
           <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-lime-100 px-2 py-0.5 text-[11px] font-semibold text-lime-700">
-            <CheckCircle2 className="size-3" /> {apy.toFixed(1)}% APY
+            <CheckCircle2 className="size-3" /> {apy.toFixed(2)}% APY
           </span>
         )}
         {apyLoading && (
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400">
-            <Loader2 className="size-3 animate-spin" /> {t('earn.loading')}
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400 animate-pulse">
+            <Loader2 className="size-3 animate-spin" /> — % APY
+          </span>
+        )}
+        {!apyLoading && apy === null && (
+          <span className="ml-auto inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400">
+            APY no disponible
           </span>
         )}
       </div>

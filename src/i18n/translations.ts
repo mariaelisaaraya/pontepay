@@ -155,6 +155,10 @@ const en = {
   'profile.notConnected': 'Not connected',
   'profile.moveFunds': 'Move funds from another app',
   'profile.sendBrazil': 'Send money to Brazil',
+  'home.sendToBrazil': 'Send to Brazil',
+  'home.sendToBrazilDesc': 'Pay via PIX instantly',
+  'home.moveFunds': 'Move funds',
+  'home.moveFundsDesc': 'Bridge from another app',
   'profile.becomeSeller': 'Become a seller',
   'profile.signOut': 'Sign out',
 
@@ -350,6 +354,10 @@ const es: Record<TranslationKey, string> = {
   'profile.notConnected': 'Sin conectar',
   'profile.moveFunds': 'Traer fondos de otra app',
   'profile.sendBrazil': 'Enviar dinero a Brasil',
+  'home.sendToBrazil': 'Enviar a Brasil',
+  'home.sendToBrazilDesc': 'Pagá por PIX al instante',
+  'home.moveFunds': 'Traer fondos',
+  'home.moveFundsDesc': 'Puente desde otra app',
   'profile.becomeSeller': 'Convertite en vendedor',
   'profile.signOut': 'Cerrar sesión',
 

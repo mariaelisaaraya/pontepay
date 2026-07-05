@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, Check, Wallet, CalendarDays, LogOut, ArrowLeftRight, Globe, Shield, Mail } from "lucide-react";
+import { Copy, Check, Wallet, CalendarDays, LogOut, ArrowLeftRight, Shield, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { usePrivy } from "@privy-io/react-auth";
 
@@ -314,26 +314,18 @@ export default function ProfilePage() {
 
       <div className="space-y-3">
         <Link
-          href="/wallet/bridge"
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-indigo-50 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
-        >
-          <ArrowLeftRight className="size-4" />
-          {t('profile.moveFunds')}
-        </Link>
-
-        <Link
-          href="/corridor"
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100"
-        >
-          <Globe className="size-4" />
-          {t('profile.sendBrazil')}
-        </Link>
-
-        <Link
           href="/profile/liquidity-provider"
           className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
         >
           {t('profile.becomeSeller')}
+        </Link>
+
+        <Link
+          href="/wallet/bridge"
+          className="w-full border border-gray-200 rounded-2xl py-4 text-sm font-medium text-gray-600 flex items-center justify-center gap-2 transition-colors hover:bg-gray-50"
+        >
+          <ArrowLeftRight className="size-4" />
+          {t('profile.moveFunds')}
         </Link>
 
         <button

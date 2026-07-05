@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,8 +11,12 @@ import {
   Loader2,
   ExternalLink,
   Info,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useStellarWallet } from '@/lib/privy-wallet';
+
+const BRAND = '#014A2D';
 
 // ─── Chain config ─────────────────────────────────────────────────────────────
 
@@ -20,6 +25,7 @@ const CHAINS = [
     id: 'ethereum',
     name: 'Ethereum',
     logo: '🔷',
+    logoUrl: 'https://cryptologos.cc/logos/ethereum-eth-logo.svg',
     usdc: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     explorer: 'https://etherscan.io',
     bridge: 'https://www.circle.com/en/cross-chain-transfer-protocol',
@@ -29,6 +35,7 @@ const CHAINS = [
     id: 'base',
     name: 'Base',
     logo: '🔵',
+    logoUrl: 'https://avatars.githubusercontent.com/u/108554348?s=200&v=4',
     usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
     explorer: 'https://basescan.org',
     bridge: 'https://www.circle.com/en/cross-chain-transfer-protocol',
@@ -38,6 +45,7 @@ const CHAINS = [
     id: 'arbitrum',
     name: 'Arbitrum',
     logo: '🟦',
+    logoUrl: 'https://cryptologos.cc/logos/arbitrum-arb-logo.svg',
     usdc: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
     explorer: 'https://arbiscan.io',
     bridge: 'https://www.circle.com/en/cross-chain-transfer-protocol',
@@ -47,6 +55,7 @@ const CHAINS = [
     id: 'polygon',
     name: 'Polygon',
     logo: '🟣',
+    logoUrl: 'https://cryptologos.cc/logos/polygon-matic-logo.svg',
     usdc: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
     explorer: 'https://polygonscan.com',
     bridge: 'https://www.circle.com/en/cross-chain-transfer-protocol',
@@ -65,10 +74,17 @@ type Stage = 'select' | 'confirm' | 'bridging' | 'done';
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BridgePage() {
+  const router = useRouter();
+  const { address: stellarAddress } = useStellarWallet();
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [stage, setStage] = useState<Stage>('select');
+  const [infoOpen, setInfoOpen] = useState(false);
   const [simulatedTxId] = useState(`0x${Math.random().toString(16).slice(2, 18)}`);
+
+  const walletShort = stellarAddress
+    ? `${stellarAddress.slice(0, 6)}…${stellarAddress.slice(-4)}`
+    : 'Your Privy wallet';
 
   const chain = CHAINS.find((c) => c.id === selectedChain);
   const parsedAmount = parseFloat(amount) || 0;
@@ -223,63 +239,66 @@ export default function BridgePage() {
   }
 
   // ── Select (default) ──────────────────────────────────────────────────────
+  const canBridge = !!selectedChain && parsedAmount > 0;
+
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="relative px-4 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/profile" className="flex items-center text-gray-500 hover:text-gray-800">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="flex items-center text-gray-500 hover:text-gray-800"
+          aria-label="Go back"
+        >
           <ArrowLeft className="size-5" />
-        </Link>
-        <div>
+        </button>
+        <div className="flex-1 min-w-0">
           <h1 className="font-[family-name:var(--font-space-grotesk)] text-xl font-bold text-gray-900">
-            Bridge USDC
+            Move funds to Stellar
           </h1>
           <p className="text-xs text-gray-400 mt-0.5">Powered by Circle CCTP v2</p>
         </div>
+        <button
+          type="button"
+          onClick={() => setInfoOpen(true)}
+          className="flex items-center justify-center size-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          aria-label="How does it work?"
+        >
+          <Info className="size-5" />
+        </button>
       </div>
 
-      {/* Info banner */}
-      <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-3 text-[12px] text-indigo-700 leading-relaxed">
-        <p className="font-semibold mb-0.5">How it works</p>
-        <p className="opacity-80">
-          Circle&apos;s Cross-Chain Transfer Protocol burns USDC on the source chain and mints
-          native USDC on Stellar — no wrapped tokens, no bridges that can be hacked.
-        </p>
-      </div>
-
-      {/* Source chain selector */}
+      {/* Step 1 — Source chain */}
       <div className="space-y-2">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Source chain
-        </label>
-        <div className="grid grid-cols-2 gap-2">
+        <label className="block text-sm font-medium text-gray-500">From</label>
+        <div className="grid grid-cols-2 gap-3">
           {CHAINS.map((c) => (
             <button
               key={c.id}
               type="button"
               onClick={() => setSelectedChain(c.id)}
               className={cn(
-                'flex items-center gap-3 rounded-xl border px-3 py-3 text-left transition-all active:scale-[0.97]',
+                'flex items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all active:scale-[0.97]',
                 selectedChain === c.id
-                  ? 'border-indigo-400 bg-indigo-50 shadow-sm'
-                  : 'border-gray-200 bg-white hover:border-gray-300',
+                  ? 'border-2 border-[#014A2D] bg-[#014A2D]/5'
+                  : 'border border-gray-200 bg-white hover:border-gray-300',
               )}
             >
-              <span className="text-2xl">{c.logo}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={c.logoUrl} alt={c.name} className="w-8 h-8 object-contain" />
               <div>
                 <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                <p className="text-[10px] text-gray-400">~{c.estimatedMinutes} min</p>
+                <p className="text-[11px] text-gray-400">~{c.estimatedMinutes} min</p>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Amount input */}
+      {/* Step 2 — Amount */}
       <div className="space-y-2">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Amount (USDC)
-        </label>
+        <label className="block text-sm font-medium text-gray-500">Amount (USDC)</label>
         <div className="relative">
           <input
             type="number"
@@ -287,30 +306,22 @@ export default function BridgePage() {
             placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 pr-16 text-lg font-semibold text-gray-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3.5 pr-16 text-lg font-semibold text-gray-900 outline-none focus:border-[#014A2D]"
           />
           <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
             USDC
           </span>
         </div>
-        {parsedAmount > 0 && (
-          <p className="text-xs text-gray-500 px-1">
-            Fee {fmt(fee)} USDC → you receive{' '}
-            <span className="font-semibold text-gray-900">{fmt(youReceive)} USDC</span> on Stellar
-          </p>
-        )}
       </div>
 
-      {/* Destination */}
+      {/* Step 3 — Destination (read-only) */}
       <div className="space-y-2">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
-          Destination
-        </label>
-        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+        <label className="block text-sm font-medium text-gray-500">To</label>
+        <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3.5">
           <span className="text-xl">✦</span>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Stellar (your Privy wallet)</p>
-            <p className="font-mono text-[10px] text-gray-400">{STELLAR_USDC_SHORT}</p>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900">Your Stellar wallet</p>
+            <p className="font-mono text-[11px] text-gray-400 truncate">{walletShort}</p>
           </div>
         </div>
       </div>
@@ -319,23 +330,70 @@ export default function BridgePage() {
       <button
         type="button"
         onClick={handleConfirm}
-        disabled={!selectedChain || parsedAmount <= 0}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none"
+        disabled={!canBridge}
+        className="w-full rounded-2xl py-4 font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
+        style={{ backgroundColor: BRAND }}
       >
-        <ArrowLeftRight className="size-4" />
-        {selectedChain && parsedAmount > 0
-          ? `Bridge ${fmt(parsedAmount)} USDC from ${chain?.name}`
-          : 'Select chain and amount'}
+        Bridge USDC to Stellar
       </button>
 
-      <a
-        href="https://www.circle.com/en/cross-chain-transfer-protocol"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center justify-center gap-1 text-xs text-gray-400 hover:text-gray-600"
-      >
-        Learn about Circle CCTP <ExternalLink className="size-3" />
-      </a>
+      {/* Info modal */}
+      {infoOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4"
+          onClick={() => setInfoOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-5">
+              <h3 className="font-[family-name:var(--font-space-grotesk)] text-[19px] font-bold text-gray-900">
+                How does it work?
+              </h3>
+              <button
+                type="button"
+                onClick={() => setInfoOpen(false)}
+                className="flex items-center justify-center size-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0 leading-none mt-0.5">🔥</span>
+                <p className="text-[14px] text-gray-700 leading-snug">
+                  Your USDC is burned on the source chain
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0 leading-none mt-0.5">⚡</span>
+                <p className="text-[14px] text-gray-700 leading-snug">
+                  Circle mints native USDC on Stellar
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <span className="text-xl shrink-0 leading-none mt-0.5">✅</span>
+                <p className="text-[14px] text-gray-700 leading-snug">
+                  Arrives in your Privy wallet — no wrapped tokens
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://www.circle.com/en/cross-chain-transfer-protocol"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-1 text-[13px] font-medium"
+              style={{ color: BRAND }}
+            >
+              Learn about Circle CCTP →
+            </a>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
