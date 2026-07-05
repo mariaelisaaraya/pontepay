@@ -3,21 +3,24 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CircleDollarSign, RefreshCw, Shield } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { TranslationKey } from "@/i18n/translations";
 
-const steps = [
-  { icon: CircleDollarSign, text: "Buy or sell USDC with pesos" },
-  { icon: RefreshCw, text: "Get auto-matched with the best offer" },
-  { icon: CircleDollarSign, text: "Receive ARS in minutes" },
+const steps: { icon: typeof CircleDollarSign; textKey: TranslationKey }[] = [
+  { icon: CircleDollarSign, textKey: "home.step1" },
+  { icon: RefreshCw, textKey: "home.step2" },
+  { icon: CircleDollarSign, textKey: "home.step3" },
 ];
 
 export default function HowItWorks() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   return (
     <section className="flex flex-col gap-4 pt-8 pb-5">
       <div className="px-1">
         <h3 className="font-display text-[22px] font-bold leading-normal text-dark-500">
-          How PontePay works
+          {t('home.howItWorks')}
         </h3>
       </div>
 
@@ -34,7 +37,7 @@ export default function HowItWorks() {
                   />
                 </span>
                 <p className="text-base leading-relaxed text-[#0f172a]">
-                  {step.text}
+                  {t(step.textKey)}
                 </p>
               </div>
             );
@@ -46,7 +49,7 @@ export default function HowItWorks() {
           size="lg"
           className="h-12 w-full rounded-xl bg-primary-700 text-base font-semibold text-white hover:bg-primary-800"
         >
-          Make my first trade
+          {t('home.firstTrade')}
         </Button>
       </div>
     </section>

@@ -1,8 +1,12 @@
-use soroban_sdk::{Address, Env};
+use soroban_sdk::{Address, Env, Vec};
 
 use crate::core::validators::admin::{ensure_pauser, validate_initialize_inputs};
 use crate::error::ContractError;
-use crate::storage::types::{Config, DataKey};
+use crate::storage::types::{Config, DataKey, FeeTier};
+
+/// Hard ceiling for any platform fee tier: 10% (1_000 bps). Protects users
+/// from a fat-fingered or malicious admin schedule.
+const MAX_TIER_FEE_BPS: u32 = 1_000;
 
 pub struct AdminManager;
 
@@ -109,6 +113,77 @@ impl AdminManager {
             .instance()
             .get(&DataKey::Oracle)
             .ok_or(ContractError::OracleNotSet)
+    }
+
+    /// Replace the tiered fee schedule. Admin-only. Tiers must be sorted by
+    /// strictly ascending `min_amount`, start at 0, and every fee is capped at
+    /// MAX_TIER_FEE_BPS. An empty vector clears the schedule (falls back to
+    /// the flat `Config.platform_fee_bps`).
+    pub fn set_fee_tiers(
+        e: &Env,
+        caller: Address,
+        tiers: Vec<FeeTier>,
+    ) -> Result<(), ContractError> {
+        caller.require_auth();
+        let config = Self::get_config(e)?;
+
+        if caller != config.admin {
+            return Err(ContractError::Unauthorized);
+        }
+
+        let mut prev_min: Option<i128> = None;
+        for tier in tiers.iter() {
+            if tier.fee_bps > MAX_TIER_FEE_BPS {
+                return Err(ContractError::InvalidFeeTiers);
+            }
+            match prev_min {
+                None => {
+                    // First tier must cover all amounts from zero.
+                    if tier.min_amount != 0 {
+                        return Err(ContractError::InvalidFeeTiers);
+                    }
+                }
+                Some(prev) => {
+                    if tier.min_amount <= prev {
+                        return Err(ContractError::InvalidFeeTiers);
+                    }
+                }
+            }
+            prev_min = Some(tier.min_amount);
+        }
+
+        if tiers.is_empty() {
+            e.storage().instance().remove(&DataKey::FeeTiers);
+        } else {
+            e.storage().instance().set(&DataKey::FeeTiers, &tiers);
+        }
+        e.storage()
+            .instance()
+            .extend_ttl(INSTANCE_TTL_THRESHOLD, INSTANCE_TTL_LEDGERS);
+
+        Ok(())
+    }
+
+    pub fn get_fee_tiers(e: &Env) -> Vec<FeeTier> {
+        e.storage()
+            .instance()
+            .get(&DataKey::FeeTiers)
+            .unwrap_or_else(|| Vec::new(e))
+    }
+
+    /// Fee (in bps) that applies to a fill of `amount`: the highest tier whose
+    /// `min_amount` <= amount, or the flat config fee when no schedule is set.
+    pub fn effective_fee_bps(e: &Env, config: &Config, amount: i128) -> u32 {
+        let tiers = Self::get_fee_tiers(e);
+        let mut selected: Option<u32> = None;
+        for tier in tiers.iter() {
+            if amount >= tier.min_amount {
+                selected = Some(tier.fee_bps);
+            } else {
+                break; // tiers are sorted ascending
+            }
+        }
+        selected.unwrap_or(config.platform_fee_bps)
     }
 
     pub fn get_order_count(e: &Env) -> Result<u64, ContractError> {

@@ -1,7 +1,7 @@
 # Demo assets — raw footage del recorrido en vivo
 
 Grabado automáticamente con Playwright sobre la app en producción
-(https://peerlypay-two.vercel.app), en **modo demo** (sin wallet). Úsenlo como
+(https://pontepay.vercel.app), en **modo demo** (sin wallet). Úsenlo como
 base para el video de 1–2 min: narren encima del `.webm` o armen el video con los
 screenshots. Guion: [`../../hackathon/DEMO_SCRIPT.md`](../../hackathon/DEMO_SCRIPT.md).
 

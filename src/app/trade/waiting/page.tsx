@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useCallback, useMemo } from 'react';
+import { useState, useEffect, Suspense, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import {
@@ -10,10 +10,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import TradeChatDrawer from '@/components/trade/TradeChatDrawer';
+import DemoBanner from '@/components/DemoBanner';
 import { confirmFiatPayment } from '@/lib/trade-actions';
 import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import type { ChainOrder, P2POrderStatus } from '@/types';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 
 const POLL_INTERVAL_MS = 5000;
@@ -27,13 +29,16 @@ function WaitingContent() {
   const { wallet, address: stellarAddress } = useStellarWallet();
   const walletAddress = useStore((state) => state.user.walletAddress) ?? stellarAddress;
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+  const { t } = useLanguage();
 
   const flowId = searchParams.get('flowId') || '';
   const fillUsdc = parseFloat(searchParams.get('fillUsdc') || searchParams.get('amount') || '0.11');
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') || '';
-  const isDemo = searchParams.get('demo') === '1';
+  // Demo orders walk the screens without on-chain reads; real orders poll the
+  // contract until the seller confirms and USDC is released.
+  const isDemo = searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
 
   const [isChecking, setIsChecking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
@@ -41,6 +46,7 @@ function WaitingContent() {
   const [order, setOrder] = useState<ChainOrder | null>(null);
   const [makerLabel, setMakerLabel] = useState('counterparty');
   const [initialFilledAmount, setInitialFilledAmount] = useState<bigint | null>(null);
+  const makerBotNudgedStatusRef = useRef<string | null>(null);
 
   const navigateToSuccess = useCallback(() => {
     router.push(
@@ -60,6 +66,23 @@ function WaitingContent() {
       setOrder(nextOrder);
       setOrderStatus(nextOrder.status);
       setMakerLabel(`${nextOrder.creator.slice(0, 6)}...${nextOrder.creator.slice(-4)}`);
+
+      // Bot-maker orders: nudge the demo market-maker to play its side of the
+      // fiat leg (pay as buyer, or confirm as seller). Server-side it only
+      // ever acts on its own orders — human makers are untouched. One nudge
+      // per status so a slow bot isn't spammed on every poll.
+      if (
+        (nextOrder.status === 'AwaitingPayment' ||
+          nextOrder.status === 'AwaitingConfirmation') &&
+        makerBotNudgedStatusRef.current !== nextOrder.status
+      ) {
+        makerBotNudgedStatusRef.current = nextOrder.status;
+        void fetch('/api/maker-bot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        }).catch(() => { /* human makers act manually */ });
+      }
 
       if (initialFilledAmount === null) {
         setInitialFilledAmount(nextOrder.filled_amount);
@@ -224,10 +247,10 @@ function WaitingContent() {
       }
 
       return {
-        header: 'Waiting for Seller Confirmation',
-        title: 'Waiting for seller confirmation',
-        body: 'Seller is verifying your payment.',
-        note: 'Once confirmed, your USDC will be released.',
+        header: t('trade.waitingSeller'),
+        title: t('trade.waitingSeller'),
+        body: t('trade.sellerVerifying'),
+        note: t('trade.onceConfirmed'),
       };
     }
 
@@ -246,10 +269,11 @@ function WaitingContent() {
       body: 'Fetching current contract state for this order.',
       note: 'Please keep this screen open.',
     };
-  }, [mode, orderStatus, userIsCryptoSeller]);
+  }, [mode, orderStatus, t, userIsCryptoSeller]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
         <button
@@ -307,7 +331,7 @@ function WaitingContent() {
               isChecking ? 'animate-spin' : ''
             )} />
             <span className="text-caption font-medium">
-              {isChecking ? 'Checking...' : 'Live updates'}
+              {isChecking ? t('trade.checking') : t('trade.liveUpdates')}
             </span>
           </div>
         </div>
@@ -321,7 +345,7 @@ function WaitingContent() {
             onClick={navigateToSuccess}
             className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-white bg-primary-700 hover:bg-primary-800 transition-all active:scale-[0.98]"
           >
-            Continue (demo)
+            Seller confirmed payment ✓
           </button>
         )}
         {showVerifyPaymentButton && (
@@ -336,7 +360,7 @@ function WaitingContent() {
         )}
         <TradeChatDrawer
           key={counterpartyLabel}
-          triggerLabel="Message counterparty"
+          triggerLabel={t('trade.messageCounterparty')}
           sellerLabel={counterpartyLabel}
           flowId={flowId}
           enableVendorRequest={mode === 'sell'}
@@ -346,7 +370,7 @@ function WaitingContent() {
           type="button"
           className="w-full h-10 font-[family-name:var(--font-space-grotesk)] text-sm font-medium text-gray-400 hover:text-gray-600 transition-colors"
         >
-          Report issue
+          {t('trade.reportIssue')}
         </button>
       </div>
     </div>

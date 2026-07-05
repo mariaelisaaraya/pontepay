@@ -31,6 +31,7 @@ pub enum ContractError {
     UnsupportedCurrency = 25,
     OraclePriceStale = 26,
     ExchangeRateOutOfBounds = 27,
+    InvalidFeeTiers = 28,
 }
 
 impl fmt::Display for ContractError {
@@ -76,6 +77,9 @@ impl fmt::Display for ContractError {
             }
             ContractError::ExchangeRateOutOfBounds => {
                 write!(f, "Exchange rate deviates more than 5% from the oracle price")
+            }
+            ContractError::InvalidFeeTiers => {
+                write!(f, "Fee tiers must start at 0, ascend strictly, and stay under the cap")
             }
         }
     }

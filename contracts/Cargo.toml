@@ -7,6 +7,9 @@ members = [
 [workspace.dependencies]
 soroban-sdk = "=23.1.1"
 soroban-token-sdk = { version = "=23.1.1" }
+# OpenZeppelin Stellar contracts — upgradeable module (0.5.x targets soroban-sdk 23.x)
+stellar-contract-utils = "=0.5.0"
+stellar-macros = "=0.5.0"
 
 [profile.release]
 opt-level = "z"

@@ -9,7 +9,7 @@
 // matches `.env.example`. This instance is initialized AND has its Reflector
 // price oracle configured (set_oracle), so `reference_rate` works on-chain.
 export const DEFAULT_P2P_CONTRACT_ID =
-  'CCCIAD3CI5I6MRQ6TDGKN7G3EMIH5OZS2EVAVJXO2U4NASPQL7Z7VS5R';
+  'CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH';
 
 export function resolveP2PContractId(): string {
   return process.env.NEXT_PUBLIC_P2P_CONTRACT_ID?.trim() || DEFAULT_P2P_CONTRACT_ID;

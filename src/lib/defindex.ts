@@ -9,19 +9,45 @@ function toStroops(usdc: number): number {
   return Math.round(usdc * STROOPS_PER_USDC);
 }
 
-export async function defindexDeposit(wallet: PrivyStellarWallet, amountUsdc: number): Promise<void> {
+export class DefindexDemoModeError extends Error {
+  constructor(message = 'DeFindex is in demo mode: set DEFINDEX_API_KEY to enable this action') {
+    super(message);
+    this.name = 'DefindexDemoModeError';
+  }
+}
+
+// Never sign a transaction the server flagged as demo or that has no XDR.
+function extractSignableXdr(data: { xdr?: string; demo?: boolean; error?: string }): string {
+  if (data.demo) {
+    throw new DefindexDemoModeError(data.error);
+  }
+  if (!data.xdr) {
+    throw new Error('DeFindex response did not include a transaction to sign');
+  }
+  return data.xdr;
+}
+
+export async function defindexDeposit(
+  wallet: PrivyStellarWallet,
+  amountUsdc: number,
+  userAddress: string = wallet.address,
+): Promise<void> {
   const res = await fetch('/api/defindex/deposit', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress: wallet.address }),
+    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress }),
   });
 
+  const data = (await res.json().catch(() => ({}))) as { xdr?: string; demo?: boolean; error?: string };
+
+  if (data.demo) {
+    throw new DefindexDemoModeError(data.error);
+  }
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error((data as { error?: string }).error ?? `Deposit request failed (${res.status})`);
+    throw new Error(data.error ?? `Deposit request failed (${res.status})`);
   }
 
-  const { xdr } = (await res.json()) as { xdr: string };
+  const xdr = extractSignableXdr(data);
 
   await sorobanSubmit(
     { toXDR: () => xdr },
@@ -29,19 +55,27 @@ export async function defindexDeposit(wallet: PrivyStellarWallet, amountUsdc: nu
   );
 }
 
-export async function defindexWithdraw(wallet: PrivyStellarWallet, amountUsdc: number): Promise<void> {
+export async function defindexWithdraw(
+  wallet: PrivyStellarWallet,
+  amountUsdc: number,
+  userAddress: string = wallet.address,
+): Promise<void> {
   const res = await fetch('/api/defindex/withdraw', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress: wallet.address }),
+    body: JSON.stringify({ amount: toStroops(amountUsdc), userAddress }),
   });
 
+  const data = (await res.json().catch(() => ({}))) as { xdr?: string; demo?: boolean; error?: string };
+
+  if (data.demo) {
+    throw new DefindexDemoModeError(data.error);
+  }
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error((data as { error?: string }).error ?? `Withdraw request failed (${res.status})`);
+    throw new Error(data.error ?? `Withdraw request failed (${res.status})`);
   }
 
-  const { xdr } = (await res.json()) as { xdr: string };
+  const xdr = extractSignableXdr(data);
 
   await sorobanSubmit(
     { toXDR: () => xdr },

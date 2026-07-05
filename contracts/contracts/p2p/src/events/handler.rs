@@ -21,6 +21,13 @@ pub struct UnpausedEvt {
     pub by: Address,
 }
 
+#[contractevent(topics = ["p2p_fee_tiers_set"], data_format = "vec")]
+#[derive(Clone)]
+pub struct FeeTiersSet {
+    pub by: Address,
+    pub tier_count: u32,
+}
+
 #[contractevent(topics = ["p2p_order_created"], data_format = "vec")]
 #[derive(Clone)]
 pub struct OrderCreated {

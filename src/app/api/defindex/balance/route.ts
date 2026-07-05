@@ -1,4 +1,8 @@
-const VAULT_ADDRESS = 'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
+import { defindexErrorMessage } from '../error-message';
+
+const VAULT_ADDRESS =
+  process.env.DEFINDEX_VAULT_ADDRESS ??
+  'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
 
 export async function GET(req: Request) {
   try {
@@ -20,13 +24,15 @@ export async function GET(req: Request) {
 
     const balance = await sdk.getVaultBalance(VAULT_ADDRESS, address, SupportedNetworks.TESTNET);
 
+    // SDK returns 7-decimal stroops — convert to whole USDC units for the UI.
+    const STROOPS = 10_000_000;
     return Response.json({
-      dfTokens: String(balance.dfTokens ?? 0),
-      usdcValue: String(balance.underlyingBalance?.[0] ?? 0),
+      dfTokens: String(Number(balance.dfTokens ?? 0) / STROOPS),
+      usdcValue: String(Number(balance.underlyingBalance?.[0] ?? 0) / STROOPS),
     });
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : 'DeFindex balance failed' },
+      { error: defindexErrorMessage(e, 'DeFindex balance failed') },
       { status: 502 },
     );
   }

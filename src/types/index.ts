@@ -67,7 +67,12 @@ export interface User {
     usd: number;
     usdc: number;
   };
-  /** Mock: completed trades count for reputation (Stellar will provide later) */
+  hasTrustline?: boolean;
+  /**
+   * PLACEHOLDER — the P2P contract does not track reputation yet, so this is
+   * never backed by on-chain data. Treat any value here as demo-only until a
+   * real reputation source (contract or indexer) exists.
+   */
   reputation_score?: number;
 }
 
@@ -116,6 +121,7 @@ export interface UiOrder {
   username?: string;
   displayName?: string;
   isVerified?: boolean;
+  /** PLACEHOLDER — only populated on demo orders; chain orders have no reputation source yet. */
   reputation_score?: number;
   completionRate?: number;
 }

@@ -1,4 +1,8 @@
-const VAULT_ADDRESS = 'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
+import { defindexErrorMessage } from '../error-message';
+
+const VAULT_ADDRESS =
+  process.env.DEFINDEX_VAULT_ADDRESS ??
+  'CBMVK2JK6NTOT2O4HNQAIQFJY232BHKGLIMXDVQVHIIZKDACXDFZDWHN';
 
 export const revalidate = 300;
 
@@ -13,12 +17,13 @@ export async function GET() {
     const { DefindexSDK, SupportedNetworks } = await import('@defindex/sdk');
     const sdk = new DefindexSDK({ apiKey, baseUrl: 'https://api.defindex.io' });
 
-    const apy = await sdk.getVaultAPY(VAULT_ADDRESS, SupportedNetworks.TESTNET);
+    // SDK already returns { apy: number } — unwrap so the client always gets a flat number.
+    const { apy } = await sdk.getVaultAPY(VAULT_ADDRESS, SupportedNetworks.TESTNET);
 
     return Response.json({ apy });
   } catch (e) {
     return Response.json(
-      { error: e instanceof Error ? e.message : 'DeFindex APY failed' },
+      { error: defindexErrorMessage(e, 'DeFindex APY failed') },
       { status: 502 },
     );
   }

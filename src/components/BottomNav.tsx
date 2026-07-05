@@ -2,16 +2,21 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ClipboardList, User } from 'lucide-react';
+import { Home, ArrowLeftRight, TrendingUp, ClipboardList, User } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 
-const tabs = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/orders', icon: ClipboardList, label: 'Orders' },
-  { href: '/profile', icon: User, label: 'Profile' },
+const tabs: { href: string; icon: typeof Home; labelKey: TranslationKey }[] = [
+  { href: '/', icon: Home, labelKey: 'nav.home' },
+  { href: '/marketplace', icon: ArrowLeftRight, labelKey: 'nav.market' },
+  { href: '/earn', icon: TrendingUp, labelKey: 'nav.earn' },
+  { href: '/orders', icon: ClipboardList, labelKey: 'nav.orders' },
+  { href: '/profile', icon: User, labelKey: 'nav.profile' },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <nav
@@ -34,7 +39,7 @@ export default function BottomNav() {
               }`}
             >
               <Icon className="size-6" strokeWidth={1.5} />
-              <span className="text-[13px] font-normal leading-normal">{tab.label}</span>
+              <span className="text-[13px] font-normal leading-normal">{t(tab.labelKey)}</span>
             </Link>
           );
         })}

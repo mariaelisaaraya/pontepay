@@ -6,18 +6,16 @@ import { Suspense } from 'react';
 import { ArrowLeft, ArrowUpCircle, ArrowDownCircle, Clock, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmTradeIcon from '@/components/icons/ConfirmTradeIcon';
+import DemoBanner from '@/components/DemoBanner';
 import { useStellarWallet } from '@/lib/privy-wallet';
 import { takeOrder } from '@/lib/trade-actions';
 import { loadChainOrderByIdFromContract } from '@/lib/p2p';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import { getFeeTier } from '@/lib/pricing';
-
-async function checkUSDCTrustline(): Promise<boolean> {
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  return true;
-}
+import { fetchUsdcTrustlineInfo } from '@/lib/wallet-balance';
 
 function formatUsdc(value: number): string {
   return value.toLocaleString('en-US', {
@@ -39,15 +37,17 @@ function ConfirmContent() {
   const { wallet, address: stellarAddress } = useStellarWallet();
   const walletAddress = useStore((state) => state.user.walletAddress) ?? stellarAddress;
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+  const balanceUsdc = useStore((state) => state.user.balance.usdc);
   const [isChecking, setIsChecking] = useState(false);
   const liveRate = useLiveRate();
+  const { t } = useLanguage();
 
   const flowId = searchParams.get('flowId') || '';
   const fillUsdc = parseFloat(searchParams.get('fillUsdc') || searchParams.get('amount') || '100');
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'sell') as 'sell' | 'buy';
   const orderId = searchParams.get('orderId') || '';
-  const isDemo = searchParams.get('demo') === '1';
+  const isDemo = searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
   const isSell = mode === 'sell';
 
   const rate = liveRate.usdArs;
@@ -81,10 +81,19 @@ function ConfirmContent() {
       return;
     }
 
+    // Selling escrows the user's own USDC — block fills beyond their balance
+    // before asking for a signature the contract would reject anyway.
+    if (mode === 'sell' && fillUsdc > balanceUsdc + 1e-7) {
+      toast.error(
+        `Insufficient balance: you have ${balanceUsdc.toFixed(2)} USDC but this trade needs ${fillUsdc.toFixed(2)} USDC`,
+      );
+      return;
+    }
+
     setIsChecking(true);
 
     try {
-      const hasTrustline = await checkUSDCTrustline();
+      const { hasTrustline } = await fetchUsdcTrustlineInfo(walletAddress);
       if (!hasTrustline) {
         router.push(`/trade/enable-usdc?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`);
         return;
@@ -97,7 +106,7 @@ function ConfirmContent() {
       if (!orderId.startsWith('demo-') && /^\d+$/.test(orderId)) {
         const liveOrder = await loadChainOrderByIdFromContract(orderId);
         if (liveOrder.status !== 'AwaitingFiller') {
-          toast.error('Esta orden ya fue tomada por otro usuario.');
+          toast.error(t('trade.orderTaken'));
           router.back();
           return;
         }
@@ -120,14 +129,20 @@ function ConfirmContent() {
       }
     } catch (error) {
       console.error('Failed to take order', error);
-      toast.error('Failed to take order');
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('balance') || msg.includes('underflow') || msg.includes('Underfunded')) {
+        toast.error(t('trade.insufficientBalance'));
+      } else {
+        toast.error(t('trade.failedTake'));
+      }
     } finally {
       setIsChecking(false);
     }
-  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, wallet, walletAddress, stellarAddress]);
+  }, [balanceUsdc, fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, refreshOrdersFromChain, router, t, wallet, walletAddress, stellarAddress]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       {/* Header */}
       <div className="px-4 pt-4 pb-3 flex items-center gap-3">
         <button
@@ -138,7 +153,7 @@ function ConfirmContent() {
           <ArrowLeft className="size-5 text-gray-900" />
         </button>
         <h2 className="font-[family-name:var(--font-space-grotesk)] text-lg font-bold text-gray-900">
-          {isSell ? 'Confirm Sale' : 'Confirm Purchase'}
+          {isSell ? t('trade.confirmSale') : t('trade.confirmPurchase')}
         </h2>
       </div>
 
@@ -157,7 +172,7 @@ function ConfirmContent() {
           )}
           {/* You send */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">You send</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.youSend')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <ArrowUpCircle className="size-4 text-gray-900" />
               {sendLabel}
@@ -166,7 +181,7 @@ function ConfirmContent() {
 
           {/* You receive */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">You receive</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.youReceive')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <ArrowDownCircle className="size-4 text-gray-900" />
               {receiveLabel}
@@ -175,7 +190,7 @@ function ConfirmContent() {
 
           {/* Exchange rate (live: Reflector oracle / BCRA) */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Rate</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.rate')}</span>
             <span className="flex items-center gap-1.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               1 USD ≈ {formatFiatCompact(rate)} ARS
               <span className="rounded bg-gray-100 px-1 py-0.5 text-[10px] uppercase tracking-wide text-gray-500">
@@ -188,7 +203,7 @@ function ConfirmContent() {
 
           {/* Platform fee */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Comisión</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.fee')}</span>
             <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] tabular-nums">
               {tier.spreadBps === 0 ? (
                 <span className="text-green-600">0% {tier.label}</span>
@@ -200,13 +215,13 @@ function ConfirmContent() {
 
           {/* Network */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Network</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.network')}</span>
             <span className="font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900">Stellar</span>
           </div>
 
           {/* Estimated time */}
           <div className="flex items-center justify-between">
-            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">Estimated time</span>
+            <span className="font-[family-name:var(--font-dm-sans)] text-[15px] text-gray-900">{t('trade.estimatedTime')}</span>
             <span className="flex items-center gap-0.5 font-[family-name:var(--font-jetbrains-mono)] text-[13px] text-gray-900 tabular-nums">
               <Clock className="size-4 text-gray-900" />
               2-10 mins
@@ -234,7 +249,7 @@ function ConfirmContent() {
               Checking wallet...
             </span>
           ) : (
-            'Confirm Trade'
+            t('trade.confirmTrade')
           )}
         </button>
       </div>

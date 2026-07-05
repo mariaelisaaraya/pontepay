@@ -14,10 +14,13 @@ import {
 } from "@/lib/order-mapper";
 import { loadOrdersFromContract } from "@/lib/p2p";
 
-// Demo orders shown when the chain has no real orders (e.g. an un-seeded contract),
-// so the marketplace/flow is always testable. Their ids start with "demo-" and the
-// trade flow runs in demo mode (no on-chain writes). Seed the contract
-// (`make p2p-seed-orders`) to replace these with real, takeable orders.
+// Demo orders shown alongside real chain orders so the marketplace/flow is
+// always testable. Their ids start with "demo-" and the trade flow runs in demo
+// mode (no on-chain writes). Set NEXT_PUBLIC_DEMO_ORDERS=false to hide them and
+// show only real on-chain orders. Seed the contract (`make p2p-seed-orders`)
+// to have real, takeable orders.
+const DEMO_ORDERS_ENABLED = process.env.NEXT_PUBLIC_DEMO_ORDERS !== 'false';
+
 const DEMO_ORDERS: Order[] = [
   {
     id: "demo-1",
@@ -104,7 +107,7 @@ interface AppState {
   ) => void;
   setWalletStatus: (walletStatus: string | null) => void;
   disconnectWallet: () => void;
-  setBalance: (usdc: number) => void;
+  setBalance: (usdc: number, hasTrustline?: boolean) => void;
   addBalance: (amount: number) => void;
   subtractBalance: (amount: number) => boolean;
   createOrder: (input: CreateOrderInput) => void;
@@ -123,12 +126,13 @@ export const useStore = create<AppState>((set) => ({
       usd: 0,
       usdc: 0,
     },
-    reputation_score: 12,
+    // Placeholder: no on-chain reputation source yet (see types/index.ts).
+    reputation_score: 0,
   },
   // Orders are the on-chain source of truth (loaded by ChainOrdersBootstrap via
-  // refreshOrdersFromChain). When the chain has none, fall back to clearly-labeled
-  // DEMO orders so the marketplace/flow stays testable for reviewers.
-  orders: DEMO_ORDERS,
+  // refreshOrdersFromChain). Demo orders are appended unless
+  // NEXT_PUBLIC_DEMO_ORDERS=false, so the marketplace/flow stays testable.
+  orders: DEMO_ORDERS_ENABLED ? DEMO_ORDERS : [],
 
   // Wallet session actions
   connectWallet: (
@@ -143,7 +147,8 @@ export const useStore = create<AppState>((set) => ({
         walletOwner,
         walletStatus,
         isConnected: true,
-        reputation_score: state.user.reputation_score ?? 12,
+        // Placeholder: no on-chain reputation source yet (see types/index.ts).
+        reputation_score: state.user.reputation_score ?? 0,
       },
     }));
   },
@@ -174,7 +179,7 @@ export const useStore = create<AppState>((set) => ({
   },
 
   // Balance actions
-  setBalance: (usdc) => {
+  setBalance: (usdc, hasTrustline) => {
     const normalized = Math.max(0, Math.round(usdc * 100) / 100);
 
     set((state) => ({
@@ -184,6 +189,7 @@ export const useStore = create<AppState>((set) => ({
           usd: normalized,
           usdc: normalized,
         },
+        ...(hasTrustline !== undefined ? { hasTrustline } : {}),
       },
     }));
   },
@@ -262,7 +268,8 @@ export const useStore = create<AppState>((set) => ({
           status: "AwaitingFiller",
           createdAt: new Date(),
           createdBy: state.user.walletAddress ?? "wallet-not-connected",
-          reputation_score: state.user.reputation_score ?? 12,
+          // Placeholder: no on-chain reputation source yet (see types/index.ts).
+          reputation_score: state.user.reputation_score ?? 0,
         },
       ],
     }));
@@ -280,12 +287,12 @@ export const useStore = create<AppState>((set) => ({
   refreshOrdersFromChain: async () => {
     try {
       const chainOrders = await loadOrdersFromContract();
-      // Prefer real on-chain orders; fall back to demo orders when the chain has
-      // none (e.g. an un-seeded contract) so the UI is never empty.
-      set({ orders: chainOrders.length > 0 ? chainOrders : DEMO_ORDERS });
+      // Real orders come first so they take priority in matching; demo orders
+      // are appended only when the flag allows them.
+      set({ orders: DEMO_ORDERS_ENABLED ? [...chainOrders, ...DEMO_ORDERS] : chainOrders });
     } catch (error) {
       console.error("Failed to refresh orders from contract", error);
-      set({ orders: DEMO_ORDERS });
+      set({ orders: DEMO_ORDERS_ENABLED ? DEMO_ORDERS : [] });
     }
   },
 }));

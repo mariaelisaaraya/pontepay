@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Clock, BadgeCheck } from 'lucide-react';
 import type { Order } from '@/types';
 import { scoreOrder } from '@/lib/risk-score';
@@ -33,7 +34,8 @@ export default function OrderCard({ order, allOrders }: OrderCardProps) {
   // From the taker's perspective: a 'sell' order is bought (Buy Now), a 'buy'
   // order is sold (Sell Now). Buy = green #014A2D, Sell = red #DC2626.
   const isBuyAction = order.type === 'sell';
-  const actionLabel = isBuyAction ? 'Buy Now' : 'Sell Now';
+  const { t } = useLanguage();
+  const actionLabel = isBuyAction ? t('market.buyNow') : t('market.sellNow');
   const accentColor = isBuyAction ? '#014A2D' : '#DC2626';
   const tradeCount = order.reputation_score ?? 0;
   const completionRate = order.completionRate ?? 100;
@@ -49,7 +51,7 @@ export default function OrderCard({ order, allOrders }: OrderCardProps) {
   const limitsText =
     order.minTradeAmount && order.maxTradeAmount
       ? `Limits: ${(order.minTradeAmount * order.rate).toLocaleString('en-US')} – ${(order.maxTradeAmount * order.rate).toLocaleString('en-US')} ${currencyLabel}`
-      : `Available: ${availableAmount.toLocaleString('en-US')} USDC`;
+      : `${t('market.available')}: ${availableAmount.toLocaleString('en-US')} USDC`;
 
   // Take this order through the REAL on-chain flow (/trade/confirm), not the
   // mocked /orders/[id] detail. From the taker's perspective, taking a 'sell'

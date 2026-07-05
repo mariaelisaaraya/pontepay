@@ -1,12 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Package, RefreshCw, SlidersHorizontal, X } from 'lucide-react';
 
 import EmptyState from '@/components/EmptyState';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useTradeHistory } from '@/contexts/TradeHistoryContext';
 import { useStore } from '@/lib/store';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
 import type { Order } from '@/types';
 
@@ -86,6 +88,7 @@ function FilterSheet({
   filters: OrderFilters;
   onApply: (filters: OrderFilters) => void;
 }) {
+  const { t } = useLanguage();
   const [draft, setDraft] = useState<OrderFilters>(filters);
 
   const toggleType = (type: OrderType) => {
@@ -103,7 +106,7 @@ function FilterSheet({
         <div className="space-y-6 px-5 pb-8 pt-4">
           <DrawerHeader className="space-y-0 px-0 pt-0">
             <div className="flex items-center justify-between">
-              <DrawerTitle className="font-[family-name:var(--font-space-grotesk)] text-lg">Filters</DrawerTitle>
+              <DrawerTitle className="font-[family-name:var(--font-space-grotesk)] text-lg">{t('orders.filters')}</DrawerTitle>
               <button
                 type="button"
                 onClick={onClose}
@@ -116,33 +119,33 @@ function FilterSheet({
           </DrawerHeader>
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Side</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">{t('orders.side')}</h3>
             <div className="space-y-0.5">
               <FilterCheckbox
                 checked={draft.type.includes('buy')}
                 onChange={() => toggleType('buy')}
-                label="Buy orders"
+                label={t('orders.buyOrders')}
               />
               <FilterCheckbox
                 checked={draft.type.includes('sell')}
                 onChange={() => toggleType('sell')}
-                label="Sell orders"
+                label={t('orders.sellOrders')}
               />
             </div>
           </div>
 
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">Date range</h3>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">{t('orders.dateRange')}</h3>
             <div className="space-y-0.5">
               <FilterCheckbox
                 checked={draft.dateRange === 'last7'}
                 onChange={() => setDraft((prev) => ({ ...prev, dateRange: prev.dateRange === 'last7' ? 'all' : 'last7' }))}
-                label="Last 7 days"
+                label={t('orders.last7')}
               />
               <FilterCheckbox
                 checked={draft.dateRange === 'last30'}
                 onChange={() => setDraft((prev) => ({ ...prev, dateRange: prev.dateRange === 'last30' ? 'all' : 'last30' }))}
-                label="Last 30 days"
+                label={t('orders.last30')}
               />
             </div>
           </div>
@@ -155,7 +158,7 @@ function FilterSheet({
             }}
             className="h-12 w-full rounded-xl bg-primary-500 text-sm font-semibold text-white hover:bg-primary-600"
           >
-            Apply filters
+            {t('orders.applyFilters')}
           </button>
         </div>
       </DrawerContent>
@@ -177,10 +180,18 @@ function toDate(value: Date | string): Date {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const orders = useStore((state) => state.orders);
   const walletAddress = useStore((state) => state.user.walletAddress);
   const refreshOrdersFromChain = useStore((state) => state.refreshOrdersFromChain);
+
+  // Fresh read from the contract on every visit (same as the marketplace).
+  useEffect(() => {
+    void refreshOrdersFromChain();
+  }, [refreshOrdersFromChain]);
+  // Completed quick-trades (buy/sell flow) — separate source from marketplace orders.
+  const { trades: completedTrades } = useTradeHistory();
 
   const [activeTab, setActiveTab] = useState<TabType>('active');
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -211,6 +222,23 @@ export default function OrdersPage() {
     });
   }, [myOrders, filters, nowTimestamp]);
 
+  // The sheet filters apply to the quick-trade history too, not just
+  // marketplace orders — otherwise Filters looks dead on the Completed tab.
+  const filteredTrades = useMemo(() => {
+    return completedTrades.filter((trade) => {
+      if (filters.type.length > 0 && !filters.type.includes(trade.type)) {
+        return false;
+      }
+      if (filters.dateRange !== 'all') {
+        const days = filters.dateRange === 'last7' ? 7 : 30;
+        if (nowTimestamp - new Date(trade.date).getTime() > days * 24 * 60 * 60 * 1000) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [completedTrades, filters, nowTimestamp]);
+
   const activeOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'active'), [filteredBySheet]);
   const completedOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'completed'), [filteredBySheet]);
   const disputedOrders = useMemo(() => getOrdersForTab(filteredBySheet, 'disputed'), [filteredBySheet]);
@@ -232,7 +260,7 @@ export default function OrdersPage() {
   return (
     <>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-h3 text-black">My Orders</h1>
+        <h1 className="text-h3 text-black">{t('orders.title')}</h1>
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -245,7 +273,7 @@ export default function OrdersPage() {
             )}
           >
             <SlidersHorizontal className="size-4" />
-            <span className="font-medium">Filters</span>
+            <span className="font-medium">{t('orders.filters')}</span>
             {activeFilterCount > 0 && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary-500 px-1 text-[10px] font-bold text-white">
                 {activeFilterCount}
@@ -287,7 +315,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Active ({activeOrders.length})
+          {t('orders.active')} ({activeOrders.length})
         </button>
         <button
           type="button"
@@ -299,7 +327,7 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Completed ({completedOrders.length})
+          {t('orders.completed')} ({completedOrders.length + filteredTrades.length})
         </button>
         <button
           type="button"
@@ -311,12 +339,52 @@ export default function OrdersPage() {
               : 'text-gray-600 hover:bg-gray-100',
           )}
         >
-          Disputed ({disputedOrders.length})
+          {t('orders.disputed')} ({disputedOrders.length})
         </button>
       </div>
 
-      {visibleOrders.length > 0 ? (
+      {visibleOrders.length > 0 || (activeTab === 'completed' && filteredTrades.length > 0) ? (
         <div className="space-y-3">
+          {activeTab === 'completed' &&
+            filteredTrades.map((trade) => (
+              <div
+                key={trade.id}
+                className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                    {trade.type.toUpperCase()}
+                  </span>
+                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                    Completed
+                  </span>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-xl font-display font-semibold text-dark-500">
+                    {trade.amount.toLocaleString('en-US', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}{' '}
+                    USDC
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    1 USDC = {trade.rate.toLocaleString('en-US')} ARS · {trade.marketMaker}
+                  </p>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                  <span>{trade.paymentMethod}</span>
+                  <span>
+                    {new Date(trade.date).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                    })}{' '}
+                    · {trade.txnId}
+                  </span>
+                </div>
+              </div>
+            ))}
           {visibleOrders.map((order) => {
             const createdAt = toDate(order.createdAt);
             return (
@@ -364,10 +432,10 @@ export default function OrdersPage() {
           icon={<Package className="h-16 w-16 text-gray-300" />}
           title={
             activeTab === 'active'
-              ? 'No active orders yet.'
+              ? t('orders.noActive')
               : activeTab === 'completed'
-                ? 'No completed orders yet.'
-                : 'No disputed orders.'
+                ? t('orders.noCompleted')
+                : t('orders.noDisputed')
           }
         />
       )}

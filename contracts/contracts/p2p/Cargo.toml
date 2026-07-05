@@ -1,6 +1,8 @@
 [package]
 name = "p2p"
-version = "0.0.0"
+# v2: OpenZeppelin Upgradeable + tiered platform fees. The derive macro embeds
+# this version in the WASM metadata (SEP-49) for on-chain version tracking.
+version = "0.2.0"
 edition = "2021"
 publish = false
 
@@ -10,6 +12,8 @@ crate-type = ["cdylib"]
 [dependencies]
 soroban-sdk = { workspace = true }
 soroban-token-sdk = { workspace = true }
+stellar-contract-utils = { workspace = true }
+stellar-macros = { workspace = true }
 
 [dev-dependencies]
 soroban-sdk = { workspace = true, features = ["testutils"] }

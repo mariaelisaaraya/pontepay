@@ -1,7 +1,27 @@
 'use client';
 
 import Image from 'next/image';
+import { Globe } from 'lucide-react';
 import WalletButton from '@/components/WalletButton';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+// Discreet language toggle: a ghost pill with a globe + current locale.
+// One tap flips ES <-> EN — with two languages a menu would be overkill.
+function LanguageToggle() {
+  const { lang, toggleLang } = useLanguage();
+
+  return (
+    <button
+      type="button"
+      onClick={toggleLang}
+      aria-label={lang === 'es' ? 'Switch to English' : 'Cambiar a español'}
+      className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+    >
+      <Globe className="size-3.5" strokeWidth={2} />
+      {lang}
+    </button>
+  );
+}
 
 export default function Header() {
   return (
@@ -21,8 +41,11 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Wallet */}
-        <WalletButton />
+        {/* Language + wallet */}
+        <div className="flex items-center gap-1.5">
+          <LanguageToggle />
+          <WalletButton />
+        </div>
       </div>
     </header>
   );

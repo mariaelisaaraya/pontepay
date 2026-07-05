@@ -6,15 +6,21 @@ import { Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLiveRate } from "@/lib/useLiveRate";
 import { useTradeHistory } from "@/contexts/TradeHistoryContext";
+import DemoBanner from "@/components/DemoBanner";
 import {
   clearVendorPaymentRequest,
   loadVendorPaymentRequest,
 } from "@/lib/vendor-payment-request";
+import { useStore } from "@/lib/store";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// Mock trade data
-const MOCK_MAKER = "crypto_trader_ar";
 const FEE_RATE = 0.005;
-const MOCK_TXN_ID = "#TXN123456";
+
+function shortAddress(address: string): string {
+  return address.length > 12
+    ? `${address.slice(0, 6)}...${address.slice(-4)}`
+    : address;
+}
 
 function formatFiat(value: number): string {
   return value.toLocaleString("es-AR", {
@@ -34,6 +40,7 @@ function SuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { addTrade } = useTradeHistory();
+  const { t } = useLanguage();
 
   const amount = parseFloat(searchParams.get("amount") || "0.11");
   const fillUsdc = parseFloat(searchParams.get("fillUsdc") || String(amount));
@@ -45,6 +52,26 @@ function SuccessContent() {
   const flowId = searchParams.get("flowId") || "";
   const mode = (searchParams.get("mode") || "buy") as "buy" | "sell";
   const orderId = searchParams.get("orderId") || "";
+  const isDemo =
+    searchParams.get("demo") === "1" || orderId.startsWith("demo-") || !orderId;
+
+  const txnId = (() => {
+    const raw = orderId || flowId;
+    if (!raw || raw === 'test' || raw === 'demo') return null;
+    return `#${raw.replace(/[^A-Z0-9a-z]/g, '').substring(0, 10).toUpperCase()}`;
+  })();
+  // Resolve the real counterparty from the order book (chain orders carry the
+  // creator address; demo orders carry a displayName). Falls back to a neutral
+  // label when the order is no longer in the store.
+  const orders = useStore((state) => state.orders);
+  const matchedOrder = orders.find(
+    (o) => o.id === orderId || o.orderId.toString() === orderId,
+  );
+  const makerLabel = matchedOrder
+    ? matchedOrder.displayName ?? shortAddress(matchedOrder.createdBy)
+    : "counterparty";
+  const paymentMethodUsed = matchedOrder?.paymentMethodLabel ?? "Bank Transfer";
+
   const rate = useLiveRate().usdArs;
   const fiatAmount = fillUsdc * rate;
   const feeArs = fillUsdc * FEE_RATE * rate;
@@ -66,6 +93,9 @@ function SuccessContent() {
   }, [flowId]);
 
   useEffect(() => {
+    // Demo trades are simulated — keep them out of the real trade history.
+    if (isDemo) return;
+
     const processedKey = `trade_processed_${flowId || orderId || fillUsdc}`;
     const processed = sessionStorage.getItem(processedKey);
     if (processed) return;
@@ -75,17 +105,17 @@ function SuccessContent() {
       amount: fillUsdc,
       arsReceived: totalPaid,
       rate: Math.round(rate),
-      marketMaker: MOCK_MAKER,
-      paymentMethod: "MercadoPago",
-      txnId: MOCK_TXN_ID,
+      marketMaker: makerLabel,
+      paymentMethod: paymentMethodUsed,
+      txnId: txnId ?? `#${Date.now().toString(36).toUpperCase()}`,
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, mode, orderId, totalPaid, rate]);
+  }, [addTrade, fillUsdc, flowId, isDemo, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate]);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(MOCK_TXN_ID);
+      await navigator.clipboard.writeText(txnId ?? '');
     } catch {
       // clipboard unavailable
     } finally {
@@ -96,6 +126,7 @@ function SuccessContent() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
+      {isDemo && <DemoBanner />}
       <div className="flex-1 px-4 pb-4 overflow-y-auto">
         <div className="flex flex-col items-center text-center pt-8 pb-6">
           <div className="mb-5 flex size-24 items-center justify-center rounded-full bg-emerald-50">
@@ -116,10 +147,10 @@ function SuccessContent() {
           </div>
 
           <h2 className="mb-2 font-[family-name:var(--font-space-grotesk)] text-2xl font-bold text-gray-900">
-            You&apos;re all set
+            {t('trade.allSet')}
           </h2>
           <p className="text-body-sm text-gray-500">
-            Your trade is complete and your USDC is ready to use.
+            {t('trade.tradeComplete')}
           </p>
           {vendorAlias && (
             <p className="mt-2 text-caption text-gray-500">
@@ -137,13 +168,13 @@ function SuccessContent() {
         <div className="flex flex-col items-center space-y-4">
           <div className="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-5 space-y-3 text-center">
             <div className="flex flex-col items-center gap-1">
-              <span className="text-body-sm text-gray-500">You received</span>
+              <span className="text-body-sm text-gray-500">{t('trade.youReceived')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-xl font-bold text-emerald-600 tabular-nums">
                 {formatUsdc(fillUsdc)} USDC
               </span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <span className="text-body-sm text-gray-500">You paid</span>
+              <span className="text-body-sm text-gray-500">{t('trade.youPaid')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-sm font-semibold text-gray-900 tabular-nums">
                 ${formatFiat(totalPaid)} ARS
               </span>
@@ -152,28 +183,30 @@ function SuccessContent() {
             <div className="border-t border-gray-200 pt-3">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-body-sm text-gray-500">
-                  Transaction ID
+                  {t('trade.transactionId')}
                 </span>
                 <div className="flex items-center justify-center gap-2">
                   <span className="font-[family-name:var(--font-jetbrains-mono)] text-xs text-gray-400 tabular-nums">
-                    {MOCK_TXN_ID}
+                    {txnId ?? '—'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className={cn(
-                      "flex items-center justify-center size-7 rounded-md transition-all active:scale-95",
-                      copied
-                        ? "bg-emerald-100 text-emerald-600"
-                        : "bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100",
-                    )}
-                  >
-                    {copied ? (
-                      <Check className="size-3.5" strokeWidth={2.5} />
-                    ) : (
-                      <Copy className="size-3.5" />
-                    )}
-                  </button>
+                  {txnId && (
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className={cn(
+                        "flex items-center justify-center size-7 rounded-md transition-all active:scale-95",
+                        copied
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-white text-gray-400 hover:text-gray-600 hover:bg-gray-100",
+                      )}
+                    >
+                      {copied ? (
+                        <Check className="size-3.5" strokeWidth={2.5} />
+                      ) : (
+                        <Copy className="size-3.5" />
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -184,7 +217,7 @@ function SuccessContent() {
             onClick={() => router.push("/orders")}
             className="w-full max-w-sm h-11 rounded-xl font-[family-name:var(--font-space-grotesk)] text-sm font-semibold text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
           >
-            Leave feedback later
+            {t('trade.leaveFeedback')}
           </button>
         </div>
       </div>
@@ -195,14 +228,14 @@ function SuccessContent() {
           onClick={() => router.push("/trade")}
           className="w-full h-14 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-bold text-white bg-primary-700 shadow-lg shadow-primary-700/25 hover:bg-primary-800 transition-all active:scale-[0.98]"
         >
-          Start new trade
+          {t('trade.startNewTrade')}
         </button>
         <button
           type="button"
           onClick={() => router.push("/orders")}
           className="w-full h-12 rounded-2xl font-[family-name:var(--font-space-grotesk)] text-base font-semibold text-gray-500 border border-gray-200 bg-white hover:bg-gray-50 transition-all active:scale-[0.98]"
         >
-          View my orders
+          {t('trade.viewMyOrders')}
         </button>
       </div>
     </div>
