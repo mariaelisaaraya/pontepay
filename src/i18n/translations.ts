@@ -66,6 +66,14 @@ const en = {
 
   // Trade flow
   'trade.confirmPurchase': 'Confirm Purchase',
+  'payment.bankDetailsBadge': 'Bank details',
+  'payment.accountHolder': 'Account holder',
+  'payment.bank': 'Bank',
+  'payment.phone': 'Phone number',
+  'payment.completeInBankApp': 'Complete this transfer in your banking app, then tap the button below.',
+  'payment.qrTitle': 'Pay with Transferencias 3.0',
+  'payment.qrShow': 'Show QR to pay from another device',
+  'payment.qrScanHint': 'Scan from your phone with any bank or wallet app · BCRA interoperable QR',
   'trade.confirmSale': 'Confirm Sale',
   'trade.youSend': 'You send',
   'trade.youReceive': 'You receive',
@@ -350,6 +358,14 @@ const es: Record<TranslationKey, string> = {
 
   // Flujo de trade
   'trade.confirmPurchase': 'Confirmar compra',
+  'payment.bankDetailsBadge': 'Datos bancarios',
+  'payment.accountHolder': 'Titular de la cuenta',
+  'payment.bank': 'Banco',
+  'payment.phone': 'Teléfono',
+  'payment.completeInBankApp': 'Hacé la transferencia desde la app de tu banco y después tocá el botón de abajo.',
+  'payment.qrTitle': 'Pagar con Transferencias 3.0',
+  'payment.qrShow': 'Ver QR para pagar desde otro dispositivo',
+  'payment.qrScanHint': 'Escanealo desde el celular con la app de cualquier banco o billetera · QR interoperable BCRA',
   'trade.confirmSale': 'Confirmar venta',
   'trade.youSend': 'Enviás',
   'trade.youReceive': 'Recibís',

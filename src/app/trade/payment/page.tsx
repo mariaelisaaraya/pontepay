@@ -533,7 +533,7 @@ function PaymentContent() {
                 {payment.label}
               </span>
               <span className="ml-auto shrink-0 px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-600 text-[10px] font-semibold uppercase tracking-wide">
-                Datos bancarios
+                {t('payment.bankDetailsBadge')}
               </span>
               <ChevronDown
                 className={cn(
@@ -550,7 +550,7 @@ function PaymentContent() {
                 {/* Account holder — no copy needed */}
                 <div>
                   <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
-                    Account holder
+                    {t('payment.accountHolder')}
                   </p>
                   <p className="text-[13px] font-semibold text-gray-900">
                     {payment.accountHolder}
@@ -560,7 +560,7 @@ function PaymentContent() {
                 {payment.bank && (
                   <div>
                     <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">
-                      Bank
+                      {t('payment.bank')}
                     </p>
                     <p className="text-[13px] font-medium text-gray-900">
                       {payment.bank}
@@ -591,7 +591,7 @@ function PaymentContent() {
 
                 {payment.phone && (
                   <CopyRow
-                    label="Phone number"
+                    label={t('payment.phone')}
                     value={payment.phone}
                     copyKey="phone"
                     activeCopy={activeCopy}
@@ -603,8 +603,7 @@ function PaymentContent() {
                 <div className="flex items-center gap-2 mt-1 pt-3 border-t border-indigo-100">
                   <ShieldCheck className="size-4 text-indigo-400 shrink-0" />
                   <p className="text-[11px] text-indigo-500 leading-snug">
-                    Complete this transfer in your banking app, then tap the
-                    button below.
+                    {t('payment.completeInBankApp')}
                   </p>
                 </div>
               </div>
@@ -620,9 +619,7 @@ function PaymentContent() {
               className="w-full flex items-center gap-2 p-4 text-left"
             >
               <span className="flex-1 font-[family-name:var(--font-space-grotesk)] text-sm font-bold text-gray-800">
-                {showQr
-                  ? 'Pay with Transferencias 3.0'
-                  : 'Ver QR para pagar desde otra pantalla'}
+                {showQr ? t('payment.qrTitle') : t('payment.qrShow')}
               </span>
               <ChevronDown
                 className={cn(
@@ -640,7 +637,7 @@ function PaymentContent() {
                   recipientName={payment.accountHolder}
                 />
                 <p className="mt-2 text-center text-[11px] text-gray-400">
-                  Scan with any bank or wallet app · BCRA interoperable QR
+                  {t('payment.qrScanHint')}
                 </p>
               </div>
             )}
