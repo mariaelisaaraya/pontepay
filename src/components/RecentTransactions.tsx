@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { CircleDollarSign, Lock } from 'lucide-react';
+import { ChevronDown, CircleDollarSign, Lock } from 'lucide-react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useTradeHistory, CompletedTrade } from '@/contexts/TradeHistoryContext';
 import { useStore } from '@/lib/store';
@@ -31,8 +30,8 @@ interface HorizonPaymentRecord {
   created_at: string;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', {
+function formatDate(iso: string, lang: string): string {
+  return new Date(iso).toLocaleDateString(lang === 'es' ? 'es-AR' : 'en-US', {
     month: 'long',
     day: 'numeric',
   });
@@ -87,8 +86,11 @@ async function fetchUsdcTransfers(address: string, t: (k: 'home.usdcReceived' | 
     });
 }
 
+const COLLAPSED_COUNT = 5;
+
 export default function RecentTransactions() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const [showAll, setShowAll] = useState(false);
   const { ready, authenticated } = usePrivy();
   const { trades, loading } = useTradeHistory();
   const walletAddress = useStore((state) => state.user.walletAddress);
@@ -107,10 +109,11 @@ export default function RecentTransactions() {
   const transferItems =
     transfers && transfers.address === walletAddress ? transfers.items : [];
 
-  const transactions = [...trades.map((tr) => mapTrade(tr, t)), ...transferItems]
-    .sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime())
-    .slice(0, 5);
-  const isEmpty = transactions.length === 0;
+  const allTransactions = [...trades.map((tr) => mapTrade(tr, t)), ...transferItems]
+    .sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime());
+  const transactions = showAll ? allTransactions : allTransactions.slice(0, COLLAPSED_COUNT);
+  const hasMore = allTransactions.length > COLLAPSED_COUNT;
+  const isEmpty = allTransactions.length === 0;
 
   if (!ready || loading) return null;
 
@@ -138,13 +141,19 @@ export default function RecentTransactions() {
         <h3 className="text-[10px] font-semibold uppercase tracking-[0.5px] text-gray-500">
           {t('home.recentActivity')}
         </h3>
-        {!isEmpty && (
-          <Link
-            href="/orders"
-            className="text-xs font-medium text-primary-700 hover:text-primary-800 transition-colors"
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setShowAll((v) => !v)}
+            aria-expanded={showAll}
+            className="flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800 transition-colors"
           >
-            {t('home.viewAll')}
-          </Link>
+            {showAll ? t('home.viewLess') : t('home.viewAll')}
+            <ChevronDown
+              className={`size-3.5 transition-transform ${showAll ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
+          </button>
         )}
       </div>
 
@@ -166,7 +175,7 @@ export default function RecentTransactions() {
                 <CircleDollarSign className="h-5 w-5 shrink-0 text-[#4F46E5]" aria-hidden />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{tx.title}</p>
-                  <p className="text-xs text-gray-400">{formatDate(tx.dateIso)}</p>
+                  <p className="text-xs text-gray-400">{formatDate(tx.dateIso, lang)}</p>
                 </div>
               </div>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-sm font-semibold text-gray-900 tabular-nums">
