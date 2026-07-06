@@ -129,6 +129,13 @@ const en = {
 
   // Orders
   'orders.title': 'My Orders',
+  'orders.completedBadge': 'Completed',
+  'orders.detailDate': 'Date',
+  'orders.detailCounterparty': 'Counterparty',
+  'orders.detailTotal': 'Total',
+  'orders.detailInternalId': 'Internal ID',
+  'orders.viewOnChain': 'View transaction on-chain',
+  'orders.noTxHash': 'No on-chain hash recorded for this trade (older record).',
   'orders.active': 'Active',
   'orders.completed': 'Completed',
   'orders.disputed': 'Disputed',
@@ -405,6 +412,13 @@ const es: Record<TranslationKey, string> = {
 
   // Órdenes
   'orders.title': 'Mis órdenes',
+  'orders.completedBadge': 'Completada',
+  'orders.detailDate': 'Fecha',
+  'orders.detailCounterparty': 'Contraparte',
+  'orders.detailTotal': 'Total',
+  'orders.detailInternalId': 'ID interno',
+  'orders.viewOnChain': 'Ver transacción on-chain',
+  'orders.noTxHash': 'Esta operación no registró hash on-chain (registro anterior).',
   'orders.active': 'Activas',
   'orders.completed': 'Completadas',
   'orders.disputed': 'En disputa',

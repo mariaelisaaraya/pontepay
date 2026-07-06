@@ -14,6 +14,8 @@ export interface CompletedTrade {
   status: 'completed';
   paymentMethod: string;
   txnId: string;
+  /** Confirmed Stellar tx hash of the buyer's submit_fiat_payment (when available). */
+  txHash?: string;
 }
 
 interface TradeHistoryContextType {

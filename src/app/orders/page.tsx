@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Package, RefreshCw, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronDown, ExternalLink, LayoutDashboard, Package, RefreshCw, SlidersHorizontal, X } from 'lucide-react';
 
 import EmptyState from '@/components/EmptyState';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -194,6 +194,7 @@ export default function OrdersPage() {
   const { trades: completedTrades } = useTradeHistory();
 
   const [activeTab, setActiveTab] = useState<TabType>('active');
+  const [expandedTradeId, setExpandedTradeId] = useState<string | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [filters, setFilters] = useState<OrderFilters>(DEFAULT_FILTERS);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -346,45 +347,100 @@ export default function OrdersPage() {
       {visibleOrders.length > 0 || (activeTab === 'completed' && filteredTrades.length > 0) ? (
         <div className="space-y-3">
           {activeTab === 'completed' &&
-            filteredTrades.map((trade) => (
-              <div
-                key={trade.id}
-                className="w-full rounded-xl border border-gray-200 bg-white p-4 text-left"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
-                    {trade.type.toUpperCase()}
-                  </span>
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
-                    Completed
-                  </span>
-                </div>
+            filteredTrades.map((trade) => {
+              const isExpanded = expandedTradeId === trade.id;
+              return (
+                <div
+                  key={trade.id}
+                  className="w-full rounded-xl border border-gray-200 bg-white text-left"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setExpandedTradeId(isExpanded ? null : trade.id)}
+                    aria-expanded={isExpanded}
+                    className="w-full p-4 text-left"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700">
+                        {trade.type.toUpperCase()}
+                      </span>
+                      <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+                        {t('orders.completedBadge')}
+                      </span>
+                    </div>
 
-                <div className="mt-3">
-                  <p className="text-xl font-display font-semibold text-dark-500">
-                    {trade.amount.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{' '}
-                    USDC
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    1 USDC = {trade.rate.toLocaleString('en-US')} ARS · {trade.marketMaker}
-                  </p>
-                </div>
+                    <div className="mt-3">
+                      <p className="text-xl font-display font-semibold text-dark-500">
+                        {trade.amount.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{' '}
+                        USDC
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        1 USDC = {trade.rate.toLocaleString('en-US')} ARS · {trade.marketMaker}
+                      </p>
+                    </div>
 
-                <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                  <span>{trade.paymentMethod}</span>
-                  <span>
-                    {new Date(trade.date).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}{' '}
-                    · {trade.txnId}
-                  </span>
+                    <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+                      <span>{trade.paymentMethod}</span>
+                      <span className="flex items-center gap-1">
+                        {new Date(trade.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}{' '}
+                        · {trade.txnId}
+                        <ChevronDown
+                          className={cn('size-3.5 transition-transform', isExpanded && 'rotate-180')}
+                        />
+                      </span>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="border-t border-gray-100 px-4 py-3 space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">{t('orders.detailDate')}</span>
+                        <span className="text-gray-700">
+                          {new Date(trade.date).toLocaleString('es-AR', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">{t('orders.detailCounterparty')}</span>
+                        <span className="text-gray-700">{trade.marketMaker}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">{t('orders.detailTotal')}</span>
+                        <span className="font-[family-name:var(--font-jetbrains-mono)] text-gray-700 tabular-nums">
+                          {trade.arsReceived.toLocaleString('es-AR', { maximumFractionDigits: 2 })} ARS
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">{t('orders.detailInternalId')}</span>
+                        <span className="font-[family-name:var(--font-jetbrains-mono)] text-gray-700">
+                          {trade.txnId}
+                        </span>
+                      </div>
+                      {trade.txHash ? (
+                        <a
+                          href={`https://stellar.expert/explorer/testnet/tx/${trade.txHash}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                        >
+                          {t('orders.viewOnChain')} <ExternalLink className="size-3.5" />
+                        </a>
+                      ) : (
+                        <p className="pt-1 text-[11px] text-gray-400">{t('orders.noTxHash')}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           {visibleOrders.map((order) => {
             const createdAt = toDate(order.createdAt);
             return (

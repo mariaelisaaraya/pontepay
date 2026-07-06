@@ -36,6 +36,7 @@ function WaitingContent() {
   const intentUsdc = parseFloat(searchParams.get('intentUsdc') || searchParams.get('requestedAmount') || String(fillUsdc));
   const mode = (searchParams.get('mode') || 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') || '';
+  const txHash = searchParams.get('tx') || '';
   // Demo orders walk the screens without on-chain reads; real orders poll the
   // contract until the seller confirms and USDC is released.
   const isDemo = searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
@@ -50,9 +51,9 @@ function WaitingContent() {
 
   const navigateToSuccess = useCallback(() => {
     router.push(
-      `/trade/success?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc.toFixed(2)}&intentUsdc=${intentUsdc.toFixed(2)}&mode=${mode}&orderId=${orderId}${isDemo ? '&demo=1' : ''}`,
+      `/trade/success?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc.toFixed(2)}&intentUsdc=${intentUsdc.toFixed(2)}&mode=${mode}&orderId=${orderId}${isDemo ? '&demo=1' : ''}${txHash ? `&tx=${encodeURIComponent(txHash)}` : ''}`,
     );
-  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, router]);
+  }, [fillUsdc, flowId, intentUsdc, isDemo, mode, orderId, router, txHash]);
 
   const pollOrder = useCallback(async () => {
     if (!orderId) {

@@ -38,13 +38,13 @@ function releaseLock(key: string): void {
   inFlight.delete(key);
 }
 
-// Called when the taker hits "Confirm Trade".
+// Called when the taker hits "Confirm Trade". Returns the confirmed tx hash.
 export async function takeOrder(args: {
   wallet: PrivyStellarWallet;
   caller: string;
   orderId: string;
   fillAmount: number;
-}): Promise<void> {
+}): Promise<string> {
   const key = `takeOrder:${args.orderId}`;
   if (!acquireLock(key)) {
     throw new Error('takeOrder: ya hay una transacción en curso para esta orden.');
@@ -56,18 +56,18 @@ export async function takeOrder(args: {
       order_id: BigInt(args.orderId),
       fill_amount: BigInt(Math.round(args.fillAmount * 10_000_000)),
     });
-    await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
+    return await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
   } finally {
     releaseLock(key);
   }
 }
 
-// Called when the fiat buyer taps "I've sent the payment".
+// Called when the fiat buyer taps "I've sent the payment". Returns the tx hash.
 export async function submitFiatPayment(args: {
   wallet: PrivyStellarWallet;
   caller: string;
   orderId: string;
-}): Promise<void> {
+}): Promise<string> {
   const key = `submitFiatPayment:${args.orderId}`;
   if (!acquireLock(key)) {
     throw new Error('submitFiatPayment: pago ya enviado, esperando confirmación.');
@@ -78,18 +78,19 @@ export async function submitFiatPayment(args: {
       caller: args.caller,
       order_id: BigInt(args.orderId),
     });
-    await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
+    return await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
   } finally {
     releaseLock(key);
   }
 }
 
 // Called when the crypto seller confirms fiat was received → releases USDC.
+// Returns the confirmed tx hash.
 export async function confirmFiatPayment(args: {
   wallet: PrivyStellarWallet;
   caller: string;
   orderId: string;
-}): Promise<void> {
+}): Promise<string> {
   const key = `confirmFiatPayment:${args.orderId}`;
   if (!acquireLock(key)) {
     throw new Error('confirmFiatPayment: confirmación ya en curso.');
@@ -100,7 +101,7 @@ export async function confirmFiatPayment(args: {
       caller: args.caller,
       order_id: BigInt(args.orderId),
     });
-    await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
+    return await sorobanSubmit(tx, (xdr) => args.wallet.signEscrowXdr(xdr));
   } finally {
     releaseLock(key);
   }

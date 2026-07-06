@@ -55,6 +55,10 @@ function SuccessContent() {
   const isDemo =
     searchParams.get("demo") === "1" || orderId.startsWith("demo-") || !orderId;
 
+  // Real Stellar tx hash threaded through from the payment submit (absent for
+  // demo runs and flows completed before hashes were recorded).
+  const txHash = searchParams.get("tx") || "";
+
   const txnId = (() => {
     const raw = orderId || flowId;
     if (!raw || raw === 'test' || raw === 'demo') return null;
@@ -108,10 +112,11 @@ function SuccessContent() {
       marketMaker: makerLabel,
       paymentMethod: paymentMethodUsed,
       txnId: txnId ?? `#${Date.now().toString(36).toUpperCase()}`,
+      ...(txHash ? { txHash } : {}),
     });
 
     sessionStorage.setItem(processedKey, "true");
-  }, [addTrade, fillUsdc, flowId, isDemo, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate]);
+  }, [addTrade, fillUsdc, flowId, isDemo, makerLabel, mode, orderId, paymentMethodUsed, totalPaid, rate, txHash, txnId]);
 
   const handleCopy = async () => {
     try {

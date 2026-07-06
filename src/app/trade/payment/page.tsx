@@ -360,7 +360,7 @@ function PaymentContent() {
     setIsSubmitting(true);
     try {
       if (!wallet) throw new Error('Wallet not ready');
-      await submitFiatPayment({
+      const txHash = await submitFiatPayment({
         wallet,
         caller: walletAddress,
         orderId,
@@ -368,7 +368,7 @@ function PaymentContent() {
       updateOrderStatus(orderId, 'AwaitingConfirmation');
       await refreshOrdersFromChain();
       router.push(
-        `/trade/waiting?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}`,
+        `/trade/waiting?flowId=${encodeURIComponent(flowId)}&fillUsdc=${fillUsdc}&intentUsdc=${intentUsdc}&mode=${mode}&orderId=${orderId}&tx=${encodeURIComponent(txHash)}`,
       );
     } catch (err) {
       console.error('Failed to submit fiat payment', err);
