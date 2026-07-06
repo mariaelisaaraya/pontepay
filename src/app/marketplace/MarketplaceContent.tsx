@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '@/lib/store';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useLiveRate } from '@/lib/useLiveRate';
 import OrderCard from '@/components/OrderCard';
 import OrderCardSkeleton from '@/components/OrderCardSkeleton';
 import EmptyState from '@/components/EmptyState';
@@ -34,6 +35,7 @@ const sortOptions = [
 
 export default function MarketplaceContent() {
   const { t } = useLanguage();
+  const liveRate = useLiveRate();
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('type') as TabType) || 'buy';
 
@@ -217,6 +219,22 @@ export default function MarketplaceContent() {
           {/* Results count */}
           <span className="ml-auto text-sm text-gray-500">
             {filteredOrders.length} {t('market.offers')}
+          </span>
+        </div>
+
+        {/* On-chain reference rate — read through the P2P contract's
+            cross-contract call into the Reflector SEP-40 oracle. Gives users
+            a market anchor to judge offers against. */}
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-2.5">
+          <span className="flex items-center gap-2 text-xs text-gray-500">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+            </span>
+            {t('market.oracleRef')}
+          </span>
+          <span className="text-sm font-semibold tabular-nums text-gray-900">
+            1 USDC = {liveRate.usdArs.toLocaleString('es-AR')} ARS
           </span>
         </div>
 
