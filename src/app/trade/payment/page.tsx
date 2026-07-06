@@ -21,6 +21,7 @@ import Transferencias30QR from '@/components/trade/Transferencias30QR';
 import DemoBanner from '@/components/DemoBanner';
 import { submitFiatPayment } from '@/lib/trade-actions';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { getFeeTier } from '@/lib/pricing';
 import { useLiveRate } from '@/lib/useLiveRate';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -88,7 +89,6 @@ const PAYMENT_DETAILS: Record<number, PaymentDetails> = {
   },
 };
 
-const FEE_RATE = 0.005;
 const COUNTDOWN_SECONDS = 15 * 60; // 15 minutes
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -288,7 +288,8 @@ function PaymentContent() {
   // Amounts (live USD/ARS rate: Reflector oracle / BCRA, with constant fallback)
   const rate = useLiveRate().usdArs;
   const fiatGross = fillUsdc * rate;
-  const feeArs = fillUsdc * FEE_RATE * rate;
+  // Mirrors the contract's tiered platform fee (see lib/pricing FEE_TIERS).
+  const feeArs = fillUsdc * (getFeeTier(fillUsdc).spreadBps / 10_000) * rate;
   const totalToPay = fiatGross - feeArs;
   const isAdjusted = Math.abs(intentUsdc - fillUsdc) > 0.0001;
 

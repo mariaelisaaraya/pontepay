@@ -13,8 +13,8 @@ import {
 } from "@/lib/vendor-payment-request";
 import { useStore } from "@/lib/store";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { getFeeTier } from "@/lib/pricing";
 
-const FEE_RATE = 0.005;
 
 function shortAddress(address: string): string {
   return address.length > 12
@@ -78,7 +78,8 @@ function SuccessContent() {
 
   const rate = useLiveRate().usdArs;
   const fiatAmount = fillUsdc * rate;
-  const feeArs = fillUsdc * FEE_RATE * rate;
+  // Mirrors the contract's tiered platform fee (see lib/pricing FEE_TIERS).
+  const feeArs = fillUsdc * (getFeeTier(fillUsdc).spreadBps / 10_000) * rate;
   const totalPaid = fiatAmount - feeArs;
   const isAdjustedAmount = Math.abs(intentUsdc - fillUsdc) > 0.0001;
 

@@ -1,170 +1,141 @@
-# PeerlyPay — Pitch Deck (script para presentar)
+# PontePay — Pitch Deck (script para presentar)
 
-> **Formato:** ~10 slides. Cada slide trae **título**, **bullets en pantalla** y una **nota del orador** (lo que se dice, no se proyecta).
+> **Formato:** 7 slides. Cada slide trae **título**, **bullets en pantalla** y una **nota del orador** (lo que se dice, no se proyecta).
 > **Idioma:** español rioplatense. **Duración objetivo:** 4-5 min de pitch + demo de 1-2 min.
-> **Hackathon:** PULSO Argentina (NearX + Stellar Development Foundation). Deadline 30-jun-2026, pitch presencial en Buenos Aires el 6-jul-2026.
-> **Estado del producto:** testnet vivo, contrato Soroban desplegado, 20/20 tests Rust pasando. Lo que es mock está marcado honestamente en el README (la rúbrica premia documentar los mocks).
+> **Hackathon:** PULSO Argentina (NearX + Stellar Development Foundation). Pitch presencial en Buenos Aires el 6-jul-2026.
+> **Estado del producto:** testnet vivo — contrato V2 con comisiones escalonadas, 28/28 tests Rust, 25+ órdenes on-chain, oráculo Reflector visible en la app, SEP-24 completo, APY DeFindex en vivo.
+> **App:** https://pontepay.vercel.app · **Contrato:** `CAVPPFFQ…3PMH` ([stellar.expert](https://stellar.expert/explorer/testnet/contract/CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH))
 
 ---
 
 ## Slide 1 — El problema: cobrás en dólar, vivís en peso
 
 **En pantalla:**
-- En Argentina, las **stablecoins fueron más de la mitad de todas las compras de cripto en pesos** entre jul-2024 y jun-2025 (Chainalysis, *2025 Latin America Crypto Report*).
+- En Argentina, las **stablecoins fueron más de la mitad de todas las compras de cripto en pesos** (Chainalysis, *2025 Latin America Crypto Report*).
 - Argentina es **#2 de Latinoamérica por volumen** cripto.
-- Drivers estructurales: **inflación persistente, volatilidad cambiaria y controles de capital (cepo)**.
-- No es una moda de bull market: es **demanda estructural** de refugio en dólar digital.
+- Hoy convertir USDC a pesos = exchange **custodial** (entregás las llaves) o P2P informal **sin garantías**.
+- Falta una rampa **no-custodial**, transparente y atada al sistema de pagos argentino.
 
 **Nota del orador:**
-"Arranco con un dato que no es opinión: según el informe LATAM 2025 de Chainalysis, en Argentina las stablecoins explican más de la mitad de las compras de cripto medidas en pesos. Somos el segundo mercado de la región. Y esto no es entusiasmo de mercado alcista: es una respuesta estructural a la inflación, a la volatilidad del peso y al cepo. La gente no especula, se cubre. Con la disinflación de la era Milei la tasa de crecimiento se moderó, pero la demanda de fondo sigue intacta: el problema que resolvemos no se va a ir."
+"Arranco con un dato que no es opinión: según Chainalysis, en Argentina las stablecoins explican más de la mitad de las compras de cripto en pesos. Somos el segundo mercado de la región. ¿Quién está atrás de ese número? El freelancer que factura afuera y cobra en USDC, el dev remoto, el nómade. Todos los meses el mismo ritual: pasar dólar digital a pesos para el alquiler y el super. Y las opciones son malas: o un exchange custodial donde entregás tus llaves, o un Telegram donde transferís y rezás. Ese es el problema."
 
 ---
 
-## Slide 2 — Quién sufre: el freelancer dolarizado
+## Slide 2 — La solución: PontePay
 
 **En pantalla:**
-- **Freelancers, nómades digitales y remote workers** argentinos cobran en **USDC** y gastan en **pesos**.
-- Cada mes: convertir cripto a ARS para pagar alquiler, super, servicios.
-- Hoy: o usan exchanges **custodiales** (entregás las llaves) o P2P informal **sin escrow** (confianza ciega, riesgo de fraude).
-- Falta: una rampa **no-custodial**, transparente y atada a la transferencia bancaria local.
+- **Marketplace P2P no-custodial** USDC (Stellar) ↔ peso argentino.
+- El USDC queda **bloqueado en un contrato Soroban (escrow)**; se libera solo cuando ambas partes confirman.
+- La pata en pesos viaja por **Transferencias 3.0 del BCRA** (QR interoperable EMVCo).
+- Sin seed phrases: **ingresás con tu email** (Privy crea la wallet Stellar). Sin jerga cripto.
 
 **Nota del orador:**
-"¿Quién es la persona concreta? El freelancer que factura a una empresa de afuera y cobra en USDC, el nómade digital, el dev remoto. Todos los meses tienen el mismo ritual: pasar dólar digital a pesos para vivir. Hoy las opciones son malas: o un exchange custodial donde entregás tus llaves, o un P2P informal por grupo de Telegram donde mandás plata y rezás. No hay escrow, no hay garantía. Nosotros le hablamos a esa persona."
+"PontePay es un marketplace P2P mobile-first: alguien publica una orden, otro la toma, y el USDC queda bloqueado en un contrato Soroban. Cuando el pago en pesos se confirma — por Transferencias 3.0, el estándar del Banco Central — el contrato libera la cripto. Si hay conflicto, lo resuelve un dispute resolver on-chain, y si la contraparte desaparece hay timeout automático que devuelve los fondos. En ningún momento una empresa custodia tu plata: el árbitro es el contrato. Y la entrada es un email — la abuela puede usarlo: nunca ve una seed phrase ni la palabra wallet."
 
 ---
 
-## Slide 3 — La solución: PeerlyPay
+## Slide 3 — Demo en vivo: todo verificable
 
 **En pantalla:**
-- **Marketplace P2P no-custodial** USDC (Stellar) ↔ peso argentino (ARS).
-- El creador publica una orden (vender cripto por pesos / comprar cripto con pesos); el taker la toma.
-- El **USDC queda en escrow en un contrato Soroban**; una parte prueba el pago fiat off-chain y el contrato libera al destinatario correcto.
-- **Disputas resueltas on-chain** por un `dispute_resolver`. Vos siempre tenés el control de tus fondos.
+- **Mercado:** 25+ órdenes reales on-chain + **tasa de referencia del oráculo Reflector a la vista**.
+- **Flujo completo:** confirmar → pagar (QR T3.0 / alias para copiar) → esperando → éxito.
+- **Mis órdenes:** cada trade completado se expande y muestra su **hash on-chain → stellar.expert**.
+- `GET /api/rates` → `"source": "contract"` · `GET /api/defindex/apy` → APY en vivo.
 
 **Nota del orador:**
-"PeerlyPay es un marketplace P2P, mobile-first y no-custodial, para cambiar USDC en Stellar por pesos y viceversa. El flujo es simple: alguien publica una orden, otro la toma, el USDC se bloquea en un contrato Soroban en escrow. Cuando se prueba el pago en pesos por fuera de la cadena, el contrato libera la cripto a quien corresponde. Si hay conflicto, se resuelve on-chain mediante un resolutor de disputas. La clave: en ningún momento un tercero custodia tus fondos. El contrato es el árbitro, no una empresa."
+"Ahora la demo, y el hilo conductor es: nada de lo que ven es cartón pintado. El Mercado lista órdenes que viven en el contrato, con la tasa de referencia del oráculo arriba — ese número verde no lo ponemos nosotros. Tomamos una orden, pagamos la pata en pesos con el QR de Transferencias 3.0 — o copiando el alias si estás en el celular — y cuando el vendedor confirma, el contrato libera el USDC. El final es mi parte favorita: en Mis órdenes tocás la operación y tenés el botón 'Ver transacción on-chain' que te lleva al hash real en stellar.expert. Cualquiera del jurado puede verificarlo desde su teléfono ahora mismo."
+
+> **Plan B (si falla la red):** video de demo de 1-2 min grabado + captura de `/api/rates` con `source:"contract"` + captura del hash en stellar.expert.
 
 ---
 
-## Slide 4 — Por qué Stellar: profundidad de integración
+## Slide 4 — Por qué Stellar: cinco building blocks cargando peso
 
 **En pantalla:**
-- **Contrato Soroban desplegado en testnet:** `CC2CA5LKXWRSYMYKFO66MJPM2AFPO7UB5C2AKW2HYPARKNS426CD76TJ` — 20/20 tests Rust pasando.
-- **Oráculo Reflector on-chain (SEP-40):** nuestro contrato hace una **cross-contract call** a Reflector y devuelve la tasa ARS/USD viva. `reference_rate(ARS) ≈ 1461`. Reemplazó un `MOCK_RATE` hardcodeado.
-- **Crossmint smart wallets** (email-signer, testnet): escrituras reales al contrato con polling on-chain cada 5s.
-- **SEP-24 anchor discovery:** leemos en vivo las capacidades del anchor testnet de la SDF (USDC deposit/withdraw, SEP-10 auth).
+- **Escrow Soroban (contrato propio, Rust):** create/take/confirm/dispute/timeout · **28/28 tests** · fills parciales.
+- **Oráculo Reflector (SEP-40):** nuestro contrato hace una **cross-contract call** → tasa ARS/USD viva, imposible de manipular.
+- **Privy:** email → wallet Stellar embebida que firma transacciones Soroban reales.
+- **SEP-10 + SEP-24 completos:** challenge firmado → JWT → depósito interactivo con cualquier anchor.
+- **DeFindex:** el USDC ocioso rinde — APY leído del vault en tiempo real.
 
 **Nota del orador:**
-"Acá está la profundidad técnica, que es uno de los cuatro criterios del jurado. Stellar no es un slide decorativo: es el motor. Tenemos un contrato Soroban desplegado y testeado, 20 de 20 tests pasando. La feature estrella: la tasa de cambio no la pone un admin a dedo. Nuestro propio contrato llama on-chain, en una cross-contract call, al oráculo Reflector SEP-40, y devuelve la tasa ARS/USD real, hoy alrededor de 1461. Antes teníamos un mock hardcodeado de 1485; lo matamos. Las firmas las maneja Crossmint con smart wallets, y descubrimos en vivo las capacidades del anchor SEP-24 de la Stellar Development Foundation. Cuatro building blocks reales, todos cargando peso."
+"La profundidad técnica, primer criterio del jurado. Cinco piezas, todas reales. Uno: un contrato escrow propio en Rust con veintiocho tests — incluyendo fills parciales, disputas y timeouts. Dos, la feature estrella: la tasa no la pone un admin — nuestro contrato llama on-chain al oráculo Reflector, el mismo que usa todo el ecosistema; es una cross-contract call que pueden auditar. Tres: Privy convierte un email en una wallet Stellar que firma de verdad. Cuatro: SEP-10 y SEP-24 completos, no solo discovery — challenge firmado, JWT, y el popup interactivo del anchor. Cinco: mientras no operás, tu USDC rinde en un vault de DeFindex con APY leído en vivo. Cinco building blocks del ecosistema, cero decoración."
 
 ---
 
-## Slide 5 — El diferenciador argentino: Transferencias 3.0
+## Slide 5 — Modelo de negocio: el contrato cobra solo
 
 **En pantalla:**
-- La pantalla de pago genera un **QR interoperable EMVCo MPM** (CRC16/CCITT) = una solicitud de **Transferencias 3.0 del BCRA** por el monto en pesos.
-- Ese QR es **el gatillo off-chain** que libera el escrow on-chain. **No conocemos otro proyecto que puentee T3.0 con Stellar.**
-- **Transparencia de tasa oficial BCRA:** mostramos la cotización oficial USD/ARS del Banco Central junto a la de mercado (la brecha, a la vista).
-- Competidores (Lemon, Belo, Buenbit, Ripio) son **mayormente custodiales**. Anclap probó que ARS-on-Stellar es real; nosotros sumamos **no-custodial + T3.0**.
+- **Comisión de plataforma escalonada, cobrada on-chain** al liberarse cada escrow:
+
+| Tamaño del trade | Comisión |
+|---|---|
+| Hasta 10 USDC | 2,5% |
+| 10 – 50 USDC | 1,5% |
+| 50 – 200 USDC | 1,0% |
+| Más de 200 USDC | 0,8% |
+
+- Sin facturación, sin cobranza: **el contrato retiene la comisión en USDC** y la envía a la plataforma en la misma transacción.
+- Escalonada = **premia el volumen** y es competitiva contra el spread oculto de los custodiales.
+- Verificable: `get_fee_tiers` en el contrato. **Transparencia total: el fee está en el código.**
 
 **Nota del orador:**
-"Acá nos despegamos. La pata en pesos se hace con Transferencias 3.0, el estándar de pagos interoperables del Banco Central. En la pantalla de pago renderizamos un QR EMVCo real, con su CRC, que representa una solicitud T3.0 por el monto exacto. Ese pago en el mundo bancario es lo que dispara la liberación del escrow en la cadena. Hasta donde sabemos, nadie más está puenteando Transferencias 3.0 con Stellar. Y sumamos transparencia: mostramos la tasa oficial del BCRA al lado de la de mercado, así se ve la brecha. Los incumbentes —Lemon, Belo, Buenbit, Ripio— son mayormente custodiales. Anclap ya demostró que el peso vive en Stellar; nosotros agregamos lo que falta: no-custodial y nativo de Argentina."
+"¿Cómo ganamos plata? Simple y verificable: una comisión escalonada que el propio contrato cobra al liberar cada escrow. Dos y medio por ciento para operaciones chicas, bajando hasta cero coma ocho para las grandes. No hay facturación ni cobranza — el contrato retiene su parte en USDC en la misma transacción que libera los fondos. Un freelancer que convierte 500 dólares por mes nos deja unos 4 dólares; parece poco, pero escala con cada usuario y sin costo marginal. Y a diferencia de los custodiales, que esconden su margen en el spread, nuestro fee está literalmente en el código del contrato: cualquiera puede leerlo con get_fee_tiers."
 
 ---
 
-## Slide 6 — Demo en vivo
+## Slide 6 — Mercado e impacto en el ecosistema Stellar
 
 **En pantalla:**
-- **/api/rates** → tasa viva *a través de nuestro contrato* (`source: "contract"`, contract=1461, reflector≈1461.92, BCRA oficial=1461).
-- **Flujo real de trade:** confirm → payment (QR T3.0) → waiting (polling on-chain) → success, con escrituras Crossmint reales al contrato.
-- **/anchor:** capacidades SEP-24 del anchor de la SDF, leídas en vivo.
-- Marketplace y detalle de orden enrutan al **flujo real** (sin simulación auto-avanzada).
+- Demanda **estructural** (no de bull market): inflación + cepo → refugio en dólar digital.
+- **Originalidad:** primer puente conocido **Transferencias 3.0 ↔ Stellar**.
+- Trae a Stellar un caso de uso **fiat-local concreto** y ejercita 5 building blocks core.
+- Brecha visible: mostramos la **tasa oficial BCRA** junto a la de mercado.
 
 **Nota del orador:**
-"Lo que vamos a mostrar en vivo: primero, el endpoint de tasas, que lee la cotización pasando por nuestro propio contrato —fíjense que la fuente dice 'contract'— con el fallback a Reflector directo, a BCRA y a constante. Después, el flujo completo de una operación: confirmar, pagar con el QR de Transferencias 3.0, esperar mientras hacemos polling on-chain cada 5 segundos, y éxito; todo con escrituras reales al contrato vía Crossmint. Y la página de anchor leyendo las capacidades SEP-24 de la SDF. No hay simulación de cartón: el marketplace entra al flujo real y lee datos reales de la cadena."
-
-> **Plan B (si falla la red en vivo):** tener grabado el video de demo de 1-2 min y una captura de `/api/rates` con `source:"contract"`.
+"Segundo criterio: por qué le importa a Stellar. El mercado argentino es estructural — la gente no especula, se cubre — y nadie más está puenteando Transferencias 3.0 con Stellar: la infraestructura de pagos del Banco Central conectada al escrow on-chain. Para el ecosistema esto valida en un caso real cinco piezas core: Soroban, Reflector, SEP-24, Privy y DeFindex. Y sumamos transparencia argenta: la cotización oficial del BCRA al lado de la de mercado, con la brecha a la vista."
 
 ---
 
-## Slide 7 — Mercado e impacto en el ecosistema Stellar
+## Slide 7 — Equipo, estado real y ask
 
 **En pantalla:**
-- Mercado: **demanda estructural** de USD digital en Argentina (#2 LATAM; stablecoins >50% de compras en ARS — Chainalysis 2025).
-- Aporte al ecosistema: trae a Stellar un **caso de uso fiat-local concreto** (P2P no-custodial + rampa T3.0).
-- Usa y **valida building blocks core de Stellar**: oráculo Reflector (SEP-40), anchors SEP-24, smart wallets.
-- **Originalidad:** primer puente conocido Transferencias 3.0 ↔ Stellar.
+- **Leo · Barb · Eli** — 3 personas, 10 días, PULSO Argentina.
+- **Real hoy:** escrow V2 con fees escalonadas · oráculo on-chain · SEP-24 completo · DeFindex live · hash verificable por trade · CI verde.
+- **Honestos sobre lo que falta:** testnet (mainnet es el siguiente paso) · historial local (backend con reputación en roadmap) · bridge CCTP y corredor a Brasil en modo demo.
+- **Ask:** finalistas → mainnet → **Stellar Summit São Paulo**.
 
 **Nota del orador:**
-"Por qué le importa a Stellar, que es el segundo criterio del jurado, impacto en el ecosistema. El mercado es real y estructural: segundo de la región, stablecoins explicando más de la mitad de las compras en pesos. PeerlyPay le aporta a Stellar un caso de uso fiat-local muy concreto: una rampa P2P no-custodial atada a la infraestructura de pagos argentina. Y ejercitamos building blocks del núcleo de Stellar —Reflector, anchors SEP-24, smart wallets— de forma genuina. La originalidad está en el puente T3.0, que no vimos en ningún otro lado."
-
----
-
-## Slide 8 — Tracción y estado: honestos sobre lo que falta
-
-**En pantalla:**
-- **Vivo en testnet:** contrato desplegado y configurado con oráculo (`set_oracle`), 20/20 tests Rust (incl. 2 tests de oráculo).
-- **Real hoy:** escrow Soroban, lectura de tasa on-chain vía Reflector, escrituras Crossmint, QR T3.0, discovery SEP-24, integración tasa oficial BCRA.
-- **Mock/scaffold (declarado en el README):** SEP-24 deposit/withdraw firmado (discovery sí, firma es el próximo paso); trustline check es stub; sin backend (estado en localStorage/Zustand); disputa cross-chain Base/Slice es solo-docs (la disputa real es single-chain vía `dispute_resolver`).
-- **Roadmap a mainnet:** redeploy desde admin propio fundeado → `make p2p-seed-orders` → completar firma SEP-24 → backend con reputación real.
-
-**Nota del orador:**
-"Estado real, sin maquillaje, porque la rúbrica premia la honestidad. Está vivo en testnet, el contrato está desplegado y con el oráculo configurado, 20 de 20 tests pasan. Es real: el escrow, la lectura de tasa on-chain, las escrituras Crossmint, el QR T3.0, el discovery del anchor y la tasa oficial del BCRA. Lo que es mock lo decimos en el README: el depósito SEP-24 firmado está scaffoldeado, el discovery anda pero la firma es el próximo paso; el chequeo de trustline es un stub; no hay backend todavía, el estado vive en el cliente; y la disputa cross-chain con Base es solo aspiracional en docs, la disputa real es single-chain por el contrato. El camino a mainnet es claro: redeployar desde un admin propio fundeado, sembrar órdenes, cerrar la firma SEP-24 y montar el backend con reputación real."
-
----
-
-## Slide 9 — Equipo
-
-**En pantalla:**
-- **Leo · Barb · Eli** — equipo de 3.
-- Construido en 10 días para PULSO Argentina (NearX + Stellar Development Foundation).
-- Stack: Next.js 16 / React 19 / TypeScript / Tailwind v4 / Zustand · Soroban (Rust, soroban-sdk 23.1.1) · Crossmint.
-- Repo público open-source con README claro y mocks documentados.
-
-**Nota del orador:**
-"Somos tres: Leo, Barb y Eli. Lo construimos en los diez días de PULSO. El stack es moderno de punta a punta: Next.js 16 y React 19 en el front, un contrato Soroban en Rust en la cadena, y Crossmint para las wallets. Todo open-source, repo público, README claro, y los mocks documentados para que el jurado vea exactamente qué es real y qué falta."
-
----
-
-## Slide 10 — Cierre y ask
-
-**En pantalla:**
-- **PeerlyPay = la rampa USDC↔ARS no-custodial que Argentina necesita, nativa de Stellar.**
-- Profundidad real: oráculo on-chain, escrow Soroban, T3.0, anchor SEP-24.
-- **Ask:** pasar a finalistas → completar SEP-24 firmado y desplegar en mainnet → ir al Stellar Summit São Paulo.
-- Repo + demo + 5 entrevistas de descubrimiento → todo en `docs/hackathon/`.
-
-**Nota del orador:**
-"Cierro. PeerlyPay es la rampa no-custodial entre dólar digital y peso que Argentina necesita, y la construimos nativa de Stellar, con profundidad técnica real: oráculo on-chain, escrow Soroban, Transferencias 3.0 y discovery de anchor. Lo que pedimos: queremos llegar a la final, cerrar la firma SEP-24 y desplegar en mainnet, y representar este caso de uso en el Stellar Summit de São Paulo. Todo está en el repo: código, demo y nuestras entrevistas de descubrimiento. Gracias."
+"Somos tres — Leo, Barb y Eli — y esto se construyó en los diez días de PULSO. Lo que vieron es real y lo pueden verificar: el contrato con sus comisiones, el oráculo, el anchor, el yield, cada trade con su hash. Y somos honestos con lo que falta, porque la rúbrica lo premia: estamos en testnet y el paso a mainnet es un redeploy con las claves correctas; el historial vive en el cliente y el backend con reputación real está en el roadmap; el bridge desde otras chains y el corredor a Brasil son demos del flujo, marcados como tales en la app. El pedido: queremos pasar a la final, salir a mainnet, y llevar este caso de uso — el freelancer argentino cobrando en dólar digital y viviendo en pesos — al Stellar Summit de São Paulo. Gracias."
 
 ---
 
 ## Notas para presentar IRL (6 julio, Buenos Aires)
 
-- **Demo grabada como respaldo.** Tener el video de 1-2 min y una captura de `/api/rates` mostrando `source:"contract"` por si el wifi de la sede falla. Nunca dependas solo del internet del lugar.
-- **Redeployar antes del pitch.** El contrato de testnet listado usa una **admin key descartable y no tiene órdenes sembradas**. Redeployá desde una identidad admin propia y fundeada, corré `make p2p-seed-orders` y seteá `NEXT_PUBLIC_P2P_CONTRACT_ID`, así la demo muestra órdenes reales.
-- **Recordá el build env:** la máquina Windows del equipo no tiene linker C; compilá/testeá/desplegá vía WSL Ubuntu (`wsl bash "/mnt/c/.../contracts/<script>.sh"`). No corras los scripts desde Git Bash (rompe los paths `/mnt`).
-- **Abrí con el dato de Chainalysis** (>50% de compras en ARS son stablecoins): es el gancho más fuerte para un jurado argentino. Que lo escuchen en los primeros 15 segundos.
-- **Una persona habla, otra maneja la demo.** Asigná roles: un orador, un piloto de pantalla. Practicá el handoff.
-- **Defendé los mocks, no los escondas.** Si preguntan por SEP-24 firmado o por la disputa cross-chain, respondé con el roadmap. La rúbrica premia honestidad; un mock declarado suma más que una promesa vacía.
-- **Tené a mano el contract ID** (`CC2CA5...`) y el dato 20/20 tests: son pruebas concretas de "deployment de calidad", uno de los cuatro criterios.
-- **Cronometrá.** 4-5 min de pitch + 1-2 de demo. Cortá la nota del orador si te pasás; los bullets en pantalla son el ancla.
-- **Cerrá con el ask del Summit São Paulo.** Conecta tu pedido con el premio: es concreto y memorable.
+- **Demo grabada como respaldo.** Video de 1-2 min + captura de `/api/rates` con `source:"contract"` + captura de un hash en stellar.expert, por si el wifi falla.
+- **El contrato ya está sembrado** (25+ órdenes vivas en `CAVPPFFQ…3PMH`) y la app de producción apunta a él. No hace falta redeployar nada antes del pitch.
+- **Abrí con el dato de Chainalysis** (>50% de compras en ARS son stablecoins): es el gancho más fuerte para un jurado argentino. Primeros 15 segundos.
+- **Una persona habla, otra maneja la demo.** Practicá el handoff antes.
+- **El momento Reflector:** en el Mercado, señalá la línea verde de "Tasa de referencia · Oráculo Reflector" — es la prueba visual de la cross-contract call.
+- **El momento hash:** cerrá la demo tocando un trade completado en Mis órdenes → "Ver transacción on-chain" → stellar.expert. Es la respuesta definitiva a "¿esto es real?".
+- **Defendé el modo demo, no lo escondas.** Las órdenes etiquetadas (demo) y los flujos simulados (bridge, Brasil) existen para que el jurado recorra la app sin fondos. Todo lo simulado está marcado con banner.
+- **Si preguntan por seguridad:** disputas on-chain vía `dispute_resolver` (multisig antes de mainnet), timeouts automáticos de devolución, pausable por admin, y la key filtrada de un proveedor viejo ya fue eliminada y el CI valida cada push.
+- **Cronometrá:** 4-5 min de pitch + 1-2 de demo. Si te pasás, cortá nota del orador — los bullets son el ancla.
 
 ---
 
 ## Mapa de claims → criterios del jurado
 
-Los 4 criterios de PULSO: **(1)** Profundidad de integración y complejidad técnica; **(2)** Impacto en el ecosistema Stellar; **(3)** Customer discovery y validación; **(4)** Calidad del deployment testnet/mainnet.
+Los 4 criterios de PULSO: **(1)** Profundidad de integración técnica; **(2)** Impacto en el ecosistema Stellar; **(3)** Customer discovery y validación; **(4)** Calidad del deployment.
 
-| Claim principal | Slide | Criterio del jurado |
+| Claim principal | Slide | Criterio |
 |---|---|---|
-| Oráculo Reflector SEP-40 leído on-chain vía cross-contract call de nuestro contrato (`reference_rate`≈1461) | 4, 6 | (1) Profundidad técnica |
-| Escrow no-custodial en contrato Soroban + escrituras Crossmint reales con polling on-chain | 3, 4, 6 | (1) Profundidad técnica |
-| Puente Transferencias 3.0 (QR EMVCo BCRA) ↔ Stellar, sin precedente conocido | 5 | (2) Impacto/originalidad en ecosistema |
-| Caso de uso fiat-local concreto que ejercita building blocks core (Reflector, SEP-24, smart wallets) | 7 | (2) Impacto en ecosistema |
-| Mercado estructural: stablecoins >50% de compras en ARS, #2 LATAM (Chainalysis 2025) | 1, 7 | (3) Customer discovery / validación |
-| 5 entrevistas de descubrimiento + transparencia de tasa oficial BCRA (gap mercado vs oficial) | 5, 10 | (3) Customer discovery / validación |
-| Contrato desplegado en testnet (`CC2CA5...`), oráculo configurado, 20/20 tests Rust | 4, 8 | (4) Calidad del deployment |
-| Roadmap a mainnet: redeploy admin propio → seed orders → SEP-24 firmado → backend | 8 | (4) Calidad del deployment |
-| Mocks declarados honestamente en el README (SEP-24 firmado, trustline stub, sin backend, disputa cross-chain solo-docs) | 8 | (4) Calidad + (3) honestidad de validación |
+| Oráculo Reflector leído on-chain vía cross-contract call, visible en el Mercado | 3, 4 | (1) |
+| Escrow Soroban propio: 28/28 tests, fills parciales, disputas, timeouts, fees escalonadas | 4, 5 | (1) |
+| Puente Transferencias 3.0 (QR EMVCo BCRA) ↔ Stellar, sin precedente conocido | 2, 6 | (2) |
+| Cinco building blocks core ejercitados (Soroban, Reflector, SEP-24, Privy, DeFindex) | 4 | (1) + (2) |
+| Mercado estructural: stablecoins >50% de compras en ARS, #2 LATAM (Chainalysis 2025) | 1, 6 | (3) |
+| 5 entrevistas de discovery + brecha oficial/mercado a la vista | 6 | (3) |
+| Contrato V2 en testnet con 25+ órdenes, oráculo configurado, CI verde, hash verificable por trade | 3, 7 | (4) |
+| Modelo de negocio on-chain: fee tiers legibles en el contrato (`get_fee_tiers`) | 5 | (1) + (4) |
+| Demos marcados con banner (bridge, corredor Brasil) — honestidad declarada | 7 | (4) + (3) |
