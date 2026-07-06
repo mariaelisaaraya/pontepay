@@ -78,4 +78,14 @@ next-env.d.ts
 AGENTS.md
 .agents/
 .codex/
-.claude/settings.json
+.claude/
+.aider-desk/
+.augment/
+.hermes/
+.playwright-cli/
+/skills/
+skills-lock.json
+
+# local tool state / scraped data
+.stellar/
+/data/

@@ -1,6 +1,0 @@
-[     130ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
-[   11809ms] [LOG] [Fast Refresh] done in 11795ms @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
-[   12067ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
-[   12125ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
-[   15145ms] [INFO] [p2p] order_count {count: 1} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
-[   15384ms] [INFO] [p2p] loaded orders {requested: 1, loaded: 1} @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_f3530cac._.js:2297
