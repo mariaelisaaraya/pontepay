@@ -283,7 +283,7 @@ sequenceDiagram
 | What | Where |
 |---|---|
 | Live ARS/USD from our contract → Reflector oracle | `GET /api/rates` → `{"source":"contract", "usdArs":1462}` |
-| P2P escrow contract (testnet, 3 live orders) | [stellar.expert/explorer/testnet/contract/CAEHRNAP…](https://stellar.expert/explorer/testnet/contract/CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD) |
+| P2P escrow contract (testnet, 25+ live orders) | [stellar.expert/explorer/testnet/contract/CAVPPFFQ…](https://stellar.expert/explorer/testnet/contract/CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH) |
 | Live SEP-24 anchor capabilities | `GET /api/anchor/info` · in-app at `/anchor` |
 | DeFindex live APY | `GET /api/defindex/apy` → `{"apy":{"apy":10.83}}` |
 | Contract test suite | `cargo test -p p2p` → **20/20 passing** |
@@ -310,7 +310,7 @@ PontePay integrates three building blocks from the [official SCF Integration Lis
 | **Impact on the Stellar ecosystem** | Non-custodial USDC↔ARS ramp for a market where stablecoins are >50% of ARS exchange purchases. Uses four Stellar building blocks: Soroban, Reflector, SEP-24, DeFindex. |
 
 | **Customer discovery & validation** | Interview guide + findings: [docs/hackathon/CUSTOMER_DISCOVERY.md](docs/hackathon/CUSTOMER_DISCOVERY.md) |
-| **Quality of testnet deployment** | Live contract `CAEHRNAP…5JQD`, 3 seed orders, verified on `stellar.expert`. Live `/api/rates` reading through the contract. Platform fee 0.5% active. |
+| **Quality of testnet deployment** | Live contract `CAVPPFFQ…3PMH`, 25+ seed orders, verified on `stellar.expert`. Live `/api/rates` reading through the contract. Tiered platform fee (2.5% → 0.8% by size) active. |
 
 ---
 
@@ -371,7 +371,7 @@ npm run dev                  # http://localhost:3000
 | Variable | Value |
 |---|---|
 | `NEXT_PUBLIC_PRIVY_APP_ID` | your Privy app ID |
-| `NEXT_PUBLIC_P2P_CONTRACT_ID` | `CAEHRNAPSRSFYGG7BRTZY3XX2XEYSCOJUHIJUYO2FYRJATYUXDFA5JQD` |
+| `NEXT_PUBLIC_P2P_CONTRACT_ID` | `CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH` |
 | `NEXT_PUBLIC_SOROBAN_RPC_URL` | `https://soroban-testnet.stellar.org` |
 | `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015` |
 | `NEXT_PUBLIC_REFLECTOR_FIAT_ORACLE_ID` | `CCSSOHTBL3LEWUCBBEB5NJFC2OKFRC74OWEIJIZLRJBGAAU4VMU5NV4W` |
