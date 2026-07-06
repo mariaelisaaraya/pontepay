@@ -80,6 +80,9 @@ export default function TradeChatDrawer({
       return;
     }
 
+    // Hydrating form state from localStorage when the flow id becomes known —
+    // a one-shot sync write, not a render-cascading loop.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setVendorRequest(saved);
     setVendorAlias(saved.alias);
     setVendorRail(saved.rail);

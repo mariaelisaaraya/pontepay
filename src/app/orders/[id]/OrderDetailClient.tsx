@@ -50,7 +50,6 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     loadChainOrderByIdFromContract(orderId)
       .then((chain) => {
         if (active) {

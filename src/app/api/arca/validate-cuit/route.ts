@@ -79,6 +79,7 @@ export async function GET(req: NextRequest) {
         production: process.env.ARCA_PRODUCTION === 'true',
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = await (afip as any).RegisterScopeThirteen.getTaxpayerDetails(
         parseInt(clean),
       );
