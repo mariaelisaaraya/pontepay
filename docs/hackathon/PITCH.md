@@ -88,12 +88,12 @@
 
 **En pantalla:**
 - Demanda **estructural** (no de bull market): inflación + cepo → refugio en dólar digital.
-- **Originalidad:** primer puente conocido **Transferencias 3.0 ↔ Stellar**.
+- **Originalidad:** el único **escrow P2P no-custodial** atado a **Transferencias 3.0** — la pata en pesos dispara la liberación de un contrato Soroban propio.
 - Trae a Stellar un caso de uso **fiat-local concreto** y ejercita 5 building blocks core.
 - Brecha visible: mostramos la **tasa oficial BCRA** junto a la de mercado.
 
 **Nota del orador:**
-"Segundo criterio: por qué le importa a Stellar. El mercado argentino es estructural — la gente no especula, se cubre — y nadie más está puenteando Transferencias 3.0 con Stellar: la infraestructura de pagos del Banco Central conectada al escrow on-chain. Para el ecosistema esto valida en un caso real cinco piezas core: Soroban, Reflector, SEP-24, Privy y DeFindex. Y sumamos transparencia argenta: la cotización oficial del BCRA al lado de la de mercado, con la brecha a la vista."
+"Segundo criterio: por qué le importa a Stellar. El mercado argentino es estructural — la gente no especula, se cubre. Y nuestra combinación no la tiene nadie: Transferencias 3.0 conectada a un escrow Soroban propio, no-custodial, con la tasa saliendo de un oráculo on-chain. Otros proyectos tocan la pata de pagos en pesos; ninguno la ata a un contrato propio que custodia los fondos. Para el ecosistema esto valida en un caso real cinco piezas core: Soroban, Reflector, SEP-24, Privy y DeFindex. Y sumamos transparencia argenta: la cotización oficial del BCRA al lado de la de mercado, con la brecha a la vista."
 
 ---
 
@@ -132,7 +132,7 @@ Los 4 criterios de PULSO: **(1)** Profundidad de integración técnica; **(2)** 
 |---|---|---|
 | Oráculo Reflector leído on-chain vía cross-contract call, visible en el Mercado | 3, 4 | (1) |
 | Escrow Soroban propio: 28/28 tests, fills parciales, disputas, timeouts, fees escalonadas | 4, 5 | (1) |
-| Puente Transferencias 3.0 (QR EMVCo BCRA) ↔ Stellar, sin precedente conocido | 2, 6 | (2) |
+| Único escrow P2P no-custodial (Soroban propio) disparado por Transferencias 3.0 | 2, 6 | (2) |
 | Cinco building blocks core ejercitados (Soroban, Reflector, SEP-24, Privy, DeFindex) | 4 | (1) + (2) |
 | Mercado estructural: stablecoins >50% de compras en ARS, #2 LATAM (Chainalysis 2025) | 1, 6 | (3) |
 | 5 entrevistas de discovery + brecha oficial/mercado a la vista | 6 | (3) |
