@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
@@ -8,10 +8,13 @@ import {
   Info,
   X,
   CheckCircle2,
+  XCircle,
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLiveRate } from '@/lib/useLiveRate';
+import { useLanguage } from '@/contexts/LanguageContext';
+import type { TranslationKey } from '@/i18n/translations';
 import {
   fetchSep31Info,
   initiateSep31Payment,
@@ -38,17 +41,14 @@ function fmt(n: number, decimals = 2) {
   });
 }
 
-function statusLabel(s: Sep31Transaction['status']): string {
-  const map: Record<string, string> = {
-    pending_sender: 'Waiting for transfer',
-    pending_stellar: 'Confirming payment',
-    pending_receiver: 'Almost there',
-    pending_external: 'Sending BRL via PIX',
-    completed: 'Delivered',
-    error: 'Error',
-  };
-  return map[s] ?? s.replace(/_/g, ' ');
-}
+const STATUS_KEYS: Record<string, TranslationKey> = {
+  pending_sender: 'corridor.statusPendingSender',
+  pending_stellar: 'corridor.statusPendingStellar',
+  pending_receiver: 'corridor.statusPendingReceiver',
+  pending_external: 'corridor.statusPendingExternal',
+  completed: 'corridor.statusCompleted',
+  error: 'corridor.statusError',
+};
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
@@ -57,6 +57,7 @@ type Stage = 'form' | 'confirming' | 'polling' | 'done' | 'error';
 export default function CorridorPage() {
   const router = useRouter();
   const { usdArs } = useLiveRate();
+  const { t } = useLanguage();
 
   const [arsAmount, setArsAmount] = useState('');
   const [recipientName, setRecipientName] = useState('');
@@ -67,6 +68,14 @@ export default function CorridorPage() {
   const [, setSep31Info] = useState<Sep31Info | null>(null);
   const [infoOpen, setInfoOpen] = useState(false);
 
+  // Demo-simulation timers — cleared on unmount and before a new simulation
+  const simTimersRef = useRef<number[]>([]);
+  const clearSimTimers = useCallback(() => {
+    simTimersRef.current.forEach((id) => window.clearTimeout(id));
+    simTimersRef.current = [];
+  }, []);
+  useEffect(() => clearSimTimers, [clearSimTimers]);
+
   // Live exchange rate from Reflector (ARS/USD)
   const arsNum = parseFloat(arsAmount.replace(',', '.')) || 0;
   const usdcAmount = usdArs > 0 && arsNum > 0 ? arsNum / usdArs : 0;
@@ -74,6 +83,21 @@ export default function CorridorPage() {
 
   const canSubmit =
     arsNum > 0 && recipientName.trim().length > 0 && recipientPix.trim().length > 0;
+
+  const statusLabel = useCallback(
+    (s: Sep31Transaction['status']): string => {
+      const key = STATUS_KEYS[s];
+      return key ? t(key) : s.replace(/_/g, ' ');
+    },
+    [t],
+  );
+
+  const resetFlow = useCallback(() => {
+    clearSimTimers();
+    setStage('form');
+    setTxId(null);
+    setTxStatus(null);
+  }, [clearSimTimers]);
 
   // Load SEP-31 /info on mount (kept for real anchor capability check)
   useEffect(() => {
@@ -84,9 +108,9 @@ export default function CorridorPage() {
       });
   }, []);
 
-  // Poll transaction status when we have an ID
+  // Poll transaction status when we have an ID (skip simulated demo txs)
   useEffect(() => {
-    if (stage !== 'polling' || !txId) return;
+    if (stage !== 'polling' || !txId || txId.startsWith('sim-')) return;
     let cancelled = false;
 
     const poll = async () => {
@@ -137,24 +161,27 @@ export default function CorridorPage() {
       setTxId(`sim-${Date.now().toString(16)}`);
       setStage('polling');
       // Simulate a status progression for the demo
-      setTimeout(() => {
-        setTxStatus({ id: `sim-${Date.now()}`, status: 'pending_stellar' });
-      }, 1500);
-      setTimeout(() => {
-        setTxStatus({ id: `sim-${Date.now()}`, status: 'pending_receiver' });
-      }, 3500);
-      setTimeout(() => {
-        setTxStatus({
-          id: `sim-${Date.now()}`,
-          status: 'completed',
-          amount_in: `${usdcAmount.toFixed(7)} USDC`,
-          amount_out: `${brlAmount.toFixed(2)} BRL`,
-          amount_fee: '0.50 USDC',
-        });
-        setStage('done');
-      }, 6000);
+      clearSimTimers();
+      simTimersRef.current.push(
+        window.setTimeout(() => {
+          setTxStatus({ id: `sim-${Date.now()}`, status: 'pending_stellar' });
+        }, 1500),
+        window.setTimeout(() => {
+          setTxStatus({ id: `sim-${Date.now()}`, status: 'pending_receiver' });
+        }, 3500),
+        window.setTimeout(() => {
+          setTxStatus({
+            id: `sim-${Date.now()}`,
+            status: 'completed',
+            amount_in: `${usdcAmount.toFixed(7)} USDC`,
+            amount_out: `${brlAmount.toFixed(2)} BRL`,
+            amount_fee: '0.50 USDC',
+          });
+          setStage('done');
+        }, 6000),
+      );
     }
-  }, [canSubmit, brlAmount, recipientPix, usdcAmount]);
+  }, [canSubmit, brlAmount, recipientName, recipientPix, usdcAmount, clearSimTimers]);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col bg-white">
@@ -162,28 +189,28 @@ export default function CorridorPage() {
       <div className="px-4 pt-4 pb-3 flex items-center gap-3 border-b border-gray-100">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => router.push('/')}
           className="flex items-center justify-center size-10 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors active:scale-95"
-          aria-label="Go back"
+          aria-label={t('corridor.back')}
         >
           <ArrowLeft className="size-5 text-gray-900" />
         </button>
         <div className="min-w-0">
           <div className="flex items-center gap-1.5">
             <h2 className="font-[family-name:var(--font-space-grotesk)] text-[17px] font-bold text-gray-900 leading-tight">
-              Send money to Brazil
+              {t('corridor.title')}
             </h2>
             <button
               type="button"
               onClick={() => setInfoOpen(true)}
               className="flex items-center justify-center size-6 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-              aria-label="How does it work?"
+              aria-label={t('corridor.how')}
             >
               <Info className="size-4" />
             </button>
           </div>
           <p className="text-[12px] text-gray-400 leading-none mt-0.5">
-            ARS → BRL via PIX
+            {t('corridor.subtitle')}
           </p>
         </div>
       </div>
@@ -193,11 +220,15 @@ export default function CorridorPage() {
           <div className="space-y-3">
             {/* You send */}
             <div className="rounded-2xl border border-gray-200 bg-white px-4 py-3.5">
-              <label className="block text-[12px] font-medium text-gray-400 mb-1">
-                You send
+              <label
+                htmlFor="corridor-ars"
+                className="block text-[12px] font-medium text-gray-400 mb-1"
+              >
+                {t('corridor.youSend')}
               </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="corridor-ars"
                   type="number"
                   min={0}
                   step="any"
@@ -220,11 +251,15 @@ export default function CorridorPage() {
 
             {/* They receive */}
             <div className="rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3.5">
-              <label className="block text-[12px] font-medium text-gray-400 mb-1">
-                They receive
+              <label
+                htmlFor="corridor-brl"
+                className="block text-[12px] font-medium text-gray-400 mb-1"
+              >
+                {t('corridor.theyReceive')}
               </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="corridor-brl"
                   type="text"
                   readOnly
                   value={brlAmount > 0 ? fmt(brlAmount) : ''}
@@ -234,34 +269,42 @@ export default function CorridorPage() {
                 <span className="shrink-0 text-[15px] font-bold text-gray-500">BRL</span>
               </div>
               <p className="mt-1.5 text-[11px] text-gray-400 tabular-nums">
-                1 USD = {usdArs > 0 ? fmt(usdArs, 0) : '—'} ARS · {APPROX_BRL_PER_USD} BRL · Reflector oracle
+                1 USD = {usdArs > 0 ? fmt(usdArs, 0) : '—'} ARS · {APPROX_BRL_PER_USD} BRL · {t('corridor.rateSource')}
               </p>
             </div>
 
             {/* Recipient name */}
             <div>
-              <label className="block text-[12px] font-medium text-gray-400 mb-1.5">
-                Recipient name
+              <label
+                htmlFor="corridor-recipient-name"
+                className="block text-[12px] font-medium text-gray-400 mb-1.5"
+              >
+                {t('corridor.recipientName')}
               </label>
               <input
+                id="corridor-recipient-name"
                 type="text"
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
-                placeholder="Full name"
+                placeholder={t('corridor.recipientNamePlaceholder')}
                 className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-[14px] text-gray-900 outline-none focus:border-gray-400"
               />
             </div>
 
             {/* PIX key */}
             <div>
-              <label className="block text-[12px] font-medium text-gray-400 mb-1.5">
-                PIX key
+              <label
+                htmlFor="corridor-pix"
+                className="block text-[12px] font-medium text-gray-400 mb-1.5"
+              >
+                {t('corridor.pixKey')}
               </label>
               <input
+                id="corridor-pix"
                 type="text"
                 value={recipientPix}
                 onChange={(e) => setRecipientPix(e.target.value)}
-                placeholder="CPF, phone, email or random key"
+                placeholder={t('corridor.pixPlaceholder')}
                 className="w-full h-12 rounded-xl border border-gray-200 bg-white px-4 text-[14px] text-gray-900 outline-none focus:border-gray-400"
               />
             </div>
@@ -272,23 +315,33 @@ export default function CorridorPage() {
         {(stage === 'polling' || stage === 'done' || stage === 'error') && txStatus && (
           <div className={cn(
             'rounded-2xl border p-5 space-y-3',
-            stage === 'done' ? 'border-lime-200 bg-lime-50' : 'border-gray-200 bg-gray-50',
+            stage === 'done'
+              ? 'border-lime-200 bg-lime-50'
+              : stage === 'error'
+                ? 'border-red-200 bg-red-50'
+                : 'border-gray-200 bg-gray-50',
           )}>
             <div className="flex items-center gap-2.5">
               {stage === 'done' ? (
                 <CheckCircle2 className="size-6 text-lime-500" />
+              ) : stage === 'error' ? (
+                <XCircle className="size-6 text-red-500" />
               ) : (
                 <Loader2 className="size-6 animate-spin" style={{ color: BRAND }} />
               )}
               <span className={cn(
                 'text-[15px] font-bold',
-                stage === 'done' ? 'text-lime-700' : 'text-gray-800',
+                stage === 'done'
+                  ? 'text-lime-700'
+                  : stage === 'error'
+                    ? 'text-red-700'
+                    : 'text-gray-800',
               )}>
                 {statusLabel(txStatus.status)}
               </span>
             </div>
             <div className="flex items-baseline justify-between">
-              <span className="text-[13px] text-gray-500">{recipientName || 'Recipient'}</span>
+              <span className="text-[13px] text-gray-500">{recipientName || t('corridor.recipient')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[15px] font-semibold text-gray-900 tabular-nums">
                 {txStatus.amount_out ?? `${fmt(brlAmount)} BRL`}
               </span>
@@ -310,21 +363,21 @@ export default function CorridorPage() {
             )}
             style={{ backgroundColor: BRAND }}
           >
-            Send BRL to Brazil
+            {t('corridor.cta')}
           </button>
         )}
 
         {stage === 'confirming' && (
           <div className="w-full rounded-2xl py-4 bg-gray-100 flex items-center justify-center gap-2">
             <Loader2 className="size-5 text-gray-400 animate-spin" />
-            <span className="text-sm text-gray-400 font-medium">Sending…</span>
+            <span className="text-sm text-gray-400 font-medium">{t('corridor.sending')}</span>
           </div>
         )}
 
         {stage === 'polling' && (
           <div className="w-full rounded-2xl py-4 bg-gray-50 border border-gray-100 flex items-center justify-center gap-2">
             <Loader2 className="size-5 animate-spin" style={{ color: BRAND }} />
-            <span className="text-sm font-medium" style={{ color: BRAND }}>Waiting for confirmation…</span>
+            <span className="text-sm font-medium" style={{ color: BRAND }}>{t('corridor.waiting')}</span>
           </div>
         )}
 
@@ -336,21 +389,39 @@ export default function CorridorPage() {
               className="w-full rounded-2xl py-4 font-semibold text-white transition-all active:scale-[0.98] hover:opacity-90"
               style={{ backgroundColor: BRAND }}
             >
-              Back to marketplace
+              {t('corridor.backToMarketplace')}
             </button>
             <button
               type="button"
               onClick={() => {
-                setStage('form');
-                setTxId(null);
-                setTxStatus(null);
+                resetFlow();
                 setArsAmount('');
                 setRecipientName('');
                 setRecipientPix('');
               }}
               className="w-full py-2.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
-              Send another transfer
+              {t('corridor.sendAnother')}
+            </button>
+          </>
+        )}
+
+        {stage === 'error' && (
+          <>
+            <button
+              type="button"
+              onClick={resetFlow}
+              className="w-full rounded-2xl py-4 font-semibold text-white transition-all active:scale-[0.98] hover:opacity-90"
+              style={{ backgroundColor: BRAND }}
+            >
+              {t('corridor.tryAgain')}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/orders')}
+              className="w-full py-2.5 text-sm text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {t('corridor.backToMarketplace')}
             </button>
           </>
         )}
@@ -359,7 +430,7 @@ export default function CorridorPage() {
       {/* Info modal */}
       {infoOpen && (
         <div
-          className="absolute inset-0 z-50 flex items-end justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4"
           onClick={() => setInfoOpen(false)}
         >
           <div
@@ -368,13 +439,13 @@ export default function CorridorPage() {
           >
             <div className="flex items-start justify-between mb-5">
               <h3 className="font-[family-name:var(--font-space-grotesk)] text-[19px] font-bold text-gray-900">
-                How does it work?
+                {t('corridor.how')}
               </h3>
               <button
                 type="button"
                 onClick={() => setInfoOpen(false)}
                 className="flex items-center justify-center size-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                aria-label="Close"
+                aria-label={t('corridor.close')}
               >
                 <X className="size-5" />
               </button>
@@ -384,19 +455,19 @@ export default function CorridorPage() {
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">🔒</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  Your pesos go into a secure escrow contract on Stellar
+                  {t('corridor.infoEscrow')}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">⚡</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  USDC moves on Stellar in ~5 seconds
+                  {t('corridor.infoSpeed')}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">🇧🇷</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  The recipient receives BRL via PIX instantly
+                  {t('corridor.infoPix')}
                 </p>
               </div>
             </div>
@@ -408,7 +479,7 @@ export default function CorridorPage() {
               className="mt-5 inline-flex items-center gap-1 text-[13px] font-medium"
               style={{ color: BRAND }}
             >
-              Learn more about SEP-31 →
+              {t('corridor.infoLearnMore')}
             </a>
           </div>
         </div>

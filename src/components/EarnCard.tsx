@@ -32,7 +32,6 @@ export default function EarnCard() {
   const [apy, setApy] = useState<number | null>(null);
   const [balance, setBalance] = useState<{ dfTokens: string; usdcValue: string } | null>(null);
   const [apyLoading, setApyLoading] = useState(true);
-  const [balanceLoading, setBalanceLoading] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [step, setStep] = useState<ActionStep>({ status: 'idle' });
@@ -41,13 +40,12 @@ export default function EarnCard() {
   useEffect(() => {
     let active = true;
     fetch('/api/defindex/apy')
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
       .then((data) => {
         if (!active) return;
         // Endpoint returns a flat { apy: number }; guard for a nested shape too.
-        const value =
-          typeof data?.apy === 'number' ? data.apy : (data?.apy?.apy ?? null);
-        setApy(value);
+        const raw = typeof data?.apy === 'number' ? data.apy : data?.apy?.apy;
+        setApy(typeof raw === 'number' && Number.isFinite(raw) ? raw : null);
       })
       .catch(() => { if (active) setApy(null); })
       .finally(() => { if (active) setApyLoading(false); });
@@ -57,13 +55,15 @@ export default function EarnCard() {
   useEffect(() => {
     if (!effectiveAddress) return;
     let active = true;
-    setBalanceLoading(true);
     defindexGetBalance(effectiveAddress)
       .then((val) => { if (active) setBalance(val); })
       .catch(() => { if (active) setBalance({ dfTokens: '0', usdcValue: '0' }); })
-      .finally(() => { if (active) setBalanceLoading(false); });
     return () => { active = false; };
   }, [effectiveAddress]);
+
+  // Loading = wallet connected but the first balance fetch hasn't resolved yet
+  // (both .then and .catch above set a non-null balance).
+  const balanceLoading = !!effectiveAddress && balance === null;
 
   async function handleDeposit() {
     if (!wallet) return;
@@ -132,7 +132,7 @@ export default function EarnCard() {
         )}
         {!apyLoading && apy === null && (
           <span className="ml-auto inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-400">
-            APY no disponible
+            {t('earn.apyUnavailable')}
           </span>
         )}
       </div>

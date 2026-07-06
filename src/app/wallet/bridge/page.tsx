@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useStellarWallet } from '@/lib/privy-wallet';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const BRAND = '#014A2D';
 
@@ -67,6 +67,18 @@ const CHAINS = [
 const STELLAR_USDC_ISSUER = 'CAQCFVLOBK5GIULPNZRGATJJMIZL5BSP7X5YJVMGCPTUEPFM4AVSRCJU';
 const STELLAR_USDC_SHORT = `${STELLAR_USDC_ISSUER.slice(0, 8)}…${STELLAR_USDC_ISSUER.slice(-4)}`;
 
+// Fee floor: fee = max(MIN_BRIDGE_FEE, amount * 0.1%), so any amount at or
+// below MIN_BRIDGE_FEE would yield a zero or negative receive.
+const MIN_BRIDGE_FEE = 0.5;
+
+function makeSimulatedTxId() {
+  // Two random draws concatenated, then normalized to exactly 16 hex chars
+  // (a single Math.random().toString(16) can yield very few digits).
+  const hex =
+    Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+  return `0x${hex.padEnd(16, '0').slice(0, 16)}`;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Stage = 'select' | 'confirm' | 'bridging' | 'done';
@@ -74,32 +86,42 @@ type Stage = 'select' | 'confirm' | 'bridging' | 'done';
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function BridgePage() {
-  const router = useRouter();
+  const { t } = useLanguage();
   const { address: stellarAddress } = useStellarWallet();
   const [selectedChain, setSelectedChain] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
   const [stage, setStage] = useState<Stage>('select');
   const [infoOpen, setInfoOpen] = useState(false);
-  const [simulatedTxId] = useState(`0x${Math.random().toString(16).slice(2, 18)}`);
+  const [failedLogos, setFailedLogos] = useState<Record<string, boolean>>({});
+  const [simulatedTxId] = useState(makeSimulatedTxId);
+  const bridgeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear the simulated-bridge timer if the page unmounts mid-flight.
+  useEffect(() => {
+    return () => {
+      if (bridgeTimerRef.current) clearTimeout(bridgeTimerRef.current);
+    };
+  }, []);
 
   const walletShort = stellarAddress
     ? `${stellarAddress.slice(0, 6)}…${stellarAddress.slice(-4)}`
-    : 'Your Privy wallet';
+    : t('bridge.yourPrivyWallet');
 
   const chain = CHAINS.find((c) => c.id === selectedChain);
   const parsedAmount = parseFloat(amount) || 0;
-  const fee = parsedAmount > 0 ? Math.max(0.5, parsedAmount * 0.001) : 0;
+  const fee = parsedAmount > 0 ? Math.max(MIN_BRIDGE_FEE, parsedAmount * 0.001) : 0;
   const youReceive = parsedAmount > 0 ? parsedAmount - fee : 0;
+  const amountTooLow = parsedAmount > 0 && youReceive <= 0;
 
   function handleConfirm() {
-    if (!chain || parsedAmount <= 0) return;
+    if (!chain || youReceive <= 0) return;
     setStage('confirm');
   }
 
   function handleBridge() {
     setStage('bridging');
     // Simulate 4-second bridge
-    setTimeout(() => setStage('done'), 4000);
+    bridgeTimerRef.current = setTimeout(() => setStage('done'), 4000);
   }
 
   // ── Done ──────────────────────────────────────────────────────────────────
@@ -111,20 +133,20 @@ export default function BridgePage() {
             <CheckCircle2 className="size-8 text-emerald-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-gray-900">Bridge complete</p>
+            <p className="text-xl font-bold text-gray-900">{t('bridge.doneTitle')}</p>
             <p className="mt-1 text-sm text-gray-500">
-              {fmt(youReceive)} USDC arrived on your Stellar wallet
+              {fmt(youReceive)} USDC {t('bridge.doneArrived')}
             </p>
           </div>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100">
-          <Row label="From" value={`${chain?.logo} ${chain?.name}`} />
-          <Row label="Amount sent" value={`${fmt(parsedAmount)} USDC`} />
-          <Row label="Bridge fee" value={`${fmt(fee)} USDC`} />
-          <Row label="Received on Stellar" value={`${fmt(youReceive)} USDC`} mono />
+          <Row label={t('bridge.from')} value={`${chain?.logo} ${chain?.name}`} />
+          <Row label={t('bridge.amountSent')} value={`${fmt(parsedAmount)} USDC`} />
+          <Row label={t('bridge.fee')} value={`${fmt(fee)} USDC`} />
+          <Row label={t('bridge.receivedOnStellar')} value={`${fmt(youReceive)} USDC`} mono />
           <Row label="CCTP Tx" value={`${simulatedTxId.slice(0, 12)}…`} mono />
-          <Row label="Protocol" value="Circle CCTP v2" />
+          <Row label={t('bridge.protocol')} value="Circle CCTP v2" />
         </div>
 
         <a
@@ -133,14 +155,15 @@ export default function BridgePage() {
           rel="noopener noreferrer"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
         >
-          View on {chain?.name} explorer <ExternalLink className="size-4" />
+          {t('bridge.viewExplorerBefore')} {chain?.name} {t('bridge.viewExplorerAfter')}{' '}
+          <ExternalLink className="size-4" />
         </a>
 
         <Link
           href="/"
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary-500)] py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-600)]"
         >
-          Back to home
+          {t('bridge.backHome')}
         </Link>
       </div>
     );
@@ -154,14 +177,16 @@ export default function BridgePage() {
           <Loader2 className="size-8 animate-spin text-indigo-600" />
         </div>
         <div>
-          <p className="text-lg font-bold text-gray-900">Bridging via Circle CCTP</p>
+          <p className="text-lg font-bold text-gray-900">{t('bridge.bridgingTitle')}</p>
           <p className="mt-1 text-sm text-gray-500">
-            Burning USDC on {chain?.name} and minting on Stellar…
+            {t('bridge.burningBefore')} {chain?.name} {t('bridge.burningAfter')}
           </p>
-          <p className="mt-3 text-xs text-gray-400">Est. {chain?.estimatedMinutes} min</p>
+          <p className="mt-3 text-xs text-gray-400">
+            {t('bridge.estPrefix')} {chain?.estimatedMinutes} min
+          </p>
         </div>
         <div className="w-full max-w-xs space-y-3 text-left">
-          {['Locking USDC on source chain', 'Circle attestation', 'Minting on Stellar'].map(
+          {[t('bridge.stepLock'), t('bridge.stepAttest'), t('bridge.stepMint')].map(
             (step, i) => (
               <div key={step} className="flex items-center gap-3 text-sm">
                 <Loader2
@@ -190,11 +215,11 @@ export default function BridgePage() {
           onClick={() => setStage('select')}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800"
         >
-          <ArrowLeft className="size-4" /> Back
+          <ArrowLeft className="size-4" /> {t('bridge.back')}
         </button>
 
         <h1 className="font-[family-name:var(--font-space-grotesk)] text-xl font-bold text-gray-900">
-          Confirm bridge
+          {t('bridge.confirmTitle')}
         </h1>
 
         {/* Route visual */}
@@ -211,18 +236,18 @@ export default function BridgePage() {
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100">
-          <Row label="You send" value={`${fmt(parsedAmount)} USDC`} />
-          <Row label="Bridge fee (0.1%)" value={`${fmt(fee)} USDC`} />
-          <Row label="You receive" value={`${fmt(youReceive)} USDC`} highlight />
-          <Row label="Destination" value={STELLAR_USDC_SHORT} mono />
-          <Row label="Protocol" value="Circle CCTP v2" />
-          <Row label="Est. time" value={`~${chain?.estimatedMinutes} min`} />
+          <Row label={t('bridge.youSend')} value={`${fmt(parsedAmount)} USDC`} />
+          <Row label={t('bridge.feePct')} value={`${fmt(fee)} USDC`} />
+          <Row label={t('bridge.youReceive')} value={`${fmt(youReceive)} USDC`} highlight />
+          <Row label={t('bridge.destination')} value={STELLAR_USDC_SHORT} mono />
+          <Row label={t('bridge.protocol')} value="Circle CCTP v2" />
+          <Row label={t('bridge.estTime')} value={`~${chain?.estimatedMinutes} min`} />
         </div>
 
         <div className="flex items-start gap-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-700">
           <Info className="size-4 shrink-0 mt-0.5" />
           <span>
-            This demo simulates Circle CCTP. In production, your EVM wallet signs the burn transaction on {chain?.name} and USDC is minted natively on Stellar — no wrapping or custodians.
+            {t('bridge.demoNoteBefore')} {chain?.name} {t('bridge.demoNoteAfter')}
           </span>
         </div>
 
@@ -232,38 +257,37 @@ export default function BridgePage() {
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700 active:scale-[0.98] transition-all"
         >
           <ArrowLeftRight className="size-4" />
-          Bridge {fmt(parsedAmount)} USDC to Stellar
+          {t('bridge.bridgePrefix')} {fmt(parsedAmount)} USDC {t('bridge.bridgeSuffix')}
         </button>
       </div>
     );
   }
 
   // ── Select (default) ──────────────────────────────────────────────────────
-  const canBridge = !!selectedChain && parsedAmount > 0;
+  const canBridge = !!selectedChain && youReceive > 0;
 
   return (
     <div className="relative px-4 py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
+        <Link
+          href="/profile"
           className="flex items-center text-gray-500 hover:text-gray-800"
-          aria-label="Go back"
+          aria-label={t('bridge.back')}
         >
           <ArrowLeft className="size-5" />
-        </button>
+        </Link>
         <div className="flex-1 min-w-0">
           <h1 className="font-[family-name:var(--font-space-grotesk)] text-xl font-bold text-gray-900">
-            Move funds to Stellar
+            {t('bridge.title')}
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Powered by Circle CCTP v2</p>
+          <p className="text-xs text-gray-400 mt-0.5">{t('bridge.poweredBy')}</p>
         </div>
         <button
           type="button"
           onClick={() => setInfoOpen(true)}
           className="flex items-center justify-center size-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-          aria-label="How does it work?"
+          aria-label={t('bridge.how')}
         >
           <Info className="size-5" />
         </button>
@@ -271,7 +295,7 @@ export default function BridgePage() {
 
       {/* Step 1 — Source chain */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-500">From</label>
+        <span className="block text-sm font-medium text-gray-500">{t('bridge.from')}</span>
         <div className="grid grid-cols-2 gap-3">
           {CHAINS.map((c) => (
             <button
@@ -285,8 +309,21 @@ export default function BridgePage() {
                   : 'border border-gray-200 bg-white hover:border-gray-300',
               )}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={c.logoUrl} alt={c.name} className="w-8 h-8 object-contain" />
+              {failedLogos[c.id] ? (
+                <span className="flex w-8 h-8 items-center justify-center text-2xl leading-none">
+                  {c.logo}
+                </span>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={c.logoUrl}
+                  alt={c.name}
+                  className="w-8 h-8 object-contain"
+                  onError={() =>
+                    setFailedLogos((prev) => ({ ...prev, [c.id]: true }))
+                  }
+                />
+              )}
               <div>
                 <p className="text-sm font-semibold text-gray-900">{c.name}</p>
                 <p className="text-[11px] text-gray-400">~{c.estimatedMinutes} min</p>
@@ -298,9 +335,12 @@ export default function BridgePage() {
 
       {/* Step 2 — Amount */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-500">Amount (USDC)</label>
+        <label htmlFor="bridge-amount" className="block text-sm font-medium text-gray-500">
+          {t('bridge.amountLabel')}
+        </label>
         <div className="relative">
           <input
+            id="bridge-amount"
             type="number"
             inputMode="decimal"
             placeholder="0.00"
@@ -312,15 +352,20 @@ export default function BridgePage() {
             USDC
           </span>
         </div>
+        {amountTooLow && (
+          <p className="text-xs text-amber-600">
+            {t('bridge.minHintBefore')} {fmt(MIN_BRIDGE_FEE)} USDC {t('bridge.minHintAfter')}
+          </p>
+        )}
       </div>
 
       {/* Step 3 — Destination (read-only) */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-500">To</label>
+        <span className="block text-sm font-medium text-gray-500">{t('bridge.to')}</span>
         <div className="flex items-center gap-3 rounded-2xl bg-gray-50 px-4 py-3.5">
           <span className="text-xl">✦</span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Your Stellar wallet</p>
+            <p className="text-sm font-semibold text-gray-900">{t('bridge.yourStellarWallet')}</p>
             <p className="font-mono text-[11px] text-gray-400 truncate">{walletShort}</p>
           </div>
         </div>
@@ -334,7 +379,7 @@ export default function BridgePage() {
         className="w-full rounded-2xl py-4 font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-40 disabled:pointer-events-none"
         style={{ backgroundColor: BRAND }}
       >
-        Bridge USDC to Stellar
+        {t('bridge.cta')}
       </button>
 
       {/* Info modal */}
@@ -349,13 +394,13 @@ export default function BridgePage() {
           >
             <div className="flex items-start justify-between mb-5">
               <h3 className="font-[family-name:var(--font-space-grotesk)] text-[19px] font-bold text-gray-900">
-                How does it work?
+                {t('bridge.how')}
               </h3>
               <button
                 type="button"
                 onClick={() => setInfoOpen(false)}
                 className="flex items-center justify-center size-8 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-                aria-label="Close"
+                aria-label={t('bridge.close')}
               >
                 <X className="size-5" />
               </button>
@@ -365,19 +410,19 @@ export default function BridgePage() {
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">🔥</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  Your USDC is burned on the source chain
+                  {t('bridge.infoBurn')}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">⚡</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  Circle mints native USDC on Stellar
+                  {t('bridge.infoMint')}
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <span className="text-xl shrink-0 leading-none mt-0.5">✅</span>
                 <p className="text-[14px] text-gray-700 leading-snug">
-                  Arrives in your Privy wallet — no wrapped tokens
+                  {t('bridge.infoArrive')}
                 </p>
               </div>
             </div>
@@ -389,7 +434,7 @@ export default function BridgePage() {
               className="mt-5 inline-flex items-center gap-1 text-[13px] font-medium"
               style={{ color: BRAND }}
             >
-              Learn about Circle CCTP →
+              {t('bridge.infoLearnMore')}
             </a>
           </div>
         </div>
