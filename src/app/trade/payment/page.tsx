@@ -248,7 +248,11 @@ function PaymentContent() {
   );
   const mode = (searchParams.get('mode') ?? 'buy') as 'buy' | 'sell';
   const orderId = searchParams.get('orderId') ?? '';
-  const isDemo = searchParams.get('demo') === '1';
+  // Same demo detection as confirm/waiting/success — the orderId fallback
+  // keeps demo flows working even if the `demo` param arrives mangled
+  // (e.g. a shared link that glued punctuation onto the query string).
+  const isDemo =
+    searchParams.get('demo') === '1' || orderId.startsWith('demo-') || !orderId;
   const { t } = useLanguage();
 
   // Resolve maker info and payment method from order store
