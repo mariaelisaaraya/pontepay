@@ -340,6 +340,23 @@ export default function CorridorPage() {
                 {statusLabel(txStatus.status)}
               </span>
             </div>
+            {stage === 'error' ? (
+              <p className="text-[13px] text-red-600">{t('corridor.errorHint')}</p>
+            ) : (
+              <div className="flex items-baseline justify-between">
+                <span className="text-[13px] text-gray-500">{recipientName || t('corridor.recipient')}</span>
+                <span className="font-[family-name:var(--font-jetbrains-mono)] text-[15px] font-semibold text-gray-900 tabular-nums">
+                  {txStatus.amount_out ?? `${fmt(brlAmount)} BRL`}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* On error, the attempted transfer details live in their own neutral
+            card so they don't read as part of the error message. */}
+        {stage === 'error' && txStatus && (
+          <div className="rounded-2xl border border-gray-200 bg-white p-5">
             <div className="flex items-baseline justify-between">
               <span className="text-[13px] text-gray-500">{recipientName || t('corridor.recipient')}</span>
               <span className="font-[family-name:var(--font-jetbrains-mono)] text-[15px] font-semibold text-gray-900 tabular-nums">
