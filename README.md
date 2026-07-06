@@ -6,6 +6,8 @@
 
 **Send dollars, receive pesos — the contract holds the money until both sides confirm. No middleman, no custody, no frozen funds.**
 
+> 🇦🇷 ¿Preferís leer en español? → [Resumen en español (para el jurado)](#resumen-en-español-para-el-jurado)
+
 ---
 
 # 💡 The Problem
@@ -73,7 +75,7 @@ The contract is the only entity that ever holds funds during a trade.
 
 ## 4. Earn — idle USDC works for you
 
-Between trades, USDC sitting in your wallet earns **10.83% APY** automatically *(live on Stellar testnet)*.
+Between trades, USDC sitting in your wallet earns **~10% APY** automatically *(live rate from DeFindex on Stellar testnet)*.
 
 - Powered by **DeFindex yield vaults** on Stellar
 - Deposit and withdraw any time — no lock-up period
@@ -127,7 +129,7 @@ Idle USDC earns passively while users aren't trading:
 - Deposit → DeFindex SDK builds and signs a Soroban transaction
 - Vault issues dfTokens representing the user's share
 - Withdraw any time — no minimum, no lock-up
-- Live APY: **10.83%**
+- Live APY: fetched in real time from the DeFindex vault
 
 ---
 
@@ -205,7 +207,7 @@ sequenceDiagram
     B->>CTR: submit_fiat_payment
     S->>CTR: confirm_fiat_payment
     CTR-->>B: USDC released to buyer
-    CTR-->>APP: Platform fee (0.5%) collected
+    CTR-->>APP: Tiered platform fee (2.5%→0.8%) collected
 ```
 
 ---
@@ -216,7 +218,7 @@ sequenceDiagram
 graph LR
     U["User has idle USDC"] --> D["Deposit to DeFindex vault"]
     D --> V["Vault issues dfTokens"]
-    V --> Y["10.83% APY accruing"]
+    V --> Y["Live APY accruing"]
     Y --> W["Withdraw any time"]
     W --> U2["USDC + yield returned"]
 ```
@@ -255,7 +257,7 @@ sequenceDiagram
 | **Wallet** | Privy embedded Stellar wallets | Email login, no seed phrase, real Stellar signing |
 | **Escrow** | Soroban P2P contract (Rust) | Trustless, self-custodial, on-chain state machine |
 | **Rate oracle** | Reflector SEP-40 (cross-contract call) | Live ARS/USD rate, not operator-controlled |
-| **Yield vault** | DeFindex SDK | 10.83% APY on idle USDC, no lock-up |
+| **Yield vault** | DeFindex SDK | Live APY on idle USDC, no lock-up |
 | **Anchor** | SEP-10 + SEP-24 (full interactive) | Interoperable deposit/withdraw via any Stellar anchor |
 | **Fiat rail** | Transferencias 3.0 QR (EMVCo / CRC16) | Argentina's BCRA instant payment rail |
 | **Deployment** | Vercel | SSR + edge API routes |
@@ -274,7 +276,7 @@ sequenceDiagram
 
 **Try it in 2 minutes:**
 
-1. **No wallet needed.** Open the app → **Marketplace** → click any of the 3 live seed orders → walk the full flow: **Confirm** (live oracle rate) → **Payment** (Transferencias 3.0 QR) → **Waiting** → **Success**
+1. **No wallet needed.** Open the app → **Marketplace** → take any of the 25+ live orders → walk the full flow: **Confirm** (live oracle rate) → **Payment** (Transferencias 3.0 QR) → **Waiting** → **Success**
 
 2. **With a real wallet.** Click Sign in → enter your email → Privy creates a Stellar wallet automatically → take a real on-chain order
 
@@ -285,8 +287,37 @@ sequenceDiagram
 | Live ARS/USD from our contract → Reflector oracle | `GET /api/rates` → `{"source":"contract", "usdArs":1462}` |
 | P2P escrow contract (testnet, 25+ live orders) | [stellar.expert/explorer/testnet/contract/CAVPPFFQ…](https://stellar.expert/explorer/testnet/contract/CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH) |
 | Live SEP-24 anchor capabilities | `GET /api/anchor/info` · in-app at `/anchor` |
-| DeFindex live APY | `GET /api/defindex/apy` → `{"apy":{"apy":10.83}}` |
-| Contract test suite | `cargo test -p p2p` → **20/20 passing** |
+| DeFindex live APY | `GET /api/defindex/apy` → live APY from the vault |
+| Contract test suite | `cargo test -p p2p` → **28/28 passing** (45 with the escrow suite) |
+
+---
+
+---
+
+## Resumen en español (para el jurado)
+
+**PontePay convierte dólares en pesos sin intermediarios:** el USDC queda bloqueado en un contrato Soroban hasta que ambas partes confirman. Nadie —ni siquiera nosotros— puede tocar los fondos durante el trade.
+
+### Probalo en 2 minutos
+
+**App en vivo:** https://pontepay.vercel.app
+
+1. **Sin billetera:** abrí el Mercado → tocá una orden → recorré el flujo completo: Confirmar (tasa on-chain en vivo) → Pago (QR de Transferencias 3.0) → Espera → Éxito.
+2. **Con billetera real:** Ingresá con tu email (Privy crea una wallet Stellar automáticamente) → tomá una orden real → al completarla, en **Mis órdenes** tocás la operación y el botón **"Ver transacción on-chain"** te lleva al hash real en stellar.expert.
+
+### Qué es real y verificable (no mock)
+
+| Qué | Cómo verificarlo |
+|---|---|
+| Tasa ARS/USD on-chain (Reflector SEP-40, cross-contract call) | `GET /api/rates` → `"source":"contract"` |
+| Escrow P2P con 25+ órdenes vivas y comisión escalonada (2,5% → 0,8%) | [stellar.expert → contrato](https://stellar.expert/explorer/testnet/contract/CAVPPFFQSDJ6ALZPPEDKFL3URUBUDEC6DSPH5S3RS5COEWBRXXBF3PMH) |
+| Rendimiento sobre USDC ocioso (vault DeFindex) | `GET /api/defindex/apy` — APY en vivo |
+| Depósito/retiro vía anchors (SEP-10 + SEP-24 completo) | `GET /api/anchor/info` · en la app: `/anchor` |
+| Tests del contrato | `cargo test -p p2p` → 28/28 |
+
+### Por qué importa
+
+Las stablecoins ya son más del 50% de las compras de ARS en exchanges (Chainalysis 2025). La demanda existe; faltaba un rail no-custodial en lenguaje simple: sin seed phrases, sin jerga cripto, con Transferencias 3.0 como riel de pesos y cada conversión respaldada por un escrow verificable en la cadena.
 
 ---
 
@@ -298,7 +329,7 @@ PontePay integrates three building blocks from the [official SCF Integration Lis
 |---|---|---|
 | **Privy** | Wallet Integration | Embedded Stellar wallets — email login, no seed phrase, real Soroban signing |
 | **SEP-24 Anchor Platform** | On/Off-Ramping | Full SEP-10 + SEP-24 interactive deposit/withdraw flow with any compliant anchor |
-| **DeFindex** | DeFi — Yield Aggregators | Idle USDC earns 10.83% APY in a vault while users aren't trading *(testnet)* |
+| **DeFindex** | DeFi — Yield Aggregators | Idle USDC earns live APY in a DeFindex vault while users aren't trading *(testnet)* |
 
 ---
 
@@ -306,7 +337,7 @@ PontePay integrates three building blocks from the [official SCF Integration Lis
 
 | Criterion | Evidence |
 |---|---|
-| **Integration depth & technical complexity** | Soroban escrow + **cross-contract call** to Reflector SEP-40 for on-chain rate; Privy embedded wallets; full SEP-10 + SEP-24; DeFindex yield vault; Transferencias 3.0 QR. 20/20 contract tests. |
+| **Integration depth & technical complexity** | Soroban escrow + **cross-contract call** to Reflector SEP-40 for on-chain rate; Privy embedded wallets; full SEP-10 + SEP-24; DeFindex yield vault; Transferencias 3.0 QR. 28/28 contract tests. |
 | **Impact on the Stellar ecosystem** | Non-custodial USDC↔ARS ramp for a market where stablecoins are >50% of ARS exchange purchases. Uses four Stellar building blocks: Soroban, Reflector, SEP-24, DeFindex. |
 
 | **Customer discovery & validation** | Interview guide + findings: [docs/hackathon/CUSTOMER_DISCOVERY.md](docs/hackathon/CUSTOMER_DISCOVERY.md) |
@@ -336,7 +367,7 @@ PontePay integrates three building blocks from the [official SCF Integration Lis
 
 ---
 
-## ❓ "DeFindex — is the 10.83% APY real or mocked?"
+## ❓ "DeFindex — is the APY real or mocked?"
 
 > **"It's live. Hit `GET /api/defindex/apy` on the running app — it calls the DeFindex SDK against their testnet vault in real time and returns the actual current APY."**
 
@@ -350,7 +381,7 @@ PontePay integrates three building blocks from the [official SCF Integration Lis
 
 ## ❓ "Is this just a frontend demo or does it do real on-chain things?"
 
-> **"Every order in the marketplace is a real Soroban contract state. The live contract has 3 seeded orders. The oracle rate is a live cross-contract call. DeFindex balance is a live vault query. SEP-10/24 talks to a real anchor. The escrow writes are real Stellar transactions."**
+> **"Every order in the marketplace is a real Soroban contract state. The live contract has 25+ open orders. The oracle rate is a live cross-contract call. DeFindex balance is a live vault query. SEP-10/24 talks to a real anchor. The escrow writes are real Stellar transactions."**
 
 ---
 
@@ -381,7 +412,7 @@ npm run dev                  # http://localhost:3000
 ## Contract (build via WSL/Linux)
 
 ```bash
-cargo test -p p2p                                   # 20/20 passing
+cargo test -p p2p                                   # 28/28 passing
 cargo build -p p2p --target wasm32v1-none --release
 ```
 
