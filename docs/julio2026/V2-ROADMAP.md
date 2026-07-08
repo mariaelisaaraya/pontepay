@@ -65,17 +65,37 @@ El SCF no es un pitch de 5 minutos: es una evaluación técnica con tiempo, dond
 
 ---
 
+## El backend que falta: espejo, no caja fuerte
+
+Hoy la cadena es la fuente de verdad de las órdenes (bien), pero el historial, la reputación y las rachas viven en el navegador de cada usuario — si cambiás de celular, se pierden. Falta un backend, pero **no como el de Meru** (custodial: guarda saldos y mueve plata = caja fuerte que atacar). El nuestro **lee y recuerda, pero nunca toca fondos**:
+
+| Pieza | Qué hace |
+|---|---|
+| **Indexer** | Lee los eventos del contrato (trades, disputas, timeouts) y los guarda en una base de datos |
+| **Reputación** | Calcula el score de cada wallet con sus trades reales (hoy el "98% · 142 trades" de las cards es decorativo) |
+| **Rewards** | Lleva las rachas y el cashback de PontePay Frecuente |
+| **Notificaciones** | Avisa al vendedor "te pagaron, confirmá" (hoy lo hace el maker-bot solo para las órdenes demo) |
+| **Métricas** | Dashboard de volumen/usuarios — la evidencia de tracción que pide el SCF |
+
+**Regla de oro:** este backend no custodia fondos ni guarda claves que muevan plata. Si se cae o lo hackean, nadie pierde un centavo — el espejo se reconstruye releyendo la cadena. Frase para el SCF: *"nuestro backend puede arder en llamas y la plata de los usuarios ni se entera"*.
+
+**Presupuesto:** "Backend infrastructure & indexing" está textualmente en los costos elegibles del handbook.
+
+---
+
 ## El plan por fases
 
 ### Fase 1 — Ordenar la casa (2-3 semanas)
 - [ ] Terminar el refactor pendiente (`refactor/casa-en-orden`: reorganizar `src/lib` por dominios)
 - [ ] Eliminar el proyecto duplicado de Vercel (hoy hay dos deployando el mismo repo — ya nos causó un bug)
 - [ ] Unificar los 3 contratos viejos: dejar solo el V2 y cancelar/documentar los otros
-- [ ] MVP de **PontePay Frecuente**: registro de rachas + devolución al Earn (puede arrancar en el servidor; al contrato después)
+- [ ] **Indexer + historial persistente**: leer eventos del contrato a una base de datos (el cimiento de reputación y rewards)
+- [ ] MVP de **PontePay Frecuente**: registro de rachas + devolución al Earn (sobre el indexer)
 - [ ] Contactar a **Anclap** (el ancla de pesos argentinos en Stellar) para la rampa ARS real de mainnet
 
 ### Fase 2 — Seguridad y mainnet (1-2 meses)
 - [ ] **Passkeys**: firma con huella, clave en el teléfono (hay implementación de referencia de SDF)
+- [ ] **Reputación real + notificaciones** sobre el indexer (score por wallet; aviso al vendedor para confirmar)
 - [ ] Deploy a **mainnet**: dispute resolver como multisig (hoy es una cuenta admin), auditoría informal del contrato
 - [ ] USDC real de Circle en mainnet + Anclap para depositar/retirar pesos de verdad
 
@@ -84,6 +104,50 @@ El SCF no es un pitch de 5 minutos: es una evaluación técnica con tiempo, dond
 - [ ] Conseguir referido (DeFindex / comunidad Stellar Argentina)
 - [ ] Juntar evidencia de tracción: trades reales, usuarios de prueba, el video demo
 - [ ] Presupuesto y milestones (el SCF financia contra entregables)
+
+---
+
+## Las reglas del SCF Build Award (oficiales — y cómo encajamos)
+
+Del [handbook oficial de presupuesto y entregables](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/budget-and-deliverable-guidelines):
+
+**Lo básico:**
+- Premio máximo: **USD 150.000 en XLM** — pero el handbook avisa: *"pedir el máximo no es lo esperado"* y las propuestas que se pasan de costo **rinden mal en la revisión**. Pedir menos y bien justificado gana.
+- Duración máxima del proyecto: **6 meses**.
+- La plata llega en 4 pagos atados a hitos:
+
+| Pago | Cuándo | % |
+|---|---|---|
+| #0 | Al aceptar el premio | 10% |
+| #1 | MVP terminado | 20% |
+| #2 | Testnet terminado | 30% |
+| #3 | **Lanzamiento en mainnet** | 40% |
+
+- ⏰ **Regla de los 90 días:** cada tranche tiene 90 días desde el pago anterior. Si pasás 90 días sin contacto con el SCF, **perdés el saldo restante**. Esto define nuestro ritmo: hay que planear tranches que entren cómodas en 90 días cada una.
+
+**Qué se puede presupuestar (y qué NO):**
+
+| ✅ Elegible | ❌ Prohibido |
+|---|---|
+| Desarrollo y testing de contratos Soroban | Auditorías (las cubre SDF aparte) |
+| Integraciones (Anclap, passkeys, DeFindex) | Marketing / adquisición de usuarios |
+| Backend, indexing, frontend | Bounties, tokens, premios |
+| QA, deploy a mainnet, documentación, SDKs | Trámites legales / registro de empresa |
+| | **Trabajo ya hecho** (no se reembolsa el hackathon) |
+
+**Cómo tienen que ser los entregables:** claros, medibles, **verificables por el revisor** y orientados a resultado. Su propio ejemplo: ✅ *"demo end-to-end de swap en testnet"* vs ❌ *"testing completo"*. **Esta es nuestra cancha** — todo lo que construimos ya es verificable con un click (hash on-chain, `get_fee_tiers`, CI verde).
+
+### Nuestras 3 tranches (borrador para discutir)
+
+El detalle importante: **lo que ya existe no se puede cobrar** — las tranches deben ser trabajo NUEVO. Nuestro plan de fases mapea así:
+
+| Tranche | Entregables (verificables) | Plazo |
+|---|---|---|
+| **#1 MVP** | Indexer + historial persistente (verificable: API pública de historial) + PontePay Frecuente en testnet (cashback al Earn, verificable por transacciones del contrato) + passkeys en beta (video + repo) + infra saneada (CI, un solo deploy) | ~60 días |
+| **#2 Testnet** | Passkeys en producción de testnet + reputación real y notificaciones sobre el indexer + integración Anclap en sandbox (depósito/retiro ARS demo) + dispute resolver multisig + N trades E2E documentados con hashes | ~75 días |
+| **#3 Mainnet** | Contrato V2 en **mainnet** con USDC de Circle + rampa ARS real vía Anclap + apps públicas + métricas de primeros usuarios (dashboard verificable) | ~90 días |
+
+**Presupuesto (a discutir entre los tres):** con equipo de 3 y ~5 meses de trabajo real, un pedido en la zona de **USD 60.000–90.000** es defendible y queda lejos del "overreach" que el handbook penaliza. Regla práctica: cada línea del presupuesto tiene que poder responder "¿qué entregable verificable financia esto?".
 
 ---
 
@@ -105,3 +169,4 @@ El SCF no es un pitch de 5 minutos: es una evaluación técnica con tiempo, dond
 - Reporte de impacto SCF 2025 (dato de Beans×DeFindex 2,5x)
 - Venmo Stash: [venmo.com/stash-rewards](https://venmo.com/stash-rewards) · [anuncio oficial](https://newsroom.paypal-corp.com/2025-11-10-Venmo-Introduces-Venmo-Stash-to-Reinvent-Rewards) · [TechCrunch](https://techcrunch.com/2025/11/10/venmo-launches-cash-back-rewards-program-for-debit-cards/)
 - Hackeo de Bexo: [CriptoNoticias](https://www.criptonoticias.com/seguridad-bitcoin/roban-bitcoin-bexo-wallet/) · [iProUP](https://www.iproup.com/economia-digital/68299-robaron-bitcoin-a-una-wallet-argentina)
+- Reglas del Build Award: [SCF Handbook — Budget & Deliverable Guidelines](https://stellar.gitbook.io/scf-handbook/scf-awards/build-award/budget-and-deliverable-guidelines)
